@@ -35,6 +35,34 @@ The architecture of this network is inspired by the GoogLeNet model. 24 convolut
 - Has an especially difficult time with small objects
 - The number of objects YOLO can detect is limited
 
+### [Small Object Detection in Optical Remote Sensing Images via Modified Faster R-CNN](https://www.mdpi.com/2076-3417/8/5/813)
+
+#### Summary
+	The paper claims to improve object detection for small objects by making the following five modifications to the standard Faster R-CNN architecture:
+Feature map fusion before anchor boxes are proposed
+Shrinking anchor box sizes to match dataset statistics
+Network module to incorporate context
+Random rotations for data pre-processing
+Balanced sampling to combat class imbalance
+
+#### Design
+
+Feature map fusion before anchor boxes are proposed:
+	Draws inspiration from feature pyramid networks.  In a normal scenario, there is a feature map upon which one would propose anchor boxes.  That feature map would be the last layer of some pre-trained network backbone (e.g. ResNet-50).  This paper proposes that we take the last few layers of that pre-trained backbone and fuse them together through addition (and the necessary 1x1 convolutions to reduce the dimensions so that we can add feature maps of different dimensions).  One would then propose anchor boxes on this fused feature map.  The idea is that we can combine high-resolution information with semantically meaningful features, which is important for accurately capturing features for extremely small objects.
+
+Shrinking anchor box sizes to match dataset statistics:
+	The anchor box sizes for standard object detection benchmarks are designed to catch large objects; this paper’s response is to choose better anchor box sizes based on the range of object sizes in the specific problem that the algorithm is facing.  This experimentally improves accuracy.
+
+Network module to incorporate context:
+	Idea is that context can help with object recognition.  Essentially, for each anchor box proposal they also extract a context proposal which encapsulates the anchor box proposal.  Both of these proposals are fed through a combination of ROI layers and some fully connected layers to get the final classifications and coordinates.
+
+Random rotations for data processing:
+	Empirically show that their “RR” method improves accuracy.  However, unclear how it is different than standard rotations in data augmentation. 
+
+Balanced sampling to combat class imbalance:
+	Irrelevant to our problem for now because we do not expect class imbalance.
+
+
 ### [Geospatial Object Detection in High Resolution Satellite Images Based on Multi-Scale Convolutional Neural Network](https://www.mdpi.com/2072-4292/10/1/131/htm)
 
 #### Summary
