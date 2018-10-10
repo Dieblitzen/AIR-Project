@@ -4,6 +4,7 @@
 
 1.  DeepGlobe 2018: A Challenge to Parse the Earth through Satellite Images (https://arxiv.org/pdf/1805.06561.pdf)
 2.  Faster R-CNN (https://arxiv.org/pdf/1506.01497.pdf)
+3.  YOLO (https://www.cv-foundation.org/openaccess/content_cvpr_2016/papers/Redmon_You_Only_Look_CVPR_2016_paper.pdf)
 3.  Small Object Detection in Optical Remote Sensing Images via Modified Faster R-CNN  (https://www.mdpi.com/2076-3417/8/5/813)
 4.  R-CNN for Small Object Detection (https://www.merl.com/publications/docs/TR2016-144.pdf)
 5.  Geospatial Object Detection in High Resolution Satellite Images Based on Multi-Scale Convolutional Neural Network    (https://www.mdpi.com/2072-4292/10/1/131/htm)
