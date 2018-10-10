@@ -10,6 +10,31 @@
 6.  R-CNN for Small Object Detection (https://www.merl.com/publications/docs/TR2016-144.pdf)
 7.  Geospatial Object Detection in High Resolution Satellite Images Based on Multi-Scale Convolutional Neural Network    (https://www.mdpi.com/2072-4292/10/1/131/htm)
 
+### [You Only Look Once: Unified, Real-Time Object Detection](https://www.cv-foundation.org/openaccess/content_cvpr_2016/papers/Redmon_You_Only_Look_CVPR_2016_paper.pdf)
+
+#### Summary 
+
+YOLO approaches object detection as a regression problem. It is a fast and relatively simple network that is used primarily for real-time object detection. YOLO tends to be less accurate and make more localization errors than state of the art techniques, but it is faster, better at generalizing, and less prone to detect false positives than other top architectures.
+
+**Design**  
+YOLO first divides the input image into an SxS grid, where each grid cell is responsible for detecting objects whose centers lie in that cell. Each grid cell predicts B bounding boxes and confidence scores for each box. The confidence scores  reflect the "objectness" of the box and the predicted accuracy of the bounding box. Each grid cell also predicts C conditional class probabilities. By multiplying this and the original confidence scores together, class-specific confidence scores can be assigned to each grid cell.  
+
+The architecture of this network is inspired by the GoogLeNet model. 24 convolutional layers for feature extraction are followed by 2 fully connected layers for outputting coordinates and object probabilities. ![YOLO Architecture](https://cdn-images-1.medium.com/max/1600/1*ZbmrsQJW-Lp72C5KoTnzUg.jpeg)
+
+
+#### Pros
+
+- Fast
+- YOLO is a single network, whereas other methods have separate parts that need to be trained and optimized separately
+- Learns very general representations of objects (better at generalizing than R-CNN, good for geographically different areas?)
+- Sees entire image during training and test time so it's better able to encode contextual information about classes. Because of this, YOLO detects fewer false positives than R-CNNs
+
+#### Cons
+
+- More localization errors than other methods, accuracy worse than state of the art methods. This is because loss is the same for large vs small bounding boxes and while small errors for large boxes are insignificant, small errors in localizing small boxes can be significant. 
+- Has an especially difficult time with small objects
+- The number of objects YOLO can detect is limited
+
 ### [Geospatial Object Detection in High Resolution Satellite Images Based on Multi-Scale Convolutional Neural Network](https://www.mdpi.com/2072-4292/10/1/131/htm)
 
 #### Summary
