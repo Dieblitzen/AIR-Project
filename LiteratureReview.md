@@ -1,5 +1,11 @@
 # Literature Review
 
+**List of Reviewed Articles**
+
+1.  Small Object Detection in Optical Remote Sensing Images via Modified Faster R-CNN
+2.  R-CNN for Small Object Detection
+3.  Geospatial Object Detection in High Resolution Satellite Images Based on Multi-Scale Convolutional Neural Network
+
 ### [Geospatial Object Detection in High Resolution Satellite Images Based on Multi-Scale Convolutional Neural Network](https://www.mdpi.com/2072-4292/10/1/131/htm)
 
 #### Summary
