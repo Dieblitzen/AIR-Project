@@ -65,13 +65,18 @@ Irrelevant to our problem for now because we do not expect class imbalance.
 
 ### [R-CNN for Small Object Detection](https://www.merl.com/publications/docs/TR2016-144.pdf)
 
+#### Summary
+
 The paper claims to improve object detection for small objects by making the following 2 modifications to the standard R-CNN architecture:
 1.  Shrink anchor box sizes
 2.  Context module
 
+#### Design
+
 Shrink anchor box sizes:  Same reasoning as above paper.
 
-Context module: For each proposal, also include a context region which is essentially a larger region enclosing proposal.  Feed both regions into network, and at some point later in the network, concatenate the two different feature maps together.
+Context module: For each proposal, 
+also include a context region which is essentially a larger region enclosing proposal.  Feed both regions into network, and at some point later in the network, concatenate the two different feature maps together.
 
 
 
