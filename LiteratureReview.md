@@ -33,7 +33,35 @@ The architecture of this network is inspired by the GoogLeNet model. 24 convolut
 
 - More localization errors than other methods, accuracy worse than state of the art methods. This is because loss is the same for large vs small bounding boxes and while small errors for large boxes are insignificant, small errors in localizing small boxes can be significant. 
 - Has an especially difficult time with small objects
-- The number of objects YOLO can detect is limited
+- The number of objects YOLO can detect is limited  
+
+### [You Only Look Twice: Rapid Multi-Scale Object Detection in Satellite Imagery](https://arxiv.org/pdf/1805.09512.pdf)
+
+#### Summary 
+YOLT was created to address the difficulties of detecting small objects in high resolution satellite images. Often satellite images can encompass areas many square kilometers in size with hundreds of millions of pixels. Objects in these images can be tiny (10-100 pixels), which makes them very difficult for many other algorithms to detect. YOLT evaluates satellite images of arbitrary size at a rate of 0.5 square km/second. This paper claims that YOLT can localize objects only 5 pixels in size with high confidence. This paper is very vague but there is code we can look at and use. See hps://github.com/CosmiQ/yolt 
+
+**Requirements**   
+Because of the unique challenges faced when working with satellite images, object detection algorithms must take into account (1) small spatial extent of objects, (2) complete rotation invariance, (3) small amounts of training data, and (4) very high resolution inputs.    
+
+**Architecture**  
+YOLT uses a 22 layer architecture that downsamples by a factor of 16. Inputting a 416x416 grid would yield a 26x26 prediction grid. YOLT's architecture is inspired by YOLO, but optimized for small, densely packed objects. A passthrough layer (similar to identity mappings in ResNet) to preserve fine grained features, and each convolutional layer besides the last is batch normalized with leaky relu activation. The last layer predicts bounding boxes and classes. The default number of boxes per grid cell is 5.  
+
+**Training Data**   
+Training data is collected from small chips of large images. Some hyperparameters: 5 boxes per grid cell, initial learning rate of 10^-3, weight decay of 0.0005, momentum of 0.9. Training took 2-3 days on a single NVIDIA Titan X GPU. 
+
+**Test Procedure** . 
+Images of arbitrary size can be partitioned and individually run through a trained model. 
+
+
+#### Pros
+
+- Can evaluate images of arbitrary size
+- Fast
+- Can detect tiny objects in HRES satellite images
+
+#### Cons
+
+- Not optimized for building detection (maybe something we could add)
 
 ### [Small Object Detection in Optical Remote Sensing Images via Modified Faster R-CNN](https://www.mdpi.com/2076-3417/8/5/813)
 
