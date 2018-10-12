@@ -19,12 +19,12 @@ Attempts to reduce the computational bottleneck of region proposal methods in th
 **Design**
 Uses the feature maps created by Fast- RCNN to generate the region proposals. Then, simultaneously regressing on the bounds of the region and the object-ness scores on each location, region proposals are predicted.
 Switches between fine-tuning for object detection and for generating the region proposals, thus sharing the convolutional features between both tasks.
-Generating the region proposals: slide small network over CNN feature map, produce k anchor boxes at each window. Therefore, we have 2k scores for the box-classification layer, and 4k coordinates for the box regression layer. ![Faster-RCNN Architecture](https://www.google.co.in/url?sa=i&rct=j&q=&esrc=s&source=images&cd=&ved=2ahUKEwj2mYnt4f_dAhWqmeAKHUX5DUMQjRx6BAgBEAU&url=https%3A%2F%2Fandrewliao11.github.io%2Fobject%2Fdetection%2F2016%2F07%2F23%2Fdetection%2F&psig=AOvVaw0nSSB9dIalQB16BXKnel0E&ust=1539394573438623)
+Generating the region proposals: slide small network over CNN feature map, produce k anchor boxes at each window. Therefore, we have 2k scores for the box-classification layer, and 4k coordinates for the box regression layer. ![Faster-RCNN Architecture](https://andrewliao11.github.io/images/faster_rcnn/faster_rcnn_netwrok.png)
 
 #### Pros
--Translation Invariant
--Much faster, no extra cost for scale, since single image is used from RCNN architecture
--Anchor boxes replace the much slower selective search
+- Translation Invariant
+- Much faster, no extra cost for scale, since single image is used from RCNN architecture
+- Anchor boxes replace the much slower selective search
 
 #### Cons
 - Still uses regression (linear?)
