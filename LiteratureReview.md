@@ -46,11 +46,11 @@ For road extraction, the state-of-the-art models that were tested were:
 The best results were obtained by training a modified version of [DeepLab](https://arxiv.org/abs/1606.00915) architecture with a ResNet18 backbone and [Focal Loss](https://arxiv.org/abs/1708.02002) (with simple augmentation, no post-processing). Using DeepLab, they got a .545 IoU after training 100 epochs.
 
 For building classification, they covered a few past and current approaches to the task:
-- Mnih used [two locally connected NN layers followed by fully connected layer]. (https://www.cs.toronto.edu/~vmnih/docs/noisy_maps.pdf)
-- [Conv. layers of AlexNet fed into SVM] (https://hal.archives-ouvertes.fr/hal-01264084/document)
-- [CNN based approach] (http://openaccess.thecvf.com/content_cvpr_2017_workshops/w18/papers/Liu_Dense_Semantic_Labeling_CVPR_2017_paper.pdf)
+- Mnih used [two locally connected NN layers followed by fully connected layer](https://www.cs.toronto.edu/~vmnih/docs/noisy_maps.pdf).
+- [Conv. layers of AlexNet fed into SVM](https://hal.archives-ouvertes.fr/hal-01264084/document)
+- [CNN based approach](http://openaccess.thecvf.com/content_cvpr_2017_workshops/w18/papers/Liu_Dense_Semantic_Labeling_CVPR_2017_paper.pdf)
 - FCN-8 segmentation network analyzing IR, R and G data with 5 convolutional layers and augmentation with a model based on nDSM (normalized Digital Surface Model) and NDVI.
-- [U-Net or SegNet approaches to segmentation] (https://hal.inria.fr/hal-01767807/document)
+- [U-Net or SegNet approaches to segmentation](https://hal.inria.fr/hal-01767807/document)
 
 For the baseline, they selected a winner from recent competition on SpaceNet. The competitor used an ensemble of 3 U-Net models to segment an 8-band multi-spectral image, with the additional use of OpenStreetMap data. They then extracted building footprints from the [segmentation](https://arxiv.org/abs/1505.04597). During the competition, this approach produced IoU larger than .8, but it struggles with small objects and close buildings.
 
