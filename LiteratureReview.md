@@ -11,6 +11,50 @@
 7.  Geospatial Object Detection in High Resolution Satellite Images Based on Multi-Scale Convolutional Neural Network    (https://www.mdpi.com/2072-4292/10/1/131/htm)
 8. Using Convolutional Networks and Satellite Imagery to Identify Patterns in Urban Environments at a Large Scale (https://dl.acm.org/citation.cfm?id=3098070)
 
+### [DeepGlobe 2018: A Challenge to Parse the Earth through Satellite Images](https://arxiv.org/pdf/1805.06561.pdf)
+
+#### Summary
+
+This paper introduces DeepGlobe 2018: three new challenges focusing on segmentation, detection, and classification tasks on satellite images. Provides a synopsis on several different datasets used for each task. Specifically, the challenges are road extraction, building detection, and land cover classification.  For each task, the paper covers:
+- The datasets being used 
+- The evaluation criteria of the competitions
+- Baselines for each task
+
+#### Datasets
+
+The DeepGlobe competition uses the DigitalGlobe +Vivid Images for the road extraction task. The data is sampled from both urban and rural areas. GIS experts then crop the images to extract useful and relevant subregions. 
+
+For building detection, DeepGlobe uses SpaceNet Building Detection Dataset. Unlike previous competitions, the SpaceNet dataset uses large areas, which are mainly urban or suburban. A DigitalGlobe team fully annotated each scene, identifying and providing a bounding polygon for each building to the published specification, which were extracted to best represent the building outline. There are around 300,000 total building labels. Each area is also a single satellite image, so the light and atmospheric conditions do not vary. It’s also publicly available on AWS.
+
+DeepGlobe created a new dataset for the land cover classification challenge. The dataset focuses on rural areas. Each satellite image contains RGB data with a pixel resolution of 50cm. Each image is paired with a pixel-wise mask image for land cover annotation, where the mask is an RGB image with 7 classes.
+
+#### Task Outline
+
+The road extraction challenge is a binary classification task. They expect an output mask for each image input, and the outputs will be evaluated using pixel-wise IoU.
+
+The building detection challenge is considered a binary segmentation task, where the output is a list of building polygons. The output will be an F1 with the matching algorithm inspired by Algorithm 2 in this paper[insert link]. The metric emphasizes accurate detection and complete identification of building outlines. During the tiling process, a tile boundary can cut a building into multiple parts, so they ignore buildings with a pixel area of 20 pixels or less. They consider a true positive to be when a detected building and a ground truth building have an IoU greater than .5.
+
+Land cover classification is considered a multi-class segmentation task. The expected output is an RGB mask. Again, IoU is used, but it’s defined slightly different for each of the 7 classes.
+
+#### State of the Art/Baselines
+
+For road extraction, the state-of-the-art models that were tested were:
+- [SegNet](https://arxiv.org/abs/1511.00561)
+- [DeepLab](https://www.ncbi.nlm.nih.gov/pubmed/28463186)
+- [Deep ResNet](https://arxiv.org/abs/1512.03385)
+- [U-Net](https://arxiv.org/abs/1505.04597)
+The best results were obtained by training a modified version of [DeepLab](https://arxiv.org/abs/1606.00915) architecture with a ResNet18 backbone and [Focal Loss](https://arxiv.org/abs/1708.02002) (with simple augmentation, no post-processing). Using DeepLab, they got a .545 IoU after training 100 epochs.
+
+For building classification, they covered a few past and current approaches to the task:
+- Mnih used [two locally connected NN layers followed by fully connected layer]. (https://www.cs.toronto.edu/~vmnih/docs/noisy_maps.pdf)
+- [Conv. layers of AlexNet fed into SVM] (https://hal.archives-ouvertes.fr/hal-01264084/document)
+- [CNN based approach] (http://openaccess.thecvf.com/content_cvpr_2017_workshops/w18/papers/Liu_Dense_Semantic_Labeling_CVPR_2017_paper.pdf)
+- FCN-8 segmentation network analyzing IR, R and G data with 5 convolutional layers and augmentation with a model based on nDSM (normalized Digital Surface Model) and NDVI.
+- [U-Net or SegNet approaches to segmentation] (https://hal.inria.fr/hal-01767807/document)
+
+For the baseline, they selected a winner from recent competition on SpaceNet. The competitor used an ensemble of 3 U-Net models to segment an 8-band multi-spectral image, with the additional use of OpenStreetMap data. They then extracted building footprints from the [segmentation](https://arxiv.org/abs/1505.04597). During the competition, this approach produced IoU larger than .8, but it struggles with small objects and close buildings.
+
+
 ### [Faster-RCNN: Towards Real-Time Object Detection with Region Proposal Networks](https://arxiv.org/pdf/1506.01497.pdf)
 
 #### Summary
