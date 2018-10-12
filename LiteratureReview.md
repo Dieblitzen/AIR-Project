@@ -10,6 +10,27 @@
 6.  R-CNN for Small Object Detection (https://www.merl.com/publications/docs/TR2016-144.pdf)
 7.  Geospatial Object Detection in High Resolution Satellite Images Based on Multi-Scale Convolutional Neural Network    (https://www.mdpi.com/2072-4292/10/1/131/htm)
 
+### [Faster-RCNN: Towards Real-Time Object Detection with Region Proposal Networks](https://arxiv.org/pdf/1506.01497.pdf)
+
+#### Summary
+
+Attempts to reduce the computational bottleneck of region proposal methods in the RCNN architecture. Specifically, replacing selective search with a deep CNN drastically improves cost. Introduces RPNs (regional proposal networks) that share convolutional layers with object detection networks that have been showed to perform well.
+
+**Design**
+Uses the feature maps created by Fast- RCNN to generate the region proposals. Then, simultaneously regressing on the bounds of the region and the object-ness scores on each location, region proposals are predicted.
+Switches between fine-tuning for object detection and for generating the region proposals, thus sharing the convolutional features between both tasks.
+Generating the region proposals: slide small network over CNN feature map, produce k anchor boxes at each window. Therefore, we have 2k scores for the box-classification layer, and 4k coordinates for the box regression layer. ![Faster-RCNN Architecture](https://www.google.co.in/url?sa=i&rct=j&q=&esrc=s&source=images&cd=&ved=2ahUKEwj2mYnt4f_dAhWqmeAKHUX5DUMQjRx6BAgBEAU&url=https%3A%2F%2Fandrewliao11.github.io%2Fobject%2Fdetection%2F2016%2F07%2F23%2Fdetection%2F&psig=AOvVaw0nSSB9dIalQB16BXKnel0E&ust=1539394573438623)
+
+#### Pros
+-Translation Invariant
+-Much faster, no extra cost for scale, since single image is used from RCNN architecture
+-Anchor boxes replace the much slower selective search
+
+#### Cons
+- Still uses regression (linear?)
+- Still has to output k anchors for every every sliding window position (discards the irrelevant one only in Loss computation)
+- Not specific to satellite imagery (but possibly good for small objects) 
+
 ### [You Only Look Once: Unified, Real-Time Object Detection](https://www.cv-foundation.org/openaccess/content_cvpr_2016/papers/Redmon_You_Only_Look_CVPR_2016_paper.pdf)
 
 #### Summary 
