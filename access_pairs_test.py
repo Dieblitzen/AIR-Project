@@ -1,8 +1,9 @@
-#Before importing api_wrapper, had to install some dependencies:
+#Had to install some dependencies:
   #pip install geopandas, geojson, coloredlogs
   #conda install gdal
 
 import os
+import pandas as pd
 import numpy as np
 import geojson
 from pytz import UTC
@@ -59,14 +60,14 @@ res = response.json()
 id = res['id']
 print("ID: ",id)
 
-print(response)
+print("Request status code: ", response)
 
 # Check status of query, make sure it's finished before downloading
 response = requests.get(
     url=f'{server}/v2/queryjobs/{id}',
     auth=auth,
 )
-response.json()
+print("Status of query: \n", response.json())
 
 #Download and extract to files
 download = requests.get(
@@ -78,27 +79,28 @@ z = zipfile.ZipFile(io.BytesIO(download.content))
 ## Extract to ./downloads
 z.extractall(path)
 
-#Convert to np array
+def get_datalayers():
+    res = requests.get(f'{server}/v2/datalayers/',auth=auth)
+    print(res.json)
+
+
 ## Takes file name and converts to np array
 def tiff2array(fn):
     ## Special gdal dataset
     dataset = gdal.Open(fn)
-    array = np.array(dataset.GetRasterBand(1).ReadAsArray())
+    array = np.array(dataset.GetRasterBand(1).ReadAsArray(), np.uint8)
     return array
 
-## Will go through filenames and put the image arrays in here
-images_dict = {}
-
-## Loop through files in downloads directory (if multiple)
-for i, filename in enumerate(os.listdir(path)):
-    if filename.endswith(".tiff"): 
-        path_to_file = path + '/' + filename
-        images_dict[i] = tiff2array(path_to_file)
-
-## Note: keys start at 1 for image_dict
-
-print(images_dict)
-
-res = requests.get(f'{server}/v2/datalayers/',auth=auth)
-
-print(res.json())
+### TODO Make sure rgb layers are in the right order in returned value. 
+def image_to_np_array(): # Fetches images from download folder 
+    ## Will go through filenames and put the image arrays in images_dict
+    images_dict = {}
+    ## Loop through files in downloads directory (if multiple)
+    ind = 0
+    for filename in os.listdir(path):
+        if filename.endswith(".tiff"): 
+            path_to_file = path + '/' + filename
+            images_dict[ind] = tiff2array(path_to_file)
+            ind += 1
+    ## Return rgb image in np array format
+    return np.transpose(np.array(list(images_dict.values())))
