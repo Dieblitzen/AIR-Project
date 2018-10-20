@@ -10,6 +10,7 @@ import requests
 from requests.auth import HTTPBasicAuth
 import zipfile, io
 from osgeo import gdal
+from time import sleep
 
 # Config
 PAIRS_USER = "ams792@cornell.edu"
@@ -66,7 +67,21 @@ response = requests.get(
     url=f'{server}/v2/queryjobs/{id}',
     auth=auth,
 )
-response.json()
+
+# do not download until the query is succeeded
+while response.json()["status"] != "Succeeded" and response.json()["status"] != "Failed":
+  sleep(5)
+  # recheck status after waiting 5 seconds
+  response = requests.get(
+      url=f'{server}/v2/queryjobs/{id}',
+      auth=auth,
+  )
+  print("status every 5 seconds: ")
+  print(response.json()["status"])
+  
+
+print("json eventual response: ")
+print(response.json()["status"])
 
 #Download and extract to files
 download = requests.get(
