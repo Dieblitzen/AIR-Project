@@ -8,14 +8,6 @@ def get_rect (nodes):
     
     points = [(float(str(n.lat)), float(str(n.lon))) for n in nodes]
     bounding_box = MinimumBoundingBox(points)
-#     lats = [n.lat for n in nodes]
-#     lons = [n.lon for n in nodes]
-    
-#     min_lat = float(str(min(lats)))
-#     min_lon = float(str(min(lons)))
-#     max_lat = float(str(max(lats)))
-#     max_lon = float(str(max(lons)))
-    
     return bounding_box.corner_points
 
 #Bounding box of decided area in White Plains, NY
