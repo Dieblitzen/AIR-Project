@@ -2,29 +2,14 @@
   #pip install geopandas, geojson, coloredlogs
   #conda install gdal
 
-import sys
 import os
-# save present working directory so we can switch back to it 
-pwd = os.getcwd()
-# change directory to get access to api_wrapper
-os.chdir('../scalable-landcover-classification/Querying')
-import api_wrapper as paw
-# switch back to original directory
-os.chdir(pwd)
-import pandas as pd
 import numpy as np
 import geojson
-import urllib
-from datetime import datetime
 from pytz import UTC
-import time
-import random
-import logging
 import requests
 from requests.auth import HTTPBasicAuth
-import os, zipfile, io
+import zipfile, io
 from osgeo import gdal
-import PIL
 
 # Config
 PAIRS_USER = "ams792@cornell.edu"
