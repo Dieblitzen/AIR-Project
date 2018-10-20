@@ -107,12 +107,12 @@ def tiff2array(fn):
     return array
 
 ### TODO Make sure rgb layers are in the right order in returned value. 
-def image_to_np_array(): # Fetches images from download folder 
+def image_to_np_array(image_folder): # Fetches images from download folder 
     ## Will go through filenames and put the image arrays in images_dict
     images_dict = {}
     ## Loop through files in downloads directory (if multiple)
     ind = 0
-    for filename in os.listdir(path):
+    for filename in os.listdir(image_folder):
         if filename.endswith(".tiff"): 
             path_to_file = path + '/' + filename
             images_dict[ind] = tiff2array(path_to_file)
@@ -121,5 +121,5 @@ def image_to_np_array(): # Fetches images from download folder
     return np.transpose(np.array(list(images_dict.values())))
 
 print("numpy array result: ")
-print(image_to_np_array())
+print(image_to_np_array(path))
 
