@@ -1,6 +1,8 @@
 from get_bounding_boxes import get_bounding_boxes 
 import numpy as np
 import math
+import matplotlib.pyplot as plt
+from shapely.geometry.polygon import LinearRing, Polygon
 
 ## Given: 
 ## lats and lons of query area
@@ -43,7 +45,16 @@ def OSM_to_pixels(bb_coord, image_size, buildings):
         
     return bb_pixels
 
-white_plain_buildings = get_bounding_boxes(41.014456, -73.769573, 41.018465,-73.765043)
-OSM_to_pixels([41.014456, -73.769573, 41.018465,-73.765043],[100,100],white_plain_buildings)
+# white_plain_buildings = get_bounding_boxes(41.014456, -73.769573, 41.018465,-73.765043)
+# OSM_to_pixels([41.014456, -73.769573, 41.018465,-73.765043],[100,100],white_plain_buildings)
+
+## TODO: add option to graph on image at certain path (or maybe just give np array?)
+def visualize_bounding_boxes(bb_pixels): 
+    for bbox_coords in bb_pixels: 
+        poly = Polygon(bbox_coords)
+        x,y = poly.exterior.xy
+        plt.plot(x,y)
+
+    plt.show()
 
 ## TODO: Convert Access_Pairs to a function, Filter OSM data for data outside the box.
