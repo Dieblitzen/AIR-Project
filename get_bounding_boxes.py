@@ -37,5 +37,5 @@ def get_bounding_boxes(lat_min, lon_min, lat_max, lon_max):
         building_coordinates.append(list(get_rect(building.nodes)))
     return building_coordinates
 
-white_plain_buildings = get_bounding_boxes(41.014456, -73.769573, 41.018465,-73.765043)
+## white_plain_buildings = get_bounding_boxes(41.014456, -73.769573, 41.018465,-73.765043)
 
