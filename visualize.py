@@ -30,7 +30,7 @@ def image_to_np_array(image_folder): # Fetches images from download folder
 
 ## TODO: add option to graph on image at certain path (or maybe just give np array?)
 def visualize_bounding_boxes(image_array, bb_pixels): 
-    plt.imshow(im_array)
+    plt.imshow(image_array)
     for bbox_coords in bb_pixels: 
         poly = Polygon(bbox_coords)
         x,y = poly.exterior.xy
@@ -45,6 +45,7 @@ lon_max = -73.7582464736
 
 bboxes = get_bounding_boxes.get_bounding_boxes(lat_min,lon_min,lat_max,lon_max)
 im_array = image_to_np_array("./downloads")
-
-visualize_bounding_boxes(im_array, 
-                merge_data.OSM_to_pixels([lat_min,lon_min,lat_max,lon_max],im_array.shape[:2], bboxes))
+# plt.imshow(np.rot90(im_array,1))
+# plt.show()
+visualize_bounding_boxes(np.rot90(im_array,1), 
+               merge_data.OSM_to_pixels([lat_min,lon_min,lat_max,lon_max],im_array.shape[:2], bboxes))
