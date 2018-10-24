@@ -3,6 +3,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 import matplotlib.patches as patches
+import get_bounding_boxes
+import merge_data
 
 ## Takes file name and converts to np array
 def tiff2array(filename):
@@ -34,3 +36,15 @@ def visualize_bounding_boxes(image_array, bb_pixels):
         plt.plot(x,y)
 
     plt.show()
+
+lat_min = 41.0100756423
+lat_max = 41.0338409682
+lon_min = -73.7792749922
+lon_max = -73.7582464736
+
+bboxes = get_bounding_boxes.get_bounding_boxes(lat_min,lon_min,lat_max,lon_max)
+im_array = image_to_np_array("./downloads")
+
+
+visualize_bounding_boxes(im_array, 
+                merge_data.OSM_to_pixels([lat_min,lon_min,lat_max,lon_max],im_array.size[:2], bboxes))
