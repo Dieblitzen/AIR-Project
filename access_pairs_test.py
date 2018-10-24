@@ -30,20 +30,20 @@ response = requests.post(
     "layers" : [
         {
             "type": "raster",
-            "id": 61
+            "id": 36431
         },
         {
             "type": "raster",
-            "id": 48695
+            "id": 35445
         },
-#         {
-#             "type": "raster",
-#             "id": 36432
-#         },
-#         {
-#             "type": "raster",
-#             "id": 49104
-#         }
+        {
+            "type": "raster",
+            "id": 36432
+        },
+        {
+            "type": "raster",
+            "id": 49104
+        }
     ],
     "spatial": {
         "type": "square",
