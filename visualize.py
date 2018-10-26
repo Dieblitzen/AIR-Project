@@ -30,7 +30,7 @@ def image_to_np_array(image_folder): # Fetches images from download folder
 
 ## TODO: add option to graph on image at certain path (or maybe just give np array?)
 def visualize_bounding_boxes(image_array, bb_pixels): 
-    ## Visualize bounding boxes on an image with bb_pixels either as horizontal boxes (horizontal=True)
+    ## Visualize bounding boxes on an image with bb_pixels either as horizontal boxes 
     plt.imshow(image_array)
     for bbox_coords in bb_pixels: 
         poly = Polygon(bbox_coords)
