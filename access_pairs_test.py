@@ -40,10 +40,6 @@ response = requests.post(
             "type": "raster",
             "id": 36432
         },
-        {
-            "type": "raster",
-            "id": 49104
-        }
     ],
     "spatial": {
         "type": "square",
