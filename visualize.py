@@ -6,6 +6,8 @@ import matplotlib.patches as patches
 import get_bounding_boxes
 import merge_data
 from shapely.geometry.polygon import Polygon
+import scipy.misc
+
 
 ## Takes file name and converts to np array
 def tiff2array(filename):
@@ -26,7 +28,13 @@ def image_to_np_array(image_folder): # Fetches images from download folder
             images_dict[ind] = tiff2array(path_to_file)
             ind += 1
     ## Return rgb image in np array format
-    return np.transpose(np.array(list(images_dict.values())))
+    im_arr = np.transpose(np.array(list(images_dict.values())))
+    arr2jpg(im_arr, 'images')
+    return 
+
+def arr2jpg(arr, folder):
+    ## Turns np array into jpg and saves into folder specified by folder
+    scipy.misc.imsave(f'./{folder}/PAIRS_Area.jpg', arr)
 
 ## TODO: add option to graph on image at certain path (or maybe just give np array?)
 def visualize_bounding_boxes(image_array, bb_pixels): 
@@ -48,6 +56,6 @@ lon_max = -73.7582464736
 bboxes = get_bounding_boxes.get_bounding_boxes(lat_min,lon_min,lat_max,lon_max,horizontal=True)
 im_array = image_to_np_array("./downloads")
 
-visualize_bounding_boxes(np.rot90(im_array,1), 
-               merge_data.OSM_to_pixels([lat_min,lon_min,lat_max,lon_max],im_array.shape[:2], bboxes))
+#visualize_bounding_boxes(np.rot90(im_array,1), 
+               #merge_data.OSM_to_pixels([lat_min,lon_min,lat_max,lon_max],im_array.shape[:2], bboxes))
 

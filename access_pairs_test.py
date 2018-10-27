@@ -93,3 +93,4 @@ z.extractall(path)
 def get_datalayers():
     res = requests.get(f'{server}/v2/datalayers/',auth=auth)
     print(res.json)
+
