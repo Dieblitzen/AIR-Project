@@ -1,3 +1,4 @@
 *.tiff
 *.png
 *.ipynb_checkpoints
+*.pyc
