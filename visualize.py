@@ -46,7 +46,10 @@ lon_min = -73.7792749922
 lon_max = -73.7582464736
 
 bboxes = get_bounding_boxes.get_bounding_boxes(lat_min,lon_min,lat_max,lon_max,horizontal=True)
+# print(len(bboxes)) # We have 4066 buildings. Seems like more than enough
+
 im_array = image_to_np_array("./downloads")
+print()
 
 visualize_bounding_boxes(np.rot90(im_array,1), 
                merge_data.OSM_to_pixels([lat_min,lon_min,lat_max,lon_max],im_array.shape[:2], bboxes))
