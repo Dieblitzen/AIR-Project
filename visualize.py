@@ -30,7 +30,7 @@ def image_to_np_array(image_folder): # Fetches images from download folder
     ## Return rgb image in np array format
     im_arr = np.transpose(np.array(list(images_dict.values())))
     arr2jpg(im_arr, 'images')
-    return 
+    return im_arr
 
 def arr2jpg(arr, folder):
     ## Turns np array into jpg and saves into folder specified by folder
