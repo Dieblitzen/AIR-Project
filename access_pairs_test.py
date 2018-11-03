@@ -20,10 +20,14 @@ server = "https://pairs.res.ibm.com"
 auth = (PAIRS_USER, PAIRS_PASS)
 path = './downloads' #Download path
 
-lat1 = 41.0100756423
-lat2 = 41.0338409682
-lon1 = -73.7792749922
-lon2 = -73.7582464736
+# Old: Cutoff region in Scarsdale
+# lat1 = 41.0100756423
+# lat2 = 41.0338409682
+# lon1 = -73.7792749922
+# lon2 = -73.7582464736
+
+# New. No cutoff that we could see
+lat_min, lon_min, lat_max, lon_max = 41.0155, -73.7792749922, 41.0338409682, -73.7582464736
 
 response = requests.post(
     json = {
@@ -43,7 +47,7 @@ response = requests.post(
     ],
     "spatial": {
         "type": "square",
-        "coordinates": ["41.0100746", "-73.779274", "41.0338402", "-73.7582474"]
+        "coordinates": ["41.0155", "-73.7792749922", "41.022", "-73.7582464736"]
     },
     "temporal": {
         "intervals": [{"start": "2014-12-31T00:00:00Z","end": "2015-01-01T00:00:00Z"}]
