@@ -47,7 +47,7 @@ response = requests.post(
     ],
     "spatial": {
         "type": "square",
-        "coordinates": ["41.0155", "-73.7792749922", "41.022", "-73.7582464736"]
+        "coordinates": ["41.0155", "-73.7792749922", "41.03", "-73.7582464736"]
     },
     "temporal": {
         "intervals": [{"start": "2014-12-31T00:00:00Z","end": "2015-01-01T00:00:00Z"}]

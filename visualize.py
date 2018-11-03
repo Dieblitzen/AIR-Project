@@ -59,7 +59,7 @@ def visualize_bounding_boxes(image_array, bb_pixels, YOLO=True):
             plt.plot(x,y)
     plt.show()
 
-lat_min, lon_min, lat_max, lon_max = 41.0155, -73.7792749922, 41.022, -73.7582464736
+lat_min, lon_min, lat_max, lon_max = 41.0155, -73.7792749922, 41.03, -73.7582464736
 
 bboxes = get_bounding_boxes.get_bounding_boxes(lat_min,lon_min,lat_max,lon_max,YOLO=True)
 print(len(bboxes)) # We have 4066 buildings. Seems like more than enough
