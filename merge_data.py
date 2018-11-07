@@ -3,6 +3,7 @@ import numpy as np
 import math
 import matplotlib.pyplot as plt
 from shapely.geometry.polygon import LinearRing, Polygon
+import statistics as st
 
 ## Given: 
 ## lats and lons of query area
@@ -44,6 +45,8 @@ def OSM_to_pixels(bb_coord, image_size, buildings, YOLO=True):
             
             # End for loop
     else :
+        # width_min = []
+        # height_min = []
         for building in buildings: 
             ## Pixels for a single building
             pixels = []
@@ -56,9 +59,15 @@ def OSM_to_pixels(bb_coord, image_size, buildings, YOLO=True):
             widthPixel = math.floor((building[2]/width)*image_size[0])
             heightPixel = math.floor((building[3]/height)*image_size[1])
 
+            # width_min.append(widthPixel) 
+            # height_min.append(heightPixel)
+
             pixels = [centreX,centreY,widthPixel,heightPixel]
             bb_pixels.append(pixels)
         
+        # print('min width is {} and min height is {}'.format(min(width_min), min(height_min)))
+        # print('median width is {} and median height is {}'.format(st.median(width_min), st.median(height_min)))
+
     return bb_pixels
 
 # white_plain_buildings = get_bounding_boxes(41.014456, -73.769573, 41.018465,-73.765043)
