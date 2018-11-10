@@ -4,7 +4,6 @@ import matplotlib.pyplot as plt
 import os
 import matplotlib.patches as patches
 import get_bounding_boxes
-import merge_data
 from shapely.geometry.polygon import Polygon
 import scipy.misc
 
@@ -39,7 +38,7 @@ def arr2jpg(arr, folder):
 ## TODO: add option to graph on image at certain path (or maybe just give np array?)
 def visualize_bounding_boxes(image_array, bb_pixels, YOLO=True): 
     ## Visualize bounding boxes on an image with bb_pixels either as horizontal boxes 
-    print(image_array[50])
+    # print(image_array[50])
     plt.imshow(image_array)
 
     if (not YOLO) :
@@ -60,17 +59,18 @@ def visualize_bounding_boxes(image_array, bb_pixels, YOLO=True):
             plt.plot(x,y)
     plt.show()
 
-lat_min, lon_min, lat_max, lon_max = 41.0155, -73.7792749922, 41.03, -73.7582464736
 
-bboxes = get_bounding_boxes.get_bounding_boxes(lat_min,lon_min,lat_max,lon_max,YOLO=True)
+
+bboxes = get_bounding_boxes.get_bounding_boxes(YOLO=True)
 # print(len(bboxes)) # We have 2990 buildings. Seems like more than enough
 
 # Size of image (3648, 5280, 3)
+# We are aiming for (3648, 5244, 3), as this will divide by 228 (our target image size)
 
 im_array = image_to_np_array("./downloads")
 print()
 
-pixels = merge_data.OSM_to_pixels([lat_min,lon_min,lat_max,lon_max],im_array.shape[:2], bboxes, YOLO=True)
+pixels = get_bounding_boxes.OSM_to_pixels(im_array.shape[:2], bboxes, YOLO=True)
 
 visualize_bounding_boxes(np.rot90(im_array,1), 
                pixels,

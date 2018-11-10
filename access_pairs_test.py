@@ -27,7 +27,11 @@ path = './downloads' #Download path
 # lon2 = -73.7582464736
 
 # New. No cutoff that we could see
-lat_min, lon_min, lat_max, lon_max = 41.0155, -73.7792749922, 41.0338409682, -73.7582464736
+lat_min, lon_min, lat_max, lon_max = 41.0155, -73.7792749922, 41.03, -73.7582464736
+lat_length = lat_max - lat_min
+lon_width = lon_max- lon_min
+lat_step = 1/23 * lat_length
+lon_step = 1/16 * lon_width
 
 response = requests.post(
     json = {
@@ -47,7 +51,7 @@ response = requests.post(
     ],
     "spatial": {
         "type": "square",
-        "coordinates": ["41.0155", "-73.7792749922", "41.03", "-73.7582464736"]
+        "coordinates": [str(lat_min), str(lon_min), str(lat_max), str(lon_max)]
     },
     "temporal": {
         "intervals": [{"start": "2014-12-31T00:00:00Z","end": "2015-01-01T00:00:00Z"}]
@@ -71,13 +75,13 @@ response = requests.get(
 
 # do not download until the query is succeeded
 while response.json()["status"] != "Succeeded" and response.json()["status"] != "Failed":
-  sleep(5)
-  # recheck status after waiting 5 seconds
+  sleep(3)
+  # recheck status after waiting 3 seconds
   response = requests.get(
       url=f'{server}/v2/queryjobs/{id}',
       auth=auth,
   )
-  print("status every 5 seconds: ")
+  print("status every 3 seconds: ")
   print(response.json()["status"])
   
 
