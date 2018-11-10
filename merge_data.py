@@ -56,6 +56,10 @@ def OSM_to_pixels(bb_coord, image_size, buildings, YOLO=True):
             centreX = math.floor(((lonX-lon_min)/width)*image_size[0])
             centreY = math.floor(((latY-lat_min)/height)*image_size[1]) + 10
 
+            # This will break visualize.py
+            centreX = (centreX%38)/38
+            centreY = (centreY%38)/38
+            
             widthPixel = math.floor((building[2]/width)*image_size[0])
             heightPixel = math.floor((building[3]/height)*image_size[1])
 
