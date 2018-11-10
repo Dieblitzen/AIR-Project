@@ -57,3 +57,4 @@ def tile_image(entire_img, b_boxes, tile_size):
     # tiled_images = image.extract_patches_2d(entire_image, (tile_size, tile_size))
     # return tiled_images
 
+
