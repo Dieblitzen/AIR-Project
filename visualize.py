@@ -6,6 +6,7 @@ import matplotlib.patches as patches
 import get_bounding_boxes
 from shapely.geometry.polygon import Polygon
 import scipy.misc
+import tile
 
 
 ## Takes file name and converts to np array
@@ -13,6 +14,8 @@ def tiff2array(filename):
     ## Special gdal dataset
     dataset = gdal.Open(filename)
     array = np.array(dataset.GetRasterBand(1).ReadAsArray(), np.uint8)
+    print("array shape: ")
+    print(array.shape)
     return array
 
 ### TODO Make sure rgb layers are in the right order in returned value. 
@@ -28,6 +31,8 @@ def image_to_np_array(image_folder): # Fetches images from download folder
             ind += 1
     ## Return rgb image in np array format
     im_arr = np.transpose(np.array(list(images_dict.values())))
+    print("im array shape")
+    print(im_arr.shape)
     arr2jpg(im_arr, 'images')
     return im_arr
 
@@ -59,20 +64,40 @@ def visualize_bounding_boxes(image_array, bb_pixels, YOLO=True):
             plt.plot(x,y)
     plt.show()
 
+# get the image as an array
+im_array = image_to_np_array("./downloads")
 
-
+# get bounding boxes from OSM
 bboxes = get_bounding_boxes.get_bounding_boxes(YOLO=True)
 # print(len(bboxes)) # We have 2990 buildings. Seems like more than enough
-
-# Size of image (3648, 5280, 3)
-# We are aiming for (3648, 5244, 3), as this will divide by 228 (our target image size)
-
-im_array = image_to_np_array("./downloads")
-print()
-
 pixels = get_bounding_boxes.OSM_to_pixels(im_array.shape[:2], bboxes, YOLO=True)
 
-visualize_bounding_boxes(np.rot90(im_array,1), 
-               pixels,
-               YOLO=True)
+
+# tile the image, which returns a list
+tile_list = tile.tile_image(np.rot90(im_array, 1), pixels, 228)
+
+# for each tile, visualize boxes on it
+for i in range(len(tile_list)):
+    elts = tile_list[i]
+    tile_image = elts[0]
+    bboxes_list = elts[1]
+    # print("bounding boxes list for image: " + str(i))
+    # print(bboxes_list)
+    visualize_bounding_boxes(tile_image, bboxes_list)
+    
+
+
+
+
+# # Size of image (3648, 5280, 3)
+# # We are aiming for (3648, 5244, 3), as this will divide by 228 (our target image size)
+
+# im_array = image_to_np_array("./downloads")
+# print()
+
+# pixels = get_bounding_boxes.OSM_to_pixels(im_array.shape[:2], bboxes, YOLO=True)
+
+# visualize_bounding_boxes(np.rot90(im_array,1), 
+#                pixels,
+#                YOLO=True)
 
