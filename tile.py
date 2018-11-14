@@ -66,3 +66,17 @@ def tile_image(entire_img, b_boxes, tile_size, grid=False):
 
     # tiled_images = image.extract_patches_2d(entire_image, (tile_size, tile_size))
     # return tiled_images
+
+def is_equal(input1, input2):
+ 
+
+    if len(input1) != len(input2):
+        return False
+    
+    for i in range(len(input1)):
+        tile1, bboxes1 = input1[i]
+        tile2, bboxes2 = input2[i]
+        if not (np.all(tile1 == tile2) and bboxes1 == bboxes2):
+            return False
+
+    return True
