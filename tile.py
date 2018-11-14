@@ -15,17 +15,11 @@ def boxes_in_tile(bboxes, row_start, row_end, col_start, col_end):
         centreX = bboxes[i][0]
         centreY = bboxes[i][1]
 
-        print(row_start, row_end, col_start, col_end)
-
         if (row_start <= centreX < row_end) and (col_start <= centreY < col_end):
-
-            print("Entered")
 
             # Changing bbox centre to be relative to tile
             newX = bboxes[i][0] - row_start
             newY = bboxes[i][1] - col_start
-
-            print(newX, newY)
 
             # Mutating bboxes to reduce loop time after getting each set of bboxes per tile.
             bboxes_in_tile.append([newX,newY,bboxes[i][2],bboxes[i][3]])
@@ -72,3 +66,17 @@ def tile_image(entire_img, b_boxes, tile_size, grid=False):
 
     # tiled_images = image.extract_patches_2d(entire_image, (tile_size, tile_size))
     # return tiled_images
+
+def is_equal(input1, input2):
+ 
+
+    if len(input1) != len(input2):
+        return False
+    
+    for i in range(len(input1)):
+        tile1, bboxes1 = input1[i]
+        tile2, bboxes2 = input2[i]
+        if not (np.all(tile1 == tile2) and bboxes1 == bboxes2):
+            return False
+
+    return True
