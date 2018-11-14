@@ -15,17 +15,11 @@ def boxes_in_tile(bboxes, row_start, row_end, col_start, col_end):
         centreX = bboxes[i][0]
         centreY = bboxes[i][1]
 
-        print(row_start, row_end, col_start, col_end)
-
         if (row_start <= centreX < row_end) and (col_start <= centreY < col_end):
-
-            print("Entered")
 
             # Changing bbox centre to be relative to tile
             newX = bboxes[i][0] - row_start
             newY = bboxes[i][1] - col_start
-
-            print(newX, newY)
 
             # Mutating bboxes to reduce loop time after getting each set of bboxes per tile.
             bboxes_in_tile.append([newX,newY,bboxes[i][2],bboxes[i][3]])
