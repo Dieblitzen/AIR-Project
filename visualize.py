@@ -25,7 +25,10 @@ def image_to_np_array(image_folder):  # Fetches images from download folder
     # Will go through filenames and put the image arrays in images_dict
     images_arr = []
     # Loop through files in downloads directory (if multiple)
-    for filename in os.listdir(image_folder):
+    file_names = os.listdir(image_folder)
+    file_names.sort(reverse = True)
+    print(file_names)
+    for filename in file_names:
         if filename.endswith(".tiff"):
             path_to_file = image_folder + '/' + filename
             images_arr.append(tiff2array(path_to_file))
