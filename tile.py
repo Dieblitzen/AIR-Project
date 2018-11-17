@@ -36,7 +36,6 @@ def tile_image(entire_img, b_boxes, tile_size, indices_to_remove, grid=False):
 
     output = []
     cell = 0  # used for gridding
-
     # For num tiles/grid cells
     for row in range(num_rows//tile_size):
         for col in range(num_cols//tile_size):
@@ -58,7 +57,7 @@ def tile_image(entire_img, b_boxes, tile_size, indices_to_remove, grid=False):
             # get bboxes in the tile in both cases (grid or not)
             bboxes_in_tile = boxes_in_tile(
                 b_boxes, row_start, row_end, col_start, col_end)
-
+            
             # Add results to output
             output.append((tile, bboxes_in_tile))
 
@@ -66,6 +65,10 @@ def tile_image(entire_img, b_boxes, tile_size, indices_to_remove, grid=False):
     for ind in range(len(output)):
         if ind not in indices_to_remove:
             new_output.append(output[ind])
+    counter = 0
+    for x in new_output:
+        counter += len(x[1])
+    print(counter)
     return new_output
 
     # tiled_images = image.extract_patches_2d(entire_image, (tile_size, tile_size))
