@@ -92,20 +92,20 @@ bboxes = get_bounding_boxes.get_bounding_boxes(YOLO=True)
 pixels = get_bounding_boxes.OSM_to_pixels(
     im_array.shape[:2], bboxes, YOLO=True)
 
-visualize_bounding_boxes(im_array, pixels, YOLO=True)
+# visualize_bounding_boxes(im_array, pixels, YOLO=True)
+indices_to_remove = list(range(4,24)) + list(range(3+23,24+23)) + [x+(23*2) for x in [2,3,4,5,6,7,8,12,13,14,15,16,17,17,22]] +[x+(23*3) for x in [0,10,11,12,13,14,15,16,22]] +[x+(23*4) for x in [10,11,13,14,15]] +[x+(23*5) for x in [0,8,9,10,11,14,15,16,17,18]] +[x+(23*6) for x in [6,7,8,9,10,15,16,17,18]] +[x+(23*7) for x in [10,11,17,18,19,22]] +[x+(23*8) for x in [18,19,20,21]] +[x+(23*9) for x in [20,21,22]] +[x+(23*10) for x in [4,5,6,20,21,22]] +[x+(23*11) for x in [5,6,7,20,21,22]] +[x+(23*12) for x in [1,2,20,21,22]] + [x+(23*13) for x in [1,2]] + [x+(23*16) for x in [0,1]] + [x+(23*17) for x in [0,1]] + [x+(23*18) for x in [0,1,2]] + [x+(23*19) for x in [0,1,2,3,17,18]] + [x+(23*20) for x in [0,1,2,3,4,17,18]] + [x+(23*21) for x in [0,1,2,3,4,5]] + [x+(23*22) for x in [0,1,2,3,4,5]]
 
+# tile the image, which returns a list
+tile_list = tile.tile_image(im_array, pixels, 228, indices_to_remove)
 
-# # tile the image, which returns a list
-# tile_list = tile.tile_image(im_array, pixels, 228)
-
-# # for each tile, visualize boxes on it
-# for i in range(len(tile_list)):
-#     elts = tile_list[i]
-#     tile_image = elts[0]
-#     bboxes_list = elts[1]
-#     # print("bounding boxes list for image: " + str(i))
-#     # print(bboxes_list)
-#     visualize_bounding_boxes(tile_image, bboxes_list)
+# for each tile, visualize boxes on it
+for i in range(len(tile_list)):
+    elts = tile_list[i]
+    tile_image = elts[0]
+    bboxes_list = elts[1]
+    # print("bounding boxes list for image: " + str(i))
+    # print(bboxes_list)
+    visualize_bounding_boxes(tile_image, bboxes_list)
 
 
 # # Size of image (3648, 5280, 3)
