@@ -27,7 +27,8 @@ path = './downloads' #Download path
 # lon2 = -73.7582464736
 
 # New. No cutoff that we could see
-lat_min, lon_min, lat_max, lon_max = 41.0155, -73.7792749922, 41.03, -73.7582464736
+# old lat min: 41.0155
+lat_min, lon_min, lat_max, lon_max = 41.009, -73.7792749922, 41.03, -73.7582464736
 lat_length = lat_max - lat_min
 lon_width = lon_max- lon_min
 lat_step = 1/23 * lat_length

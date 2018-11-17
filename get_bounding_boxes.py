@@ -36,7 +36,7 @@ def get_rect(nodes, YOLO=True, pad=1):
 
 
 # Bounding box of decided area in White Plains, NY
-LAT_MIN, LON_MIN, LAT_MAX, LON_MAX = 41.0155, - \
+LAT_MIN, LON_MIN, LAT_MAX, LON_MAX = 41.009, - \
     73.7792749922, 41.03, -73.7582464736
 LAT_HEIGHT = LAT_MAX - LAT_MIN
 LON_WIDTH = LON_MAX - LON_MIN

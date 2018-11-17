@@ -3,6 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import os
 import matplotlib.patches as patches
+import matplotlib.ticker as plticker
 import get_bounding_boxes
 from shapely.geometry.polygon import Polygon
 import scipy.misc
@@ -66,6 +67,19 @@ def visualize_bounding_boxes(image_array, bb_pixels, YOLO=True):
             poly = Polygon(coords)
             x, y = poly.exterior.xy
             plt.plot(x, y)
+
+    # fig, ax = plt.subplots()
+    # myInterval=228
+    # loc = plticker.MultipleLocator(base=myInterval)
+    # ax.xaxis.set_major_locator(loc)
+    # ax.yaxis.set_major_locator(loc)
+
+    # # Add the grid
+    # ax.grid(which='major', axis='both', linestyle='-')
+    # ax.show()
+    plt.grid()
+    plt.xticks(np.arange(0, 6000, 228), range(0, 23))
+    plt.yticks(np.arange(0, 6000, 228), range(0, 23))
     plt.show()
 
 
@@ -78,20 +92,20 @@ bboxes = get_bounding_boxes.get_bounding_boxes(YOLO=True)
 pixels = get_bounding_boxes.OSM_to_pixels(
     im_array.shape[:2], bboxes, YOLO=True)
 
-# visualize_bounding_boxes(im_array, pixels, YOLO=True)
+visualize_bounding_boxes(im_array, pixels, YOLO=True)
 
 
-# tile the image, which returns a list
-tile_list = tile.tile_image(im_array, pixels, 228)
+# # tile the image, which returns a list
+# tile_list = tile.tile_image(im_array, pixels, 228)
 
-# for each tile, visualize boxes on it
-for i in range(len(tile_list)):
-    elts = tile_list[i]
-    tile_image = elts[0]
-    bboxes_list = elts[1]
-    # print("bounding boxes list for image: " + str(i))
-    # print(bboxes_list)
-    visualize_bounding_boxes(tile_image, bboxes_list)
+# # for each tile, visualize boxes on it
+# for i in range(len(tile_list)):
+#     elts = tile_list[i]
+#     tile_image = elts[0]
+#     bboxes_list = elts[1]
+#     # print("bounding boxes list for image: " + str(i))
+#     # print(bboxes_list)
+#     visualize_bounding_boxes(tile_image, bboxes_list)
 
 
 # # Size of image (3648, 5280, 3)
