@@ -71,16 +71,16 @@ def annotation_for_image(img_name, im_size, bboxes):
         # x_min, x_max, y_min, y_max
         bndbox = etree.Element('bndbox')
         xmin = etree.Element('xmin')
-        xmin.text = str (bbox[0] - bbox[2]/2)
+        xmin.text = str (bbox[0] - (bbox[2]/2))
 
         ymin = etree.Element('ymin')
-        ymin.text = str (bbox[1] - bbox[3]/2)
+        ymin.text = str (bbox[1] - (bbox[3]/2))
 
         xmax = etree.Element('xmax')
-        xmax.text = str (bbox[0] + bbox[2]/2)
+        xmax.text = str (bbox[0] + (bbox[2]/2))
 
         ymax = etree.Element('ymax')
-        ymax.text = str (bbox[1] + bbox[3]/2)
+        ymax.text = str (bbox[1] + (bbox[3]/2))
 
         bndbox.append(xmin)
         bndbox.append(ymin)
