@@ -70,7 +70,7 @@ def get_bounding_boxes(YOLO=True):
     return building_coordinates
 
 #convert a pair of (lon, lat) coordinates into pixel pair
-def convert_coord_to_pixel(coord, image_size, lon_min):
+def convert_coord_to_pixel(coord, image_size, width, height, lat_max, lon_min):
     x = math.floor(((coord[0]-lon_min)/width)*image_size[1])
     y = math.floor(((lat_max-coord[1])/height)*image_size[0]) - 10
     return x, y
@@ -81,11 +81,11 @@ def get_two_closest_points(bbox):
     sorted_distances = sorted(distances, key= lambda pair: pair[1])
     closest_index, second_closest_index = sorted_distances[1][0], sorted_distances[2][0]
     closest, second_closest = np.array(bbox[closest_index]), np.array(bbox[second_closest_index])
-    return corner, closest, second_closest
+    return corner, closest, second_closest, sorted_distances
 
 #returns the angle of the heading. bbox is coordinates of the four corners
 def get_pixor_box_dimensions(bbox):
-    corner, closest, second_closest = get_two_closest_points(bbox)
+    corner, closest, second_closest, sorted_distances = get_two_closest_points(bbox)
     vector = np.array(np.subtract(second_closest,corner)) if corner[0] > second_closest[0] else np.array(np.subtract(corner,second_closest))
     unit_vector = vector / np.linalg.norm(vector)
     width, length = sorted_distances[1][1], sorted_distances[2][1]
@@ -147,7 +147,7 @@ def OSM_to_pixels(image_size, buildings, YOLO=True, PIXOR=False):
         for building in buildings:
             # Pixels for a single building
             pixels = []
-            box_pixels = [convert_coord_to_pixel(c) for c in bbox]
+            box_pixels = [convert_coord_to_pixel(c, image_size, LON_WIDTH, LAT_HEIGHT, lat_max, lon_min) for c in building]
 
             centreX, centreY = get_pixor_center(box_pixels)
             heading, width, length = get_pixor_box_dimensions(box_pixels)
