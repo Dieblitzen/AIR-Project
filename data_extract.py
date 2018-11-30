@@ -1,7 +1,7 @@
-## Data extraction and saving 
+## Data extraction and saving
 
 import pickle
-import tile 
+import tile
 import get_bounding_boxes
 import os
 from osgeo import gdal
@@ -37,7 +37,7 @@ def image_to_np_array(image_folder):  # Fetches images from download folder
 
 def arr2jpg(arr, folder):
     # Turns np array into jpg and saves into folder specified by folder
-    scipy.misc.imsave(f'./{folder}/PAIRS_Area.jpg', arr)
+    scipy.misc.imsave(('./{folder}/PAIRS_Area.jpg').format(arr))
 
 
 
