@@ -5,8 +5,6 @@ import get_bounding_boxes
 from sklearn.feature_extraction import image
 
 # Gets the bounding boxes per tile, with centre relative to tile coordinates.
-
-
 def boxes_in_tile(bboxes, row_start, row_end, col_start, col_end):
 
     bboxes_in_tile = []
@@ -21,16 +19,47 @@ def boxes_in_tile(bboxes, row_start, row_end, col_start, col_end):
             newX = bboxes[i][0] - col_start
             newY = bboxes[i][1] - row_start
 
-            # Mutating bboxes to reduce loop time after getting each set of bboxes per tile.
-            bboxes_in_tile.append([newX, newY, bboxes[i][2], bboxes[i][3]])
+            # Don't forget to carry remaining info that was unmutated
+            bboxes_in_tile.append([newX, newY] + bboxes[i][2:])
 
     return bboxes_in_tile
+
+
+def boxes_in_tile_pixor(bboxes, corner_boxes, row_start, row_end, col_start, col_end, entire_img_shape):
+    # gets the boxes within this tile, with coordinates relative to tile
+    boxes_within_tile = boxes_in_tile(bboxes, row_start, row_end, col_start, col_end)
+
+    pixel_labels = np.zeros((228, 228, 6))
+
+    for r in range(row_start, row_end):
+        for c in range(col_start, col_end):
+            dx = 228
+            dy = 228
+            heading = 0
+            width = 0
+            length = 0
+            in_a_box = 0
+            for bbox_index in range(0,len(boxes_within_tile)):
+                pixel = (r, c)
+                if inside_box(pixel, boxes_within_tile[bbox_index], entire_img_shape):
+                    new_dx = abs(pixel[0] - bboxes[bbox_index][0])
+                    new_dy = abs(pixel[1] - bboxes[bbox_index][1])
+                    if(np.sqrt(new_dx**2 + new_dy**2) <= np.sqrt(dx**2 + dy**2)):
+                        dx = new_dx
+                        dy = new_dy
+                        heading, width, length = bboxes[bbox_index][2:]
+                        in_a_box = 1
+
+            new_r = r - row_start
+            new_c = c - col_start
+            pixel_labels[new_r, new_c,:] = [dx, dy, heading, width, length, in_a_box]
+    return pixel_labels
 
 
 # Takes array representing entire queried image and bounding boxes (with pixel coordinates) relative to
 # entire image, and outputs a list of tuples where the first element is the tiled image and the second
 # element is the list of bounding boxes with coordinates relative to the tile.
-def tile_image(entire_img, b_boxes, tile_size, indices_to_remove, grid=False):
+def tile_image(entire_img, b_boxes, corner_boxes, tile_size, indices_to_remove, grid=False):
 
     num_rows, num_cols, depth = entire_img.shape
 
@@ -55,8 +84,8 @@ def tile_image(entire_img, b_boxes, tile_size, indices_to_remove, grid=False):
             cell += 1
 
             # get bboxes in the tile in both cases (grid or not)
-            bboxes_in_tile = boxes_in_tile(
-                b_boxes, row_start, row_end, col_start, col_end)
+            bboxes_in_tile = boxes_in_tile_pixor(
+                b_boxes, corner_boxes, row_start, row_end, col_start, col_end, entire_img.shape)
             
             # Add results to output
             output.append((tile, bboxes_in_tile))
@@ -68,7 +97,9 @@ def tile_image(entire_img, b_boxes, tile_size, indices_to_remove, grid=False):
     counter = 0
     for x in new_output:
         counter += len(x[1])
-    print(counter)
+    print("number of tiles: " + str(len(new_output)))
+    print("elts of single pixel label: " + str(new_output[0][1]))
+    print("counter: " + str(counter))
     return new_output
 
     # tiled_images = image.extract_patches_2d(entire_image, (tile_size, tile_size))

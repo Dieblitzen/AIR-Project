@@ -42,7 +42,7 @@ def arr2jpg(arr, folder):
 
 
 def save_data(tiles):
-    with open("tiles.pkl", "wb") as f:
+    with open("tiles2.pkl", "wb") as f:
         pickle.dump(tiles,f)
 
 
