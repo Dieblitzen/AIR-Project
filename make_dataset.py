@@ -4,18 +4,16 @@ import scipy.misc
 import pickle
 from data_extract import extract_data
 from random import shuffle
-
+import os
 
 TRAIN_ANNOTATIONS_PATH = "./dataset/train/annotations/"
 TRAIN_IMG_PATH = "./dataset/train/img/"
 
-VAL_ANNOTATIONS_PATH = "./dataset/val/img/"
+VAL_ANNOTATIONS_PATH = "./dataset/val/annotations/"
 VAL_IMG_PATH = "./dataset/val/img/"
 
-TEST_ANNOTATIONS_PATH = "./dataset/test/img/"
+TEST_ANNOTATIONS_PATH = "./dataset/test/annotations/"
 TEST_IMG_PATH = "./dataset/test/img/"
-
-
 
 # Images and bboxes array -> write named images to folder, write xml annotations for each image to separate folder. 
 
@@ -121,4 +119,8 @@ def annotation_for_image(img_name, im_size, bboxes):
     return etree.ElementTree(annotation)
 
 if __name__ == "__main__":
+    addresses = [TRAIN_ANNOTATIONS_PATH, TRAIN_IMG_PATH, VAL_ANNOTATIONS_PATH, VAL_IMG_PATH, TEST_ANNOTATIONS_PATH, TEST_IMG_PATH]
+    for address in addresses: 
+        if not os.path.exists(address):
+            os.makedirs(address)
     compile_dataset("./tiles.pkl")
