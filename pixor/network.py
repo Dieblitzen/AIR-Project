@@ -4,6 +4,7 @@ import numpy as np
 sess = tf.InteractiveSession()
 
 # IS STRIDE BEING HANDLED CORRECTLY?
+# HAS NOT YET BEEN UPSAMPLED ENOUGH
 
 """ Initializes weights with a slightly positive bias."""
 def weight_variable(shape):
@@ -15,11 +16,17 @@ def bias_variable(shape):
     initial = tf.constant(0.1, shape=shape)
     return tf.Variable(initial)
 
-""" Handle stride size -> stride size is one, so we slide filter over input one pixel at a time."""
+""" Standard convolutional layer."""
 def conv2d(input, filter_size, in_channels, out_channels, stride=1, padding="SAME"):
     return tf.nn.conv2d(input=input, 
           filter=[filter_size, filter_size, in_channels, out_channels],
-          strides = [1, stride, stride, stride], padding = "SAME")
+          strides=[1, stride, stride, stride], padding=padding)
+
+""" Standard transposed convolutional layer."""
+def conv2d_transpose(input, filter_size, out_channels, stride, activation="None")
+  return tf.nn.conv2d_transpose(input=input,
+         filters=out_channels, kernel_size=filter_size, strides=stride,
+         activation=activation)
 
 
 #Initialize expected input for images
@@ -83,19 +90,31 @@ block4_out = block4_3 + block4_shortcut_proj
 prep_upsampling = tf.nn.relu(conv2d(input=block4_out, filter_size=1, in_channels=384, out_channels=196, stride=1) + b_conv1)
 
 # upsample 6, 128 filters , x2 
+upsample1 = conv2d_transpose(input=prep_upsampling, filter_size=3, out_channels=128, stride=2, activation='relu')
 
-  # postprocessing to add skip connection after upsample 6
-    # [1x1, 128 channel convolution on skip ;; then add]
+# postprocessing to add skip connection after upsample 6
+# [1x1, 128 channel convolution on skip ;; then add]
+processed_skip_block3 = tf.nn.relu(conv2d(input=skip_block3, filter_size=1, in_channels=256, out_channels=128, stride=1) + b_conv1)
+skipped_upsample1 = upsample1 + processed_skip_block3
 
 # upsample 7, 96 filters, x2
+upsample2 = conv2d_transpose(input=skipped_upsample1, filter_size=3, out_channels=96, stride=2, activation='relu')
 
-  # postprocessing to add skip connection after upsample 7
-    # [1x1, 96 channel convolution on skip ;; then add]
+# postprocessing to add skip connection after upsample 7
+# [1x1, 96 channel convolution on skip ;; then add]
+processed_skip_block2 = tf.nn.relu(conv2d(input=skip_block2, filter_size=1, in_channels=192, out_channels=96, stride=1) + b_conv1)
+skipped_upsample2 = upsample2 + processed_skip_block2
 
 ## HEADER NETWORK
 
 # four convolutional layers, 3x3, 96 filters
+header1 = tf.nn.relu(conv2d(input=skipped_upsample2, filter_size=3, in_channels=96, out_channels=96, stride=1) + b_conv1)
+header2 = tf.nn.relu(conv2d(input=header1, filter_size=3, in_channels=96, out_channels=96, stride=1) + b_conv1)
+header3 = tf.nn.relu(conv2d(input=header2, filter_size=3, in_channels=96, out_channels=96, stride=1) + b_conv1)
+header4 = tf.nn.relu(conv2d(input=header3, filter_size=3, in_channels=96, out_channels=96, stride=1) + b_conv1)
 
-  # one convolutional layer, 3x3, 1 filter
+# one convolutional layer, 3x3, 1 filter
+output1 = tf.nn.relu(conv2d(input=header4, filter_size=3, in_channels=96, out_channels=1, stride=1) + b_conv1)
 
-  # one convolutional layer, 3x3, 6 filters
+# one convolutional layer, 3x3, 6 filters
+output2 = tf.nn.relu(conv2d(input=header4, filter_size=3, in_channels=96, out_channels=6, stride=1) + b_conv1)
