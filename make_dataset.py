@@ -3,31 +3,55 @@ import numpy as np
 import scipy.misc
 import pickle
 from data_extract import extract_data
+from random import shuffle
 
 
-ANNOTATIONS_PATH = "./dataset/annotations/"
-IMG_PATH = "./dataset/img/"
+TRAIN_ANNOTATIONS_PATH = "./dataset/train/annotations/"
+TRAIN_IMG_PATH = "./dataset/train/img/"
+
+VAL_ANNOTATIONS_PATH = "./dataset/val/img/"
+VAL_IMG_PATH = "./dataset/val/img/"
+
+TEST_ANNOTATIONS_PATH = "./dataset/test/img/"
+TEST_IMG_PATH = "./dataset/test/img/"
+
+
 
 # Images and bboxes array -> write named images to folder, write xml annotations for each image to separate folder. 
 
 def compile_dataset(path_to_data):
     data = extract_data(path_to_data)
+    shuffle(data)
+
     # data is an array of tuples. Each tuple contains an image arrays and a bbox array
     for elem in enumerate(data):
         # elem is (int index of tuple, tuple)
-        img_name = str(elem[0]) + ".jpg"
-        annotation_name = str(elem[0]) + ".xml"
+
+        # index of (tile, bboxes) in data
+        im_num = elem[0]
+
+        img_name = str(im_num) + ".jpg"
+        annotation_name = str(im_num) + ".xml"
         img_arr = elem[1][0]
         bboxes = elem[1][1]
 
         xml_annotation = annotation_for_image(img_name, img_arr.shape, bboxes)
+        
+
+        img_path = TRAIN_IMG_PATH
+        annotations_path = TRAIN_ANNOTATIONS_PATH
+        
+        if im_num >= 240:
+            img_path = VAL_IMG_PATH if im_num < 300 else TEST_IMG_PATH
+            annotations_path = VAL_ANNOTATIONS_PATH if im_num < 300 else TEST_ANNOTATIONS_PATH
 
         # save image_arr as jpg
-        scipy.misc.imsave(IMG_PATH+img_name, img_arr)
+        scipy.misc.imsave(img_path+img_name, img_arr)
 
         # save annotation as xml
-        xml_file = open(ANNOTATIONS_PATH+annotation_name, 'wb')
+        xml_file = open(annotations_path+annotation_name, 'wb')
         xml_annotation.write(xml_file)
+
         
 
 
