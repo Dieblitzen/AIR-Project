@@ -3,8 +3,7 @@ import numpy as np
 #launch session to connect to C++ computation power
 sess = tf.InteractiveSession()
 
-# IS STRIDE BEING HANDLED CORRECTLY?
-# HAS NOT YET BEEN UPSAMPLED ENOUGH
+# LACKING MORE SKIP CONNECTIONS
 
 """ Initializes weights with a slightly positive bias."""
 def weight_variable(shape):
@@ -105,16 +104,33 @@ upsample2 = conv2d_transpose(input=skipped_upsample1, filter_size=3, out_channel
 processed_skip_block2 = tf.nn.relu(conv2d(input=skip_block2, filter_size=1, in_channels=192, out_channels=96, stride=1) + b_conv1)
 skipped_upsample2 = upsample2 + processed_skip_block2
 
+# PLACEHOLDER UPSAMPLING
+temp_final_upsample = conv2d_transpose(input=skipped_upsample2, filter_size=3, out_channels=96, stride=4, activation='relu')
+
 ## HEADER NETWORK
 
 # four convolutional layers, 3x3, 96 filters
-header1 = tf.nn.relu(conv2d(input=skipped_upsample2, filter_size=3, in_channels=96, out_channels=96, stride=1) + b_conv1)
+header1 = tf.nn.relu(conv2d(input=temp_final_upsample, filter_size=3, in_channels=96, out_channels=96, stride=1) + b_conv1)
 header2 = tf.nn.relu(conv2d(input=header1, filter_size=3, in_channels=96, out_channels=96, stride=1) + b_conv1)
 header3 = tf.nn.relu(conv2d(input=header2, filter_size=3, in_channels=96, out_channels=96, stride=1) + b_conv1)
 header4 = tf.nn.relu(conv2d(input=header3, filter_size=3, in_channels=96, out_channels=96, stride=1) + b_conv1)
 
 # one convolutional layer, 3x3, 1 filter
-output1 = tf.nn.relu(conv2d(input=header4, filter_size=3, in_channels=96, out_channels=1, stride=1) + b_conv1)
+output_box = tf.nn.relu(conv2d(input=header4, filter_size=3, in_channels=96, out_channels=1, stride=1) + b_conv1)
 
 # one convolutional layer, 3x3, 6 filters
-output2 = tf.nn.relu(conv2d(input=header4, filter_size=3, in_channels=96, out_channels=6, stride=1) + b_conv1)
+output_class = tf.nn.relu(conv2d(input=header4, filter_size=3, in_channels=96, out_channels=6, stride=1) + b_conv1)
+
+
+#Cost function
+cross_entropy_box = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=y_box, logits=output_box))
+cross_entropy_class = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=y_class, logits=output_class))
+cross_entropy = cross_entropy_box + cross_entropy_class
+#A step to minimize our cost function
+train_step = tf.train.AdamOptimizer(1e-4).minimize(cross_entropy)
+#List of booleans, indicating whether or not we guessed the correct digit
+correct_prediction = tf.equal(tf.argmax(y_conv, 1), tf.argmax(y_, 1))
+#Calculates overall occuracy on test set
+accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+
+with tf.Session() as sess:
