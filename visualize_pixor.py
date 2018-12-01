@@ -19,19 +19,20 @@ def visualize_bounding_boxes(image_array, bb_pixels, YOLO=True):
     # print(image_array[50])
     plt.imshow(image_array)
 
-    non_zero = 0
-    for r in range(0, bb_pixels.shape[0]):
-          for c in range(0, bb_pixels.shape[1]):
-              pot_box = bb_pixels[r, c]
-              if not (pot_box[0] == 228.0 and pot_box[1] == 228.0):
-                  non_zero += 1
-    print("number of pixor boxes: " + str(non_zero))
+    # non_zero = 0
+    # for r in range(0, bb_pixels.shape[0]):
+    #       for c in range(0, bb_pixels.shape[1]):
+    #           pot_box = bb_pixels[r, c]
+    #           if not (pot_box[0] == 228.0 and pot_box[1] == 228.0):
+    #               non_zero += 1
+    # print("number of pixor boxes: " + str(non_zero))
 
     if (not YOLO):
         for r in range(0, bb_pixels.shape[0]):
           for c in range(0, bb_pixels.shape[1]):
             pot_box = bb_pixels[r, c]
             if not (pot_box[0] == 228.0 and pot_box[1] == 228.0):
+              print(pot_box)
               poly = Polygon([pot_box[0], pot_box[1]])
               x, y = poly.exterior.xy
               plt.plot(x, y)
@@ -80,8 +81,7 @@ for i in range(len(tile_list)):
     elts = tile_list[i]
     tile_image = elts[0]
     pixel_to_box_matrix = elts[1]
-    # print("bounding boxes list for image: " + str(i))
-    # print(bboxes_list)
+
     visualize_bounding_boxes(tile_image, pixel_to_box_matrix, YOLO=False)
 
 
