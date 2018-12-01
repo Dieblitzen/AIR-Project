@@ -1,7 +1,7 @@
-## Data extraction and saving 
+## Data extraction and saving
 
 import pickle
-import tile 
+import tile
 import get_bounding_boxes
 import os
 from osgeo import gdal
@@ -42,7 +42,7 @@ def arr2jpg(arr, folder):
 
 
 def save_data(tiles):
-    with open("tiles.pkl", "wb") as f:
+    with open("tiles2.pkl", "wb") as f:
         pickle.dump(tiles,f)
 
 
