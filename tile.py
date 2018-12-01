@@ -3,11 +3,13 @@
 import numpy as np
 import get_bounding_boxes
 from sklearn.feature_extraction import image
+from associate_pixels import inside_box
 
 # Gets the bounding boxes per tile, with centre relative to tile coordinates.
 def boxes_in_tile(bboxes, row_start, row_end, col_start, col_end):
 
     bboxes_in_tile = []
+    selected_indices = []
 
     for i in range(len(bboxes)):
         centreX = bboxes[i][0]
@@ -21,16 +23,19 @@ def boxes_in_tile(bboxes, row_start, row_end, col_start, col_end):
 
             # Don't forget to carry remaining info that was unmutated
             bboxes_in_tile.append([newX, newY] + bboxes[i][2:])
+            
+            selected_indices.append(i)
 
-    return bboxes_in_tile
+    return bboxes_in_tile, selected_indices
 
 
 def boxes_in_tile_pixor(bboxes, corner_boxes, row_start, row_end, col_start, col_end, entire_img_shape):
     # gets the boxes within this tile, with coordinates relative to tile
-    boxes_within_tile = boxes_in_tile(bboxes, row_start, row_end, col_start, col_end)
+    boxes_within_tile, selected_indices = boxes_in_tile(bboxes, row_start, row_end, col_start, col_end)
 
     pixel_labels = np.zeros((228, 228, 6))
 
+    print("looking at new tile")
     for r in range(row_start, row_end):
         for c in range(col_start, col_end):
             dx = 228
@@ -40,8 +45,10 @@ def boxes_in_tile_pixor(bboxes, corner_boxes, row_start, row_end, col_start, col
             length = 0
             in_a_box = 0
             for bbox_index in range(0,len(boxes_within_tile)):
+
                 pixel = (r, c)
-                if inside_box(pixel, boxes_within_tile[bbox_index], entire_img_shape):
+
+                if inside_box(pixel, corner_boxes[selected_indices[bbox_index]], entire_img_shape):
                     new_dx = abs(pixel[0] - bboxes[bbox_index][0])
                     new_dy = abs(pixel[1] - bboxes[bbox_index][1])
                     if(np.sqrt(new_dx**2 + new_dy**2) <= np.sqrt(dx**2 + dy**2)):
@@ -66,7 +73,12 @@ def tile_image(entire_img, b_boxes, corner_boxes, tile_size, indices_to_remove, 
     output = []
     cell = 0  # used for gridding
     # For num tiles/grid cells
+    total_rows = num_rows//tile_size
+    total_cols = num_cols//tile_size
+    print("total rows: " + str(total_rows))
+    print("total columns: " + str(total_cols))
     for row in range(num_rows//tile_size):
+        print("Progress: " + str(row/total_rows))
         for col in range(num_cols//tile_size):
 
             row_start = row*tile_size

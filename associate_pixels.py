@@ -5,15 +5,14 @@ import math
 import matplotlib.pyplot as plt
 import statistics as st
 import get_bounding_boxes
-from get_bounding_boxes import get_two_closest_points
+from get_bounding_boxes import get_two_closest_points, convert_coord_to_pixel, corner_boxes_in_pixels, LON_WIDTH, LAT_HEIGHT, LAT_MAX, LON_MIN
 import data_extract
 import tile
 
+ENTIRE_IMG_SIZE = (3648, 5280, 3)
+
 def inside_box(point, bbox, entire_img_shape):
-    converted_box = np.zeros(len(bbox))
-    for i in range(0, len(bbox)):
-        converted_box[i] = convert_coord_to_pixel(bbox[i], entire_img_shape, LON_WIDTH, LAT_HEIGHT, lat_max, lon_min)
-    corner, closest, second_closest, _ = get_two_closest_points(converted_box)
+    corner, closest, second_closest, _ = get_two_closest_points(bbox)
     short_side = np.array(np.subtract(np.array(corner),np.array(closest)))
     long_side = np.array(np.subtract(np.array(second_closest),np.array(corner)))
     closest_to_point = np.array(np.subtract(np.array(point),np.array(closest)))
@@ -25,7 +24,6 @@ def inside_box(point, bbox, entire_img_shape):
 #if a pixel is within a box, assign it the boxes properties. assuming pixel is (x,y)
 def assign_pixels(image_array, bboxes, pixel_boxes):
     pixel_labels = np.zeros((image_array.shape[0], image_array.shape[1], 6))
-    print(pixel_labels.shape)
     for r in range(0, image_array.shape[0]):
         for c in range(0, image_array.shape[1]):
             dx = 228
@@ -56,13 +54,17 @@ if __name__ == "__main__":
     # print(len(bboxes)) # We have 2990 buildings. Seems like more than enough
     pixel_boxes = get_bounding_boxes.OSM_to_pixels(
         im_array.shape[:2], bboxes, YOLO=False, PIXOR = True)
+    
+    # print(pixel_boxes)
 
     # pixel_labels = assign_pixels(im_array, bboxes, pixel_boxes)
 
     # visualize_bounding_boxes(im_array, pixels, YOLO=True)
     indices_to_remove = list(range(4,24)) + list(range(3+23,24+23)) + [x+(23*2) for x in [2,3,4,5,6,7,8,12,13,14,15,16,17,17,22]] +[x+(23*3) for x in [0,10,11,12,13,14,15,16,22]] +[x+(23*4) for x in [10,11,13,14,15]] +[x+(23*5) for x in [0,8,9,10,11,14,15,16,17,18]] +[x+(23*6) for x in [6,7,8,9,10,15,16,17,18]] +[x+(23*7) for x in [10,11,17,18,19,22]] +[x+(23*8) for x in [18,19,20,21]] +[x+(23*9) for x in [20,21,22]] +[x+(23*10) for x in [4,5,6,20,21,22]] +[x+(23*11) for x in [5,6,7,20,21,22]] +[x+(23*12) for x in [1,2,20,21,22]] + [x+(23*13) for x in [1,2]] + [x+(23*16) for x in [0,1]] + [x+(23*17) for x in [0,1]] + [x+(23*18) for x in [0,1,2]] + [x+(23*19) for x in [0,1,2,3,17,18]] + [x+(23*20) for x in [0,1,2,3,4,17,18]] + [x+(23*21) for x in [0,1,2,3,4,5]] + [x+(23*22) for x in [0,1,2,3,4,5]]
 
+    converted_corner_boxes = corner_boxes_in_pixels(ENTIRE_IMG_SIZE, bboxes)
+
     # tile the image, which returns a list
     print("begin tiling")
-    tile_list = tile.tile_image(im_array, pixel_boxes, bboxes, 228, indices_to_remove)
+    tile_list = tile.tile_image(im_array, pixel_boxes, converted_corner_boxes, 228, indices_to_remove)
     data_extract.save_data(tile_list)

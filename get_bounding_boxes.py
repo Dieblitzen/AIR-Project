@@ -71,9 +71,9 @@ def get_bounding_boxes(YOLO=True):
 
 #convert a pair of (lon, lat) coordinates into pixel pair
 def convert_coord_to_pixel(coord, image_size, width, height, lat_max, lon_min):
-    x = math.floor(((coord[0]-lon_min)/width)*image_size[1])
-    y = math.floor(((lat_max-coord[1])/height)*image_size[0]) - 10
-    return x, y
+   x = math.floor(((coord[1]-lon_min)/width)*image_size[1])
+   y = math.floor(((lat_max-coord[0])/height)*image_size[0]) - 10
+   return x, y
 
 def get_two_closest_points(bbox):
     corner = np.array(bbox[0])
@@ -98,7 +98,15 @@ def get_pixor_center(bbox):
     center_y = (sorted_by_lat[0][0] + sorted_by_lat[3][0])/2
     return center_x, center_y
 
-
+def corner_boxes_in_pixels(image_size, buildings):
+    fixed = []
+    for building in buildings:
+        # Pixels for a single building
+        pixels = []
+        box_pixels = [convert_coord_to_pixel(c, image_size, LON_WIDTH, LAT_HEIGHT, LAT_MAX, LON_MIN) for c in building]
+        fixed.append(box_pixels)
+    
+    return fixed
 
 
 def OSM_to_pixels(image_size, buildings, YOLO=True, PIXOR=False):
