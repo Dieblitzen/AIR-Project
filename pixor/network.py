@@ -5,7 +5,6 @@ sys.path.append("..")
 from data_extract import extract_data
 from sklearn.utils import shuffle
 #launch session to connect to C++ computation power
-saver = tf.train.Saver()
 sess = tf.InteractiveSession()
 
 # LACKING MORE SKIP CONNECTIONS
@@ -22,13 +21,6 @@ def bias_variable(shape):
     initial = tf.constant(0.1, shape=shape)
     return tf.Variable(initial)
 
-""" Standard convolutional layer."""
-def conv2d(input, filter_size, in_channels, out_channels, stride=1, padding="SAME"):
-  weights = weight_variable([filter_size, filter_size, in_channels, out_channels])
-  return tf.nn.conv2d(input=input, 
-        filter=weights,
-        strides=[1, stride, stride, 1], padding=padding) + bias_variable([out_channels])
-
 """ Standard transposed convolutional layer."""
 def conv2d_transpose(input, filter_size, out_channels, stride, activation="None"):
   return tf.layers.conv2d_transpose(inputs=input, filters=out_channels,
@@ -43,26 +35,26 @@ y_box = tf.placeholder(tf.float32, shape=(None, 228, 228, 6))
 y_class = tf.placeholder(tf.float32, shape=(None, 228, 228, 1))
 
 # two convolutional layers, 3x3, 32 filters
-conv1 = tf.nn.relu(conv2d(input=x, filter_size=3, in_channels=3, out_channels=32))
-conv2 = tf.nn.relu(conv2d(input=conv1, filter_size=3, in_channels=32, out_channels=32))
+conv1 = tf.layers.conv2d(inputs=x, filters=32, kernel_size=3, padding='same', activation=tf.nn.relu)
+conv2 = tf.layers.conv2d(inputs=conv1, filters=32, kernel_size=3, padding='same', activation=tf.nn.relu)
 
 # resnet block 1
 block1_shortcut = conv2
-block1_shortcut_proj = tf.nn.relu(conv2d(input=block1_shortcut, filter_size=1, in_channels=32, out_channels=96, stride=2))
+block1_shortcut_proj = tf.layers.conv2d(inputs=block1_shortcut, filters=96, kernel_size=1, strides=2, padding='same', activation=tf.nn.relu)
 
-block1_1 = tf.nn.relu(conv2d(input=conv2, filter_size=3, in_channels=32, out_channels=24, stride=2))
-block1_2 = tf.nn.relu(conv2d(input=block1_1, filter_size=3, in_channels=24, out_channels=24))
-block1_3 = tf.nn.relu(conv2d(input=block1_2, filter_size=3, in_channels=24, out_channels=96))
+block1_1 = tf.layers.conv2d(inputs=conv2, filters=24, kernel_size=3, strides=2, padding='same', activation=tf.nn.relu)
+block1_2 = tf.layers.conv2d(inputs=block1_1, filters=24, kernel_size=3, padding='same', activation=tf.nn.relu)
+block1_3 = tf.layers.conv2d(inputs=block1_2, filters=96, kernel_size=3, padding='same', activation=tf.nn.relu)
 
 block1_out = block1_3 + block1_shortcut_proj
 
 # resnet block 2 [Compressed from original version for now]
 block2_shortcut = block1_out
-block2_shortcut_proj = tf.nn.relu(conv2d(input=block2_shortcut, filter_size=1, in_channels=96, out_channels=192, stride=2))
+block2_shortcut_proj = tf.layers.conv2d(inputs=block2_shortcut, filters=192, kernel_size=1, strides=2, padding='same', activation=tf.nn.relu)
 
-block2_1 = tf.nn.relu(conv2d(input=block1_out, filter_size=3, in_channels=96, out_channels=48, stride=2))
-block2_2 = tf.nn.relu(conv2d(input=block2_1, filter_size=3, in_channels=48, out_channels=48))
-block2_3 = tf.nn.relu(conv2d(input=block2_2, filter_size=3, in_channels=48, out_channels=192))
+block2_1 = tf.layers.conv2d(inputs=block1_out, filters=48, kernel_size=3, strides=2, padding='same', activation=tf.nn.relu)
+block2_2 = tf.layers.conv2d(inputs=block2_1, filters=48, kernel_size=3, padding='same', activation=tf.nn.relu)
+block2_3 = tf.layers.conv2d(inputs=block2_2, filters=192, kernel_size=3, padding='same', activation=tf.nn.relu)
 
 block2_out = block2_3 + block2_shortcut_proj
 
@@ -71,11 +63,11 @@ skip_block2 = block2_out
 
 # resnet block 3 [Compressed from original version for now]
 block3_shortcut = block2_out
-block3_shortcut_proj = tf.nn.relu(conv2d(input=block3_shortcut, filter_size=1, in_channels=192, out_channels=256, stride=2))
+block3_shortcut_proj = tf.layers.conv2d(inputs=block3_shortcut, filters=256, kernel_size=1, strides=2, padding='same', activation=tf.nn.relu)
 
-block3_1 = tf.nn.relu(conv2d(input=block2_out, filter_size=3, in_channels=192, out_channels=64, stride=2))
-block3_2 = tf.nn.relu(conv2d(input=block3_1, filter_size=3, in_channels=64, out_channels=64))
-block3_3 = tf.nn.relu(conv2d(input=block3_2, filter_size=3, in_channels=64, out_channels=256))
+block3_1 = tf.layers.conv2d(inputs=block2_out, filters=64, kernel_size=3, strides=2, padding='same', activation=tf.nn.relu)
+block3_2 = tf.layers.conv2d(inputs=block3_1, filters=64, kernel_size=3, padding='same', activation=tf.nn.relu)
+block3_3 = tf.layers.conv2d(inputs=block3_2, filters=256, kernel_size=3, padding='same', activation=tf.nn.relu)
 
 block3_out = block3_3 + block3_shortcut_proj
 
@@ -84,16 +76,16 @@ skip_block3 = block3_out
 
 # resnet block 4
 block4_shortcut = block3_out
-block4_shortcut_proj = tf.nn.relu(conv2d(input=block4_shortcut, filter_size=1, in_channels=256, out_channels=384, stride=2))
+block4_shortcut_proj = tf.layers.conv2d(inputs=block4_shortcut, filters=384, kernel_size=1, strides=2, padding='same', activation=tf.nn.relu)
 
-block4_1 = tf.nn.relu(conv2d(input=block3_out, filter_size=3, in_channels=256, out_channels=96, stride=2))
-block4_2 = tf.nn.relu(conv2d(input=block4_1, filter_size=3, in_channels=96, out_channels=96))
-block4_3 = tf.nn.relu(conv2d(input=block4_2, filter_size=3, in_channels=96, out_channels=384))
+block4_1 = tf.layers.conv2d(inputs=block3_out, filters=96, kernel_size=3, strides=2, padding='same', activation=tf.nn.relu)
+block4_2 = tf.layers.conv2d(inputs=block4_1, filters=96, kernel_size=3, padding='same', activation=tf.nn.relu)
+block4_3 = tf.layers.conv2d(inputs=block4_2, filters=384, kernel_size=3, padding='same', activation=tf.nn.relu)
 
 block4_out = block4_3 + block4_shortcut_proj
 
 # one convolutional layer, 1x1, 196 filters
-prep_upsampling = tf.nn.relu(conv2d(input=block4_out, filter_size=1, in_channels=384, out_channels=196, stride=1))
+prep_upsampling = tf.layers.conv2d(inputs=block4_out, filters=196, kernel_size=1, activation=tf.nn.relu)
 
 # upsample 6, 128 filters , x2 
 upsample1 = conv2d_transpose(input=prep_upsampling, filter_size=3, out_channels=128, stride=2, activation=tf.nn.relu)
@@ -102,7 +94,7 @@ upsample1 = upsample1[:, :-1, :-1, :]
 
 # postprocessing to add skip connection after upsample 6
 # [1x1, 128 channel convolution on skip ;; then add]
-processed_skip_block3 = tf.nn.relu(conv2d(input=skip_block3, filter_size=1, in_channels=256, out_channels=128, stride=1))
+processed_skip_block3 = tf.layers.conv2d(inputs=skip_block3, filters=128, kernel_size=1, padding='same', activation=tf.nn.relu)
 skipped_upsample1 = upsample1 + processed_skip_block3
 
 # upsample 7, 96 filters, x2
@@ -111,7 +103,7 @@ upsample2 = upsample2[:, :-1,  :-1, :]
 
 # postprocessing to add skip connection after upsample 7
 # [1x1, 96 channel convolution on skip ;; then add]
-processed_skip_block2 = tf.nn.relu(conv2d(input=skip_block2, filter_size=1, in_channels=192, out_channels=96, stride=1))
+processed_skip_block2 = tf.layers.conv2d(inputs=skip_block2, filters=96, kernel_size=1, padding='same', activation=tf.nn.relu)
 skipped_upsample2 = upsample2 + processed_skip_block2
 
 # PLACEHOLDER UPSAMPLING
@@ -120,16 +112,16 @@ temp_final_upsample = conv2d_transpose(input=skipped_upsample2, filter_size=3, o
 ## HEADER NETWORK
 
 # four convolutional layers, 3x3, 96 filters
-header1 = tf.nn.relu(conv2d(input=temp_final_upsample, filter_size=3, in_channels=96, out_channels=96, stride=1))
-header2 = tf.nn.relu(conv2d(input=header1, filter_size=3, in_channels=96, out_channels=96, stride=1))
-header3 = tf.nn.relu(conv2d(input=header2, filter_size=3, in_channels=96, out_channels=96, stride=1))
-header4 = tf.nn.relu(conv2d(input=header3, filter_size=3, in_channels=96, out_channels=96, stride=1))
+header1 = tf.layers.conv2d(inputs=temp_final_upsample, filters=96, kernel_size=3, padding='same', activation=tf.nn.relu)
+header2 = tf.layers.conv2d(inputs=header1, filters=96, kernel_size=3, padding='same', activation=tf.nn.relu)
+header3 = tf.layers.conv2d(inputs=header2, filters=96, kernel_size=3, padding='same', activation=tf.nn.relu)
+header4 = tf.layers.conv2d(inputs=header3, filters=96, kernel_size=3, padding='same', activation=tf.nn.relu)
 
 # one convolutional layer, 3x3, 1 filter
-output_box = tf.nn.relu(conv2d(input=header4, filter_size=3, in_channels=96, out_channels=1, stride=1))
+output_class = tf.layers.conv2d(inputs=header4, filters=1, kernel_size=3, padding='same')
 
 # one convolutional layer, 3x3, 6 filters
-output_class = tf.nn.relu(conv2d(input=header4, filter_size=3, in_channels=96, out_channels=6, stride=1))
+output_box = tf.layers.conv2d(inputs=header4, filters=6, kernel_size=3, padding='same')
 
 
 # DEFINING LOSS
@@ -141,7 +133,7 @@ def smooth_L1(box_labels, box_preds, class_labels):
   abs_difference = tf.abs(difference)
   result = tf.where(abs_difference < 1, 0.5 * abs_difference ** 2, abs_difference - 0.5)
   # only compute bbox loss over positive ground truth boxes
-  cleaned_result = tf.boolean_mask(result, class_labels.flatten())
+  cleaned_result = tf.boolean_mask(result, tf.reshape(class_labels, [-1]))
   return tf.reduce_sum(cleaned_result)
 
 class_loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(labels=y_class, logits=output_class))
@@ -153,6 +145,7 @@ train_step = tf.train.AdamOptimizer(1e-4).minimize(pixor_loss)
 
 # RUN THINGS
 
+saver = tf.train.Saver()
 with tf.Session() as sess:
   # load in data
   tile_list = extract_data("../tiles3.pkl")
@@ -178,8 +171,7 @@ with tf.Session() as sess:
   for epoch in range(num_epochs):
 
     # shuffle data to randomize order of network exposure
-    train_data, train_classlabels, train_boxlabels = 
-          shuffle(train_data, train_classlabels,train_boxlabels)
+    train_data, train_classlabels, train_boxlabels = shuffle(train_data, train_classlabels,train_boxlabels)
 
     num_batches = train_data.shape[0] // BATCH_SIZE
     for batch_number in range(0, num_batches):
