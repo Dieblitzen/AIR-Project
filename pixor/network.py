@@ -122,15 +122,44 @@ output_box = tf.nn.relu(conv2d(input=header4, filter_size=3, in_channels=96, out
 output_class = tf.nn.relu(conv2d(input=header4, filter_size=3, in_channels=96, out_channels=6, stride=1) + b_conv1)
 
 
-#Cost function
-cross_entropy_box = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=y_box, logits=output_box))
-cross_entropy_class = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=y_class, logits=output_class))
-cross_entropy = cross_entropy_box + cross_entropy_class
+# DEFINING LOSS
+
+def smooth_L1(box_labels, box_preds):
+  # calculate difference between box_labels and box_preds
+  difference = tf.math.subtract(box_preds, box_labels)
+
+  # if absolute value of difference < 1
+    # 0.5 * (abs(difference))^2
+  
+  # otherwise
+    # abs(difference) - 0.5
+
+    
+
+class_loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(labels=y_class, logits=output_class))
+box_loss = smooth_L1(box_label=y_box, box_pred=output_box)
+pixor_loss = class_loss + box_loss
+
 #A step to minimize our cost function
-train_step = tf.train.AdamOptimizer(1e-4).minimize(cross_entropy)
+train_step = tf.train.AdamOptimizer(1e-4).minimize(pixor_loss)
 #List of booleans, indicating whether or not we guessed the correct digit
 correct_prediction = tf.equal(tf.argmax(y_conv, 1), tf.argmax(y_, 1))
 #Calculates overall occuracy on test set
 accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
 
+
 with tf.Session() as sess:
+  #initialize everything
+  sess.run(tf.global_variables_initializer())
+  num_epochs = 10
+  
+  for epoch in range(num_epochs):
+
+    num_batches = None
+    for batch_number in num_batches:
+      # obtain batch
+      batch = None
+
+      # update
+      train_step.run(feed_dict = {x: batch[0], y_box: batch[1], 
+                                  y_class: batch[2], keep_prob: 0.5})

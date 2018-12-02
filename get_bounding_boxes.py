@@ -88,14 +88,14 @@ def get_pixor_box_dimensions(bbox):
     corner, closest, second_closest, sorted_distances = get_two_closest_points(bbox)
     vector = np.array(np.subtract(second_closest,corner)) if corner[0] > second_closest[0] else np.array(np.subtract(corner,second_closest))
     unit_vector = vector / np.linalg.norm(vector)
-    width, length = sorted_distances[1][1], sorted_distances[2][1]
+    width, length = math.floor(sorted_distances[1][1]), math.floor(sorted_distances[2][1])
     return np.arccos(np.clip(np.dot(unit_vector, (1,0)), -1.0, 1.0)), width, length
 
 def get_pixor_center(bbox):
     sorted_by_lat = sorted(bbox, key= lambda pair: pair[0])
     sorted_by_lon = sorted(bbox, key= lambda pair: pair[1])
-    center_x = (sorted_by_lon[0][1] + sorted_by_lon[3][1])/2
-    center_y = (sorted_by_lat[0][0] + sorted_by_lat[3][0])/2
+    center_x = math.floor((sorted_by_lon[0][1] + sorted_by_lon[3][1])/2)
+    center_y = math.floor((sorted_by_lat[0][0] + sorted_by_lat[3][0])/2)
     return center_x, center_y
 
 def corner_boxes_in_pixels(image_size, buildings):

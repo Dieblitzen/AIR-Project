@@ -32,7 +32,7 @@ def visualize_bounding_boxes(image_array, bb_pixels, YOLO=True):
           for c in range(0, bb_pixels.shape[1]):
             pot_box = bb_pixels[r, c]
             if not (pot_box[0] == 228.0 and pot_box[1] == 228.0):
-              print(pot_box)
+              print([pot_box[0], pot_box[1]])
               poly = Polygon([pot_box[0], pot_box[1]])
               x, y = poly.exterior.xy
               plt.plot(x, y)

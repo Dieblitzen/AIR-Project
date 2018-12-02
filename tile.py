@@ -33,7 +33,7 @@ def boxes_in_tile_pixor(bboxes, corner_boxes, row_start, row_end, col_start, col
     # gets the boxes within this tile, with coordinates relative to tile
     boxes_within_tile, selected_indices = boxes_in_tile(bboxes, row_start, row_end, col_start, col_end)
 
-    pixel_labels = np.zeros((228, 228, 6))
+    pixel_labels = np.zeros((228, 228, 7))
 
     print("looking at new tile")
     for r in range(row_start, row_end):
@@ -49,19 +49,19 @@ def boxes_in_tile_pixor(bboxes, corner_boxes, row_start, row_end, col_start, col
                 pixel = (r, c)
 
                 if inside_box(pixel, corner_boxes[selected_indices[bbox_index]], entire_img_shape):
-                    new_dx = abs(pixel[0] - bboxes[bbox_index][0])
-                    new_dy = abs(pixel[1] - bboxes[bbox_index][1])
+                    new_dx = abs(pixel[0] - boxes_within_tile[bbox_index][0])
+                    new_dy = abs(pixel[1] - boxes_within_tile[bbox_index][1])
+                    
                     if(np.sqrt(new_dx**2 + new_dy**2) <= np.sqrt(dx**2 + dy**2)):
                         dx = new_dx
                         dy = new_dy
-                        heading, width, length = bboxes[bbox_index][2:]
+                        heading, width, length = boxes_within_tile[bbox_index][2:]
                         in_a_box = 1
 
             new_r = r - row_start
             new_c = c - col_start
-            pixel_labels[new_r, new_c,:] = [dx, dy, heading, width, length, in_a_box]
-    return pixel_labels
-
+            pixel_labels[new_r, new_c,:] = [int(dx), int(dy), np.cos(heading), np.sin(heading), int(width), int(length), in_a_box]
+            
 
 # Takes array representing entire queried image and bounding boxes (with pixel coordinates) relative to
 # entire image, and outputs a list of tuples where the first element is the tiled image and the second
