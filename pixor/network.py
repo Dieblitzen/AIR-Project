@@ -118,14 +118,13 @@ output_box = tf.layers.conv2d(inputs=header4, filters=6, kernel_size=3, padding=
 """ If absolute value of difference < 1 -> 0.5 * (abs(difference))^2. 
 Otherwise, abs(difference) - 0.5. """
 def smooth_L1(box_labels, box_preds, class_labels):
-  print("\ninside L! function\n")
   difference = tf.subtract(box_preds, box_labels)
   abs_difference = tf.abs(difference)
   result = tf.where(abs_difference < 1, 0.5 * abs_difference ** 2, abs_difference - 0.5)
   # only compute bbox loss over positive ground truth boxes
-  cleaned_result = tf.boolean_mask(result, tf.reshape(class_labels, [-1]))
+  processed_result = tf.dynamic_partition(result, tf.reshape(class_labels, [-1]), num_partitions=2)
   print("\nafter L! function\n")
-  return tf.reduce_sum(cleaned_result)
+  return tf.reduce_sum(processed_result[1])
 
 class_loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(labels=y_class, logits=output_class))
 box_loss = smooth_L1(box_labels=y_box, box_preds=output_box, class_labels=y_class)
