@@ -122,9 +122,8 @@ def smooth_L1(box_labels, box_preds, class_labels):
   abs_difference = tf.abs(difference)
   result = tf.where(abs_difference < 1, 0.5 * abs_difference ** 2, abs_difference - 0.5)
   # only compute bbox loss over positive ground truth boxes
-  processed_result = tf.dynamic_partition(result, tf.reshape(class_labels, [-1]), num_partitions=2)
-  print("\nafter L! function\n")
-  return tf.reduce_sum(processed_result[1])
+  processed_result = box_preds * class_labels
+  return tf.reduce_sum(processed_result)
 
 class_loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(labels=y_class, logits=output_class))
 box_loss = smooth_L1(box_labels=y_box, box_preds=output_box, class_labels=y_class)
@@ -163,15 +162,19 @@ with tf.Session() as sess:
   #initialize everything
   sess.run(tf.global_variables_initializer())
   num_epochs = 50
-  
+
+  per_epoch_train_loss = 0
   lowest_val_loss = np.inf
   for epoch in range(num_epochs):
+
+    print("epoch " + str(epoch))
 
     # shuffle data to randomize order of network exposure
     train_data, train_classlabels, train_boxlabels = shuffle(train_data, train_classlabels,train_boxlabels)
 
     num_batches = train_data.shape[0] // BATCH_SIZE
     for batch_number in range(0, num_batches):
+      print("batch " + str(batch_number))
       start_idx = batch_number * BATCH_SIZE
       end_idx = start_idx + BATCH_SIZE
 
@@ -191,7 +194,7 @@ with tf.Session() as sess:
        y_box: val_boxlabels, y_class: val_classlabels})
     print('epoch %d, training loss %g' % (epoch, per_epoch_train_loss))
     print('epoch %d, validation loss %g' % (epoch, val_loss[0]))
-    print("data: " + str(val_classlabels))
+
     # checkpoint model if best so far
     if val_loss[0] < lowest_val_loss:
         lowest_val_loss = val_loss
