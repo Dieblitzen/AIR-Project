@@ -162,7 +162,7 @@ with tf.Session() as sess:
 
   #initialize everything
   sess.run(tf.global_variables_initializer())
-  num_epochs = 10
+  num_epochs = 50
   
   lowest_val_loss = np.inf
   for epoch in range(num_epochs):
@@ -176,19 +176,24 @@ with tf.Session() as sess:
       end_idx = start_idx + BATCH_SIZE
 
       # train on the batch
-      train_step.run(feed_dict = 
-        {x: train_data[start_idx: end_idx], 
-        y_box: train_boxlabels[start_idx: end_idx], 
+      _, batch_train_loss = sess.run([train_step, pixor_loss], feed_dict =
+        {x: train_data[start_idx: end_idx],
+        y_box: train_boxlabels[start_idx: end_idx],
         y_class: train_classlabels[start_idx: end_idx]})
-  
-    # at each epoch, print training and validation loss
-    train_loss = pixor_loss.eval(feed_dict = {x: train_data, 
-        y_box: train_boxlabels, y_class: train_classlabels})
-    val_loss = pixor_loss.eval(feed_dict = {x: val_data, 
-        y_box: val_boxlabels, y_class: val_classlabels})
-    print('epoch %d, training loss %g' % (epoch, train_loss))
-    print('epoch %d, validation loss %g' % (epoch, val_loss))
 
+      per_epoch_train_loss += batch_train_loss
+
+
+    # at each epoch, print training and validation loss
+    # train_loss = pixor_loss.eval(feed_dict = {x: train_data, 
+      #  y_box: train_boxlabels, y_class: train_classlabels})
+    val_loss = sess.run([pixor_loss], feed_dict = {x: val_data,
+       y_box: val_boxlabels, y_class: val_classlabels})
+    print('epoch %d, training loss %g' % (epoch, per_epoch_train_loss))
+    print('epoch %d, validation loss %g' % (epoch, val_loss[0]))
+    print("data: " + str(val_classlabels))
     # checkpoint model if best so far
-    if val_loss < lowest_val_loss:
-      saver.save(sess, 'my-model', global_step=epoch)
+    if val_loss[0] < lowest_val_loss:
+        lowest_val_loss = val_loss
+        saver.save(sess, 'ckpt', global_step=epoch)
+

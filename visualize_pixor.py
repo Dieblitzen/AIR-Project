@@ -74,7 +74,19 @@ def visualize_bounding_boxes(image_array, bb_pixels, YOLO=True):
 
 
 # tile the image, which returns a list
-tile_list = extract_data("tiles2.pkl")
+images = extract_data("images.pkl")
+images = np.asarray(images)
+boxlabels = extract_data("box_labels.pkl")
+boxlabels = np.asarray(boxlabels)
+classlabels = extract_data("class_labels.pkl")
+classlabels = np.asarray(classlabels)
+
+for i in range(0, classlabels.shape[0]):
+    print("row" + str(i))
+    for r in range(0, classlabels.shape[1]):
+        for c in range(0, classlabels.shape[2]):
+            if classlabels[i, r, c] != 0:
+                print(classlabels[i, r, c])
 
 # for each tile, visualize boxes on it
 for i in range(len(tile_list)):
