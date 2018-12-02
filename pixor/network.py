@@ -148,7 +148,16 @@ train_step = tf.train.AdamOptimizer(1e-4).minimize(pixor_loss)
 saver = tf.train.Saver()
 with tf.Session() as sess:
   # load in data
-  tile_list = extract_data("../tiles3.pkl")
+  images = extract_data("../images.pkl")
+  images = np.asarray(images)
+  boxlabels = extract_data("../box_labels.pkl")
+  boxlabels = np.asarray(boxlabels)
+  classlabels = extract_data("../class_labels.pkl")
+  classlabels = np.asarray(classlabels)
+
+  print(images.shape)
+  print(boxlabels.shape)
+  print(classlabels.shape)
 
   datapoints = None
 
