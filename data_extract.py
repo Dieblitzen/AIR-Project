@@ -41,9 +41,9 @@ def arr2jpg(arr, folder):
 
 
 
-def save_data(tiles):
-    with open("tiles3.pkl", "wb") as f:
-        pickle.dump(tiles,f)
+def save_data(item, filename):
+    with open(filename, "wb") as f:
+        pickle.dump(item,f)
 
 
 def extract_data(file_name):

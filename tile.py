@@ -33,7 +33,8 @@ def boxes_in_tile_pixor(bboxes, corner_boxes, row_start, row_end, col_start, col
     # gets the boxes within this tile, with coordinates relative to tile
     boxes_within_tile, selected_indices = boxes_in_tile(bboxes, row_start, row_end, col_start, col_end)
 
-    pixel_labels = np.zeros((228, 228, 7))
+    pixel_box_labels = np.zeros((228, 228, 6))
+    pixel_class_labels = np.zeros((228, 228, 1))
 
     print("looking at new tile")
     for r in range(row_start, row_end):
@@ -60,7 +61,10 @@ def boxes_in_tile_pixor(bboxes, corner_boxes, row_start, row_end, col_start, col
 
             new_r = r - row_start
             new_c = c - col_start
-            pixel_labels[new_r, new_c,:] = [int(dx), int(dy), np.cos(heading), np.sin(heading), int(width), int(length), in_a_box]
+            pixel_box_labels[new_r, new_c,:] = [int(dx), int(dy), np.cos(heading), np.sin(heading), int(width), int(length)]
+            pixel_class_labels[new_r, new_c] = in_a_box
+    
+    return pixel_box_labels, pixel_class_labels
             
 
 # Takes array representing entire queried image and bounding boxes (with pixel coordinates) relative to
@@ -70,7 +74,10 @@ def tile_image(entire_img, b_boxes, corner_boxes, tile_size, indices_to_remove, 
 
     num_rows, num_cols, depth = entire_img.shape
 
-    output = []
+    output_images = []
+    output_boxes = []
+    output_classes = []
+
     cell = 0  # used for gridding
     # For num tiles/grid cells
     total_rows = num_rows//tile_size
@@ -96,23 +103,25 @@ def tile_image(entire_img, b_boxes, corner_boxes, tile_size, indices_to_remove, 
             cell += 1
 
             # get bboxes in the tile in both cases (grid or not)
-            bboxes_in_tile = boxes_in_tile_pixor(
+            pixel_box_labels, pixel_class_labels = boxes_in_tile_pixor(
                 b_boxes, corner_boxes, row_start, row_end, col_start, col_end, entire_img.shape)
             
             # Add results to output
-            output.append((tile, bboxes_in_tile))
+            output_images.append(tile)
+            output_boxes.append(pixel_box_labels)
+            output_classes.append(pixel_class_labels)
 
-    new_output = []
+    new_output_images = []
+    new_output_boxes = []
+    new_output_classes = []
+
     for ind in range(len(output)):
         if ind not in indices_to_remove:
-            new_output.append(output[ind])
-    counter = 0
-    for x in new_output:
-        counter += len(x[1])
-    print("number of tiles: " + str(len(new_output)))
-    print("elts of single pixel label: " + str(new_output[0][1]))
-    print("counter: " + str(counter))
-    return new_output
+            new_output_images.append(output_images[ind])
+            new_output_boxes.append(output_boxes[ind])
+            new_output_classes.append(output_classes[ind])
+
+    return new_output_images, new_output_boxes, new_output_classes
 
     # tiled_images = image.extract_patches_2d(entire_image, (tile_size, tile_size))
     # return tiled_images

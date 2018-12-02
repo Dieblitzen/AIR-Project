@@ -66,5 +66,7 @@ if __name__ == "__main__":
 
     # tile the image, which returns a list
     print("begin tiling")
-    tile_list = tile.tile_image(im_array, pixel_boxes, converted_corner_boxes, 228, indices_to_remove)
-    data_extract.save_data(tile_list)
+    images, boxes, classes = tile.tile_image(im_array, pixel_boxes, converted_corner_boxes, 228, indices_to_remove)
+    data_extract.save_data(images, 'images.pkl')
+    data_extract.save_data(boxes, 'box_labels.pkl')
+    data_extract.save_data(classes, 'class_labels.pkl')
