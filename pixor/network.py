@@ -5,6 +5,7 @@ sys.path.append("..")
 from data_extract import extract_data
 from sklearn.utils import shuffle
 #launch session to connect to C++ computation power
+saver = tf.train.Saver()
 sess = tf.InteractiveSession()
 
 # LACKING MORE SKIP CONNECTIONS
@@ -36,9 +37,9 @@ def conv2d_transpose(input, filter_size, out_channels, stride, activation="None"
 
 #Initialize expected input for images
 x = tf.placeholder(tf.float32, shape=(None, 228, 228, 3))
-#Initialize expected output for per-pixel bounding boxes
+#Initialize holder for per-pixel bounding boxes
 y_box = tf.placeholder(tf.float32, shape=(None, 228, 228, 6))
-#Initialize expected output for per-pixel labels
+#Initialize holder for per-pixel labels
 y_class = tf.placeholder(tf.float32, shape=(None, 228, 228, 1))
 
 # two convolutional layers, 3x3, 32 filters
@@ -135,19 +136,22 @@ output_class = tf.nn.relu(conv2d(input=header4, filter_size=3, in_channels=96, o
 
 """ If absolute value of difference < 1 -> 0.5 * (abs(difference))^2. 
 Otherwise, abs(difference) - 0.5. """
-def smooth_L1(box_labels, box_preds):
+def smooth_L1(box_labels, box_preds, class_labels):
   difference = tf.subtract(box_preds, box_labels)
   abs_difference = tf.abs(difference)
   result = tf.where(abs_difference < 1, 0.5 * abs_difference ** 2, abs_difference - 0.5)
-  return result
+  # only compute bbox loss over positive ground truth boxes
+  cleaned_result = tf.boolean_mask(result, class_labels.flatten())
+  return tf.reduce_sum(cleaned_result)
 
 class_loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(labels=y_class, logits=output_class))
-box_loss = smooth_L1(box_labels=y_box, box_preds=output_box)
+box_loss = smooth_L1(box_labels=y_box, box_preds=output_box, class_labels=y_class)
 pixor_loss = class_loss + box_loss
 
 #A step to minimize our cost function
 train_step = tf.train.AdamOptimizer(1e-4).minimize(pixor_loss)
 
+# RUN THINGS
 
 with tf.Session() as sess:
   # load in data
@@ -170,6 +174,7 @@ with tf.Session() as sess:
   sess.run(tf.global_variables_initializer())
   num_epochs = 10
   
+  lowest_val_loss = np.inf
   for epoch in range(num_epochs):
 
     # shuffle data to randomize order of network exposure
@@ -181,8 +186,20 @@ with tf.Session() as sess:
       start_idx = batch_number * BATCH_SIZE
       end_idx = start_idx + BATCH_SIZE
 
-      # update
+      # train on the batch
       train_step.run(feed_dict = 
         {x: train_data[start_idx: end_idx], 
         y_box: train_boxlabels[start_idx: end_idx], 
         y_class: train_classlabels[start_idx: end_idx], keep_prob: 0.5})
+  
+    # at each epoch, print training and validation loss
+    train_loss = pixor_loss.eval(feed_dict = {x: train_data, 
+        y_box: train_boxlabels, y_class: train_classlabels, keep_prob: 1.0})
+    val_loss = pixor_loss.eval(feed_dict = {x: val_data, 
+        y_box: val_boxlabels, y_class: val_classlabels, keep_prob: 1.0})
+    print('epoch %d, training loss %g' % (epoch, train_loss))
+    print('epoch %d, validation loss %g' % (epoch, val_loss))
+
+    # checkpoint model if best so far
+    if val_loss < lowest_val_loss:
+      saver.save(sess, 'my-model', global_step=epoch)

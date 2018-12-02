@@ -115,7 +115,7 @@ def tile_image(entire_img, b_boxes, corner_boxes, tile_size, indices_to_remove, 
     new_output_boxes = []
     new_output_classes = []
 
-    for ind in range(len(output)):
+    for ind in range(len(output_images)):
         if ind not in indices_to_remove:
             new_output_images.append(output_images[ind])
             new_output_boxes.append(output_boxes[ind])
