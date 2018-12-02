@@ -115,8 +115,6 @@ output_box = tf.layers.conv2d(inputs=header4, filters=6, kernel_size=3, padding=
 
 ## DEFINING LOSS
 
-## DEFINING LOSS
-
 """ If absolute value of difference < 1 -> 0.5 * (abs(difference))^2. 
 Otherwise, abs(difference) - 0.5. """
 def smooth_L1(box_labels, box_preds, class_labels):
