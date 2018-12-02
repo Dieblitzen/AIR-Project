@@ -9,23 +9,12 @@ sess = tf.InteractiveSession()
 
 # LACKING MORE SKIP CONNECTIONS
 
-BATCH_SIZE=32
-
-""" Initializes weights with a slightly positive bias."""
-def weight_variable(shape):
-    initial = tf.truncated_normal(shape, stddev=0.1)
-    return tf.Variable(initial)
-
-""" Initializes bias with a slightly positive bias."""
-def bias_variable(shape):
-    initial = tf.constant(0.1, shape=shape)
-    return tf.Variable(initial)
+BATCH_SIZE=16
 
 """ Standard transposed convolutional layer."""
 def conv2d_transpose(input, filter_size, out_channels, stride, activation="None"):
   return tf.layers.conv2d_transpose(inputs=input, filters=out_channels,
          kernel_size=filter_size, strides=stride, padding='same', activation=activation)
-
 
 #Initialize expected input for images
 x = tf.placeholder(tf.float32, shape=(None, 228, 228, 3))
@@ -129,11 +118,13 @@ output_box = tf.layers.conv2d(inputs=header4, filters=6, kernel_size=3, padding=
 """ If absolute value of difference < 1 -> 0.5 * (abs(difference))^2. 
 Otherwise, abs(difference) - 0.5. """
 def smooth_L1(box_labels, box_preds, class_labels):
+  print("\ninside L! function\n")
   difference = tf.subtract(box_preds, box_labels)
   abs_difference = tf.abs(difference)
   result = tf.where(abs_difference < 1, 0.5 * abs_difference ** 2, abs_difference - 0.5)
   # only compute bbox loss over positive ground truth boxes
   cleaned_result = tf.boolean_mask(result, tf.reshape(class_labels, [-1]))
+  print("\nafter L! function\n")
   return tf.reduce_sum(cleaned_result)
 
 class_loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(labels=y_class, logits=output_class))
