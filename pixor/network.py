@@ -115,18 +115,30 @@ output_box = tf.layers.conv2d(inputs=header4, filters=6, kernel_size=3, padding=
 
 ## DEFINING LOSS
 
+## DEFINING LOSS
+
 """ If absolute value of difference < 1 -> 0.5 * (abs(difference))^2. 
 Otherwise, abs(difference) - 0.5. """
 def smooth_L1(box_labels, box_preds, class_labels):
   difference = tf.subtract(box_preds, box_labels)
-  result = tf.where(tf.abs(difference) < 1, 0.5 * difference ** 2, tf.abs(difference) - 0.5)
+  ones = tf.fill([BATCH_SIZE, 228, 228, 6], 1.)
+  halves = tf.fill([BATCH_SIZE, 228, 228, 6], 0.5)
+  comp = tf.less(tf.abs(difference), ones)
+  result = tf.where(comp, tf.multiply(halves, tf.square(difference)), tf.subtract(tf.abs(difference), halves))
+
   # only compute bbox loss over positive ground truth boxes
-  processed_result = tf.where(class_labels == 1.0, result, tf.zeros([BATCH_SIZE, 228, 228, 6], tf.float32))
- # processed_result = result * class_labels
+  # processed_result = tf.where(tf.equal(class_labels, 1.0), result, tf.zeros([BATCH_SIZE, 228, 228, 6], tf.float32))
+  processed_result = tf.multiply(result, class_labels)
   return tf.reduce_sum(processed_result)
 
+def custom_cross_entropy(class_labels, class_preds):
+    ones = tf.fill([BATCH_SIZE, 228, 228, 1], 1.)
+    eps = tf.fill([BATCH_SIZE, 228, 228, 1], 0.0000001)
+    lolz = tf.where(tf.equal(class_labels, ones), -tf.log(tf.add(class_preds, eps)), -tf.log(tf.add(ones - class_preds, eps)))
+    return tf.reduce_sum(lolz)
 
-class_loss = tf.reduce_sum(tf.losses.log_loss(labels=y_class, predictions=output_class))
+
+class_loss = custom_cross_entropy(class_labels=y_class, class_preds=output_class)
 box_loss = smooth_L1(box_labels=y_box, box_preds=output_box, class_labels=y_class)
 pixor_loss = class_loss + box_loss
 
@@ -145,6 +157,12 @@ with tf.Session() as sess:
   boxlabels = np.asarray(boxlabels)
   classlabels = extract_data("../class_labels.pkl")
   classlabels = np.asarray(classlabels)
+
+  for elt in range(0, boxlabels.shape[0]):
+    for r in range(0, boxlabels.shape[1]):
+      for c in range(0, boxlabels.shape[2]):
+        print('hello')
+        print(boxlabels[elt, r, c])
 
   # shuffle to break correlations
   images, boxlabels, classlabels = shuffle(images, boxlabels, classlabels, random_state=0)
@@ -175,6 +193,9 @@ with tf.Session() as sess:
       print("batch " + str(batch_number))
       start_idx = batch_number * BATCH_SIZE
       end_idx = start_idx + BATCH_SIZE
+
+      print("start: " + str(start_idx))
+      print("end: " + str(end_idx))
 
       # train on the batch
       _,  b_loss, c_loss, batch_train_loss = sess.run([train_step, box_loss, class_loss, pixor_loss], feed_dict =
