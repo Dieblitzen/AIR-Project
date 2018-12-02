@@ -26,7 +26,7 @@ val_classlabels = graph.get_tensor_by_name("val_classlabels:0")
 val_boxlabels = graph.get_tensor_by_name("val_boxlabels:0")
 
 feed_dict = {x: val_data, 
-        y_box: val_boxlabels, y_class: val_classlabels, keep_prob: 1.0}
+        y_box: val_boxlabels, y_class: val_classlabels}
 
 #Now, access the op that you want to run. 
 op_to_restore = graph.get_tensor_by_name("pixor_loss:0")

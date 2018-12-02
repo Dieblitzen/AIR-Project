@@ -155,22 +155,20 @@ with tf.Session() as sess:
   classlabels = extract_data("../class_labels.pkl")
   classlabels = np.asarray(classlabels)
 
-  print(images.shape)
-  print(boxlabels.shape)
-  print(classlabels.shape)
+  # shuffle to break correlations
+  images, boxlabels, classlabels = shuffle(images, boxlabels, classlabels)
 
-  datapoints = None
+  train_data = images[0:200]
+  train_classlabels = classlabels[0:200]
+  train_boxlabels = boxlabels[0:200]
 
-  train_data = None
-  train_classlabels = None
-  train_boxlabels = None
+  print(train_data.shape)
+  print(train_classlabels.shape)
+  print(train_boxlabels.shape)
 
-  val_data = None
-  val_classlabels = None
-  val_boxlabels = None
-
-  tile_array = np.asarray(tile_list)
-  print(tile_array)
+  val_data = images[200:images.shape[0]]
+  val_classlabels = classlabels[200:images.shape[0]]
+  val_boxlabels = boxlabels[200:images.shape[0]]
 
   #initialize everything
   sess.run(tf.global_variables_initializer())
@@ -191,13 +189,13 @@ with tf.Session() as sess:
       train_step.run(feed_dict = 
         {x: train_data[start_idx: end_idx], 
         y_box: train_boxlabels[start_idx: end_idx], 
-        y_class: train_classlabels[start_idx: end_idx], keep_prob: 0.5})
+        y_class: train_classlabels[start_idx: end_idx]})
   
     # at each epoch, print training and validation loss
     train_loss = pixor_loss.eval(feed_dict = {x: train_data, 
-        y_box: train_boxlabels, y_class: train_classlabels, keep_prob: 1.0})
+        y_box: train_boxlabels, y_class: train_classlabels})
     val_loss = pixor_loss.eval(feed_dict = {x: val_data, 
-        y_box: val_boxlabels, y_class: val_classlabels, keep_prob: 1.0})
+        y_box: val_boxlabels, y_class: val_classlabels})
     print('epoch %d, training loss %g' % (epoch, train_loss))
     print('epoch %d, validation loss %g' % (epoch, val_loss))
 
