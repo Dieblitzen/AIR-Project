@@ -37,7 +37,7 @@ def image_to_np_array(image_folder):  # Fetches images from download folder
 
 def arr2jpg(arr, folder):
     # Turns np array into jpg and saves into folder specified by folder
-    scipy.misc.imsave(f'./{folder}/PAIRS_Area.jpg', arr)
+    scipy.misc.imsave('./{}/PAIRS_Area.jpg'.format(folder), arr)
 
 
 
