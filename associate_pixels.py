@@ -13,12 +13,10 @@ ENTIRE_IMG_SIZE = (3648, 5280, 3)
 
 def inside_box(point, bbox, entire_img_shape):
     corner, closest, second_closest, _ = get_two_closest_points(bbox)
-    short_side = np.array(np.subtract(np.array(corner),np.array(closest)))
+    short_side = np.array(np.subtract(np.array(closest),np.array(corner)))
     long_side = np.array(np.subtract(np.array(second_closest),np.array(corner)))
-    closest_to_point = np.array(np.subtract(np.array(point),np.array(closest)))
-    second_closest_to_point = np.array(np.subtract(np.array(point), np.array(second_closest)))
-    
-    inside = ((0 <= np.dot(short_side, closest_to_point) <= np.dot(short_side, short_side)) and (0 <= np.dot(long_side,second_closest_to_point) <= np.dot(long_side,long_side)))
+    corner_to_point = np.array(np.subtract(np.array(point),np.array(corner)))    
+    inside = ((0 <= np.dot(short_side, corner_to_point) <= np.dot(short_side, short_side)) and (0 <= np.dot(long_side,corner_to_point) <= np.dot(long_side,long_side)))
     return inside
 
 
