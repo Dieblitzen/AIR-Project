@@ -127,13 +127,13 @@ def smooth_L1(box_labels, box_preds, class_labels):
   # only compute bbox loss over positive ground truth boxes
   # processed_result = tf.where(tf.equal(class_labels, 1.0), result, tf.zeros([BATCH_SIZE, 228, 228, 6], tf.float32))
   processed_result = tf.multiply(result, class_labels)
-  return tf.reduce_sum(processed_result)
+  return tf.reduce_mean(processed_result)
 
 def custom_cross_entropy(class_labels, class_preds):
     ones = tf.fill([BATCH_SIZE, 228, 228, 1], 1.)
     eps = tf.fill([BATCH_SIZE, 228, 228, 1], 0.0000001)
     lolz = tf.where(tf.equal(class_labels, ones), -tf.log(tf.add(class_preds, eps)), -tf.log(tf.add(ones - class_preds, eps)))
-    return tf.reduce_sum(lolz)
+    return tf.reduce_mean(lolz)
 
 
 class_loss = custom_cross_entropy(class_labels=y_class, class_preds=output_class)
@@ -156,11 +156,17 @@ with tf.Session() as sess:
   classlabels = extract_data("../class_labels.pkl")
   classlabels = np.asarray(classlabels)
 
+  counter = 0
+  num_images = 0
+
   for elt in range(0, boxlabels.shape[0]):
+    num_images += 1
     for r in range(0, boxlabels.shape[1]):
       for c in range(0, boxlabels.shape[2]):
-        print('hello')
-        print(boxlabels[elt, r, c])
+          if(boxlabels[elt,r,c,0] != 228.):
+              counter +=1
+  print("number of actual boxes: " + str(counter))
+  print("number of images processed: " + str(num_images))
 
   # shuffle to break correlations
   images, boxlabels, classlabels = shuffle(images, boxlabels, classlabels, random_state=0)
