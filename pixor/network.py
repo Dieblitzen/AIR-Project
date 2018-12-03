@@ -119,10 +119,10 @@ output_box = tf.layers.conv2d(inputs=header4, filters=6, kernel_size=3, padding=
 Otherwise, abs(difference) - 0.5. """
 def smooth_L1(box_labels, box_preds, class_labels):
   difference = tf.subtract(box_preds, box_labels)
-  ones = tf.fill([BATCH_SIZE, 228, 228, 6], 1.)
-  halves = tf.fill([BATCH_SIZE, 228, 228, 6], 0.5)
-  comp = tf.less(tf.abs(difference), ones)
-  result = tf.where(comp, tf.multiply(halves, tf.square(difference)), tf.subtract(tf.abs(difference), halves))
+  # ones = tf.fill([BATCH_SIZE, 228, 228, 6], 1.)
+  # halves = tf.fill([BATCH_SIZE, 228, 228, 6], 0.5)
+  comp = tf.less(tf.abs(difference), 1)
+  result = tf.where(comp, tf.multiply(0.5, tf.square(difference)), tf.subtract(tf.abs(difference), 0.5))
 
   # only compute bbox loss over positive ground truth boxes
   # processed_result = tf.where(tf.equal(class_labels, 1.0), result, tf.zeros([BATCH_SIZE, 228, 228, 6], tf.float32))
@@ -130,10 +130,11 @@ def smooth_L1(box_labels, box_preds, class_labels):
   return tf.reduce_mean(processed_result)
 
 def custom_cross_entropy(class_labels, class_preds):
-    ones = tf.fill([BATCH_SIZE, 228, 228, 1], 1.)
-    eps = tf.fill([BATCH_SIZE, 228, 228, 1], 0.0000001)
-    lolz = tf.where(tf.equal(class_labels, ones), -tf.log(tf.add(class_preds, eps)), -tf.log(tf.add(ones - class_preds, eps)))
+    # ones = tf.fill([BATCH_SIZE, 228, 228, 1], 1.)
+    # eps = tf.fill([BATCH_SIZE, 228, 228, 1], 0.0000001)
+    lolz = tf.where(tf.equal(class_labels, 1), -tf.log(tf.add(class_preds, 0.0000001)), -tf.log(tf.add(1 - class_preds, 0.0000001)))
     return tf.reduce_mean(lolz)
+
 
 
 class_loss = custom_cross_entropy(class_labels=y_class, class_preds=output_class)
@@ -171,13 +172,13 @@ with tf.Session() as sess:
   # shuffle to break correlations
   images, boxlabels, classlabels = shuffle(images, boxlabels, classlabels, random_state=0)
 
-  train_data = images[0:200]
-  train_classlabels = classlabels[0:200]
-  train_boxlabels = boxlabels[0:200]
+  train_data = images[0:300]
+  train_classlabels = classlabels[0:300]
+  train_boxlabels = boxlabels[0:300]
 
-  val_data = images[200:images.shape[0]]
-  val_classlabels = classlabels[200:images.shape[0]]
-  val_boxlabels = boxlabels[200:images.shape[0]]
+  val_data = images[300:images.shape[0]]
+  val_classlabels = classlabels[300:images.shape[0]]
+  val_boxlabels = boxlabels[300:images.shape[0]]
 
   #initialize everything
   sess.run(tf.global_variables_initializer())
