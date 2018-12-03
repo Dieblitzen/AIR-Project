@@ -75,10 +75,28 @@ def convert_coord_to_pixel(coord, image_size, width, height, lat_max, lon_min):
    y = math.floor(((lat_max-coord[0])/height)*image_size[0]) - 10
    return x, y
 
+#takes three points, assuming corner is the corner, and calculates angle
+def calculate_angle(corner, others):
+    p1, p2 = others
+    corner_to_p1 = p1 - corner
+    corner_to_p2 = p2 - corner
+    cosine_angle = (np.dot(corner_to_p1, corner_to_p2) / (np.linalg.norm(corner_to_p1) * np.linalg.norm(corner_to_p2)))
+    angle = np.arccos(cosine_angle)
+    return np.degrees(angle)
+
+#new procedure:
+# 1. take random three corner
+# 2. find biggest angle, assign that as your corner
+# 3. of the two remaining points, the closer one is the width vector, the farthest is length
 def get_two_closest_points(bbox):
-    corner = np.array(bbox[0])
-    distances = [(i,np.linalg.norm(corner-np.array(c))) for i, c in enumerate(bbox)]
+    points = np.array(bbox[0:3])
+    angles = [(i, calculate_angle(point, [p for p in points if not np.array_equal(p,point)])) for i, point in enumerate(points)]
+    sorted_angles = sorted(angles, key= lambda pair: pair[1])
+    corner = sorted_angles[0]
+
+    distances = [(i,np.linalg.norm(corner-c)) for i, c in enumerate(points)]
     sorted_distances = sorted(distances, key= lambda pair: pair[1])
+
     closest_index, second_closest_index = sorted_distances[1][0], sorted_distances[2][0]
     closest, second_closest = np.array(bbox[closest_index]), np.array(bbox[second_closest_index])
     return corner, closest, second_closest, sorted_distances
@@ -105,7 +123,7 @@ def corner_boxes_in_pixels(image_size, buildings):
         pixels = []
         box_pixels = [convert_coord_to_pixel(c, image_size, LON_WIDTH, LAT_HEIGHT, LAT_MAX, LON_MIN) for c in building]
         fixed.append(box_pixels)
-    
+
     return fixed
 
 
