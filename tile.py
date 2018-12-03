@@ -57,10 +57,10 @@ def boxes_in_tile_pixor(bboxes, corner_boxes, row_start, row_end, col_start, col
 
                     new_dx = abs((pixel[0] - row_start) - boxes_within_tile[bbox_index][0])
                     new_dy = abs((pixel[1] - col_start) - boxes_within_tile[bbox_index][1])
-                    counter+=1
+                    # counter+=1
 
                     if(np.sqrt(new_dx**2 + new_dy**2) <= np.sqrt(dx**2 + dy**2)):
-                        sec_counter+=1
+                        # sec_counter+=1
                         dx = new_dx
                         dy = new_dy
                         heading, width, length = boxes_within_tile[bbox_index][2:]
@@ -70,7 +70,7 @@ def boxes_in_tile_pixor(bboxes, corner_boxes, row_start, row_end, col_start, col
             new_c = c - col_start
             pixel_box_labels[new_r, new_c,:] = [int(dx), int(dy), np.cos(heading), np.sin(heading), int(width), int(length)]
             pixel_class_labels[new_r, new_c] = in_a_box
-    
+
 
     return pixel_box_labels, pixel_class_labels
 
