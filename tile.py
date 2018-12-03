@@ -23,7 +23,7 @@ def boxes_in_tile(bboxes, row_start, row_end, col_start, col_end):
 
             # Don't forget to carry remaining info that was unmutated
             bboxes_in_tile.append([newX, newY] + bboxes[i][2:])
-            
+
             selected_indices.append(i)
 
     return bboxes_in_tile, selected_indices
@@ -37,6 +37,8 @@ def boxes_in_tile_pixor(bboxes, corner_boxes, row_start, row_end, col_start, col
     pixel_class_labels = np.zeros((228, 228, 1))
 
     print("looking at new tile")
+    # counter = 0
+    # sec_counter = 0
     for r in range(row_start, row_end):
         for c in range(col_start, col_end):
             dx = 228
@@ -49,11 +51,16 @@ def boxes_in_tile_pixor(bboxes, corner_boxes, row_start, row_end, col_start, col
 
                 pixel = (r, c)
 
+
+
                 if inside_box(pixel, corner_boxes[selected_indices[bbox_index]], entire_img_shape):
-                    new_dx = abs(pixel[0] - boxes_within_tile[bbox_index][0])
-                    new_dy = abs(pixel[1] - boxes_within_tile[bbox_index][1])
-                    
+
+                    new_dx = abs((pixel[0] - row_start) - boxes_within_tile[bbox_index][0])
+                    new_dy = abs((pixel[1] - col_start) - boxes_within_tile[bbox_index][1])
+                    counter+=1
+
                     if(np.sqrt(new_dx**2 + new_dy**2) <= np.sqrt(dx**2 + dy**2)):
+                        sec_counter+=1
                         dx = new_dx
                         dy = new_dy
                         heading, width, length = boxes_within_tile[bbox_index][2:]
@@ -64,8 +71,9 @@ def boxes_in_tile_pixor(bboxes, corner_boxes, row_start, row_end, col_start, col
             pixel_box_labels[new_r, new_c,:] = [int(dx), int(dy), np.cos(heading), np.sin(heading), int(width), int(length)]
             pixel_class_labels[new_r, new_c] = in_a_box
     
+
     return pixel_box_labels, pixel_class_labels
-            
+
 
 # Takes array representing entire queried image and bounding boxes (with pixel coordinates) relative to
 # entire image, and outputs a list of tuples where the first element is the tiled image and the second
@@ -105,7 +113,7 @@ def tile_image(entire_img, b_boxes, corner_boxes, tile_size, indices_to_remove, 
             # get bboxes in the tile in both cases (grid or not)
             pixel_box_labels, pixel_class_labels = boxes_in_tile_pixor(
                 b_boxes, corner_boxes, row_start, row_end, col_start, col_end, entire_img.shape)
-            
+
             # Add results to output
             output_images.append(tile)
             output_boxes.append(pixel_box_labels)
