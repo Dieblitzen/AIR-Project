@@ -136,6 +136,7 @@ def custom_cross_entropy(class_labels, class_preds):
     return tf.reduce_mean(lolz)
 
 
+
 class_loss = custom_cross_entropy(class_labels=y_class, class_preds=output_class)
 box_loss = smooth_L1(box_labels=y_box, box_preds=output_box, class_labels=y_class)
 pixor_loss = class_loss + box_loss
