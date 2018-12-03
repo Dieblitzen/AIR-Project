@@ -8,16 +8,32 @@ import get_bounding_boxes
 from get_bounding_boxes import get_two_closest_points, convert_coord_to_pixel, corner_boxes_in_pixels, LON_WIDTH, LAT_HEIGHT, LAT_MAX, LON_MIN
 import data_extract
 import tile
+from scipy.spatial import Delaunay
 
 ENTIRE_IMG_SIZE = (3648, 5280, 3)
 
-def inside_box(point, bbox, entire_img_shape):
-    corner, closest, second_closest, _ = get_two_closest_points(bbox)
-    short_side = np.array(np.subtract(np.array(closest),np.array(corner)))
-    long_side = np.array(np.subtract(np.array(second_closest),np.array(corner)))
-    corner_to_point = np.array(np.subtract(np.array(point),np.array(corner)))    
-    inside = ((0 <= np.dot(short_side, corner_to_point) <= np.dot(short_side, short_side)) and (0 <= np.dot(long_side,corner_to_point) <= np.dot(long_side,long_side)))
-    return inside
+# def inside_box(point, bbox, entire_img_shape):
+#     corner, closest, second_closest, _ = get_two_closest_points(bbox)
+#     short_side = np.array(np.subtract(np.array(closest),np.array(corner)))
+#     long_side = np.array(np.subtract(np.array(second_closest),np.array(corner)))
+#     corner_to_point = np.array(np.subtract(np.array(point),np.array(corner)))
+#     inside = ((0 <= np.dot(short_side, corner_to_point) <= np.dot(short_side, short_side)) and (0 <= np.dot(long_side,corner_to_point) <= np.dot(long_side,long_side)))
+#     return inside
+
+def inside_box(p, hull, entire_img_shape):
+    """
+    Test if points in `p` are in `hull`
+
+    `p` should be a `NxK` coordinates of `N` points in `K` dimensions
+    `hull` is either a scipy.spatial.Delaunay object or the `MxK` array of the
+    coordinates of `M` points in `K`dimensions for which Delaunay triangulation
+    will be computed
+    """
+
+    if not isinstance(hull,Delaunay):
+        hull = Delaunay(hull)
+
+    return hull.find_simplex(p)>=0
 
 
 if __name__ == "__main__":
