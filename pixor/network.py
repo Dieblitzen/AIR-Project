@@ -9,7 +9,7 @@ sess = tf.InteractiveSession()
 
 # LACKING MORE SKIP CONNECTIONS
 
-BATCH_SIZE=16
+BATCH_SIZE=32
 
 """ Standard transposed convolutional layer."""
 def conv2d_transpose(input, filter_size, out_channels, stride, activation="None"):
@@ -119,10 +119,10 @@ output_box = tf.layers.conv2d(inputs=header4, filters=6, kernel_size=3, padding=
 Otherwise, abs(difference) - 0.5. """
 def smooth_L1(box_labels, box_preds, class_labels):
   difference = tf.subtract(box_preds, box_labels)
-  ones = tf.fill([BATCH_SIZE, 228, 228, 6], 1.)
-  halves = tf.fill([BATCH_SIZE, 228, 228, 6], 0.5)
-  comp = tf.less(tf.abs(difference), ones)
-  result = tf.where(comp, tf.multiply(halves, tf.square(difference)), tf.subtract(tf.abs(difference), halves))
+  # ones = tf.fill([BATCH_SIZE, 228, 228, 6], 1.)
+  # halves = tf.fill([BATCH_SIZE, 228, 228, 6], 0.5)
+  comp = tf.less(tf.abs(difference), 1)
+  result = tf.where(comp, tf.multiply(0.5, tf.square(difference)), tf.subtract(tf.abs(difference), 0.5))
 
   # only compute bbox loss over positive ground truth boxes
   # processed_result = tf.where(tf.equal(class_labels, 1.0), result, tf.zeros([BATCH_SIZE, 228, 228, 6], tf.float32))
@@ -130,9 +130,9 @@ def smooth_L1(box_labels, box_preds, class_labels):
   return tf.reduce_mean(processed_result)
 
 def custom_cross_entropy(class_labels, class_preds):
-    ones = tf.fill([BATCH_SIZE, 228, 228, 1], 1.)
-    eps = tf.fill([BATCH_SIZE, 228, 228, 1], 0.0000001)
-    lolz = tf.where(tf.equal(class_labels, ones), -tf.log(tf.add(class_preds, eps)), -tf.log(tf.add(ones - class_preds, eps)))
+    # ones = tf.fill([BATCH_SIZE, 228, 228, 1], 1.)
+    # eps = tf.fill([BATCH_SIZE, 228, 228, 1], 0.0000001)
+    lolz = tf.where(tf.equal(class_labels, 1), -tf.log(tf.add(class_preds, 0.0000001)), -tf.log(tf.add(1 - class_preds, 0.0000001)))
     return tf.reduce_mean(lolz)
 
 
@@ -171,13 +171,13 @@ with tf.Session() as sess:
   # shuffle to break correlations
   images, boxlabels, classlabels = shuffle(images, boxlabels, classlabels, random_state=0)
 
-  train_data = images[0:200]
-  train_classlabels = classlabels[0:200]
-  train_boxlabels = boxlabels[0:200]
+  train_data = images[0:300]
+  train_classlabels = classlabels[0:300]
+  train_boxlabels = boxlabels[0:300]
 
-  val_data = images[200:images.shape[0]]
-  val_classlabels = classlabels[200:images.shape[0]]
-  val_boxlabels = boxlabels[200:images.shape[0]]
+  val_data = images[300:images.shape[0]]
+  val_classlabels = classlabels[300:images.shape[0]]
+  val_boxlabels = boxlabels[300:images.shape[0]]
 
   #initialize everything
   sess.run(tf.global_variables_initializer())
@@ -187,7 +187,7 @@ with tf.Session() as sess:
   lowest_val_loss = np.inf
   for epoch in range(num_epochs):
     per_epoch_train_loss = 0
-    print("epoch " + str(epoch))
+    print("\nepoch " + str(epoch))
 
     # shuffle data to randomize order of network exposure
     train_data, train_classlabels, train_boxlabels = shuffle(train_data, train_classlabels,train_boxlabels, random_state=0)
@@ -198,9 +198,6 @@ with tf.Session() as sess:
       start_idx = batch_number * BATCH_SIZE
       end_idx = start_idx + BATCH_SIZE
 
-      print("start: " + str(start_idx))
-      print("end: " + str(end_idx))
-
       # train on the batch
       _,  b_loss, c_loss, batch_train_loss = sess.run([train_step, box_loss, class_loss, pixor_loss], feed_dict =
         {x: train_data[start_idx: end_idx],
@@ -208,22 +205,22 @@ with tf.Session() as sess:
         y_class: train_classlabels[start_idx: end_idx]})
 
       per_epoch_train_loss += batch_train_loss
-      print("overall batch loss: " + str(batch_train_loss))
-      print("box loss: " + str(b_loss))
-      print("class loss: " + str(c_loss))
+      # print("overall batch loss: " + str(batch_train_loss))
+      # print("box loss: " + str(b_loss))
+      # print("class loss: " + str(c_loss))
 
 
     # at each epoch, print training and validation loss
-    # val_loss = sess.run([pixor_loss], feed_dict = {x: val_data,
-     #  y_box: val_boxlabels, y_class: val_classlabels})
+    val_loss = sess.run([pixor_loss], feed_dict = {x: val_data,
+      y_box: val_boxlabels, y_class: val_classlabels})
     print('epoch %d, training loss %g' % (epoch, per_epoch_train_loss))
-    #print('epoch %d, validation loss %g' % (epoch, val_loss[0]))
+    print('epoch %d, validation loss %g' % (epoch, val_loss[0]))
 
     # checkpoint model if best so far
 
 
     # checkpoint model if best so far
-    # if val_loss[0] < lowest_val_loss:
-        # lowest_val_loss = val_loss
-        # saver.save(sess, 'ckpt/', global_step=epoch)
+    if val_loss[0] < lowest_val_loss:
+        lowest_val_loss = val_loss
+        saver.save(sess, 'ckpt/', global_step=epoch)
 
