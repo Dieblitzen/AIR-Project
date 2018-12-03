@@ -14,7 +14,7 @@ from data_extract import extract_data
 # TODO: add option to graph on image at certain path (or maybe just give np array?)
 
 
-def visualize_bounding_boxes(image_array, bb_pixels, YOLO=True):
+def visualize_bounding_boxes(image_array, bb_pixels):
     # Visualize bounding boxes on an image with bb_pixels either as horizontal boxes
     # print(image_array[50])
     plt.imshow(image_array)
@@ -27,36 +27,22 @@ def visualize_bounding_boxes(image_array, bb_pixels, YOLO=True):
     #               non_zero += 1
     # print("number of pixor boxes: " + str(non_zero))
 
-    if (not YOLO):
-        for r in range(0, bb_pixels.shape[0]):
-          for c in range(0, bb_pixels.shape[1]):
-            pot_box = bb_pixels[r, c]
-            if not (pot_box[0] == 228.0 and pot_box[1] == 228.0):
-              print([pot_box[0], pot_box[1]])
-              poly = Polygon([pot_box[0], pot_box[1]])
-              x, y = poly.exterior.xy
-              plt.plot(x, y)
+
+    for r in range(0, bb_pixels.shape[0]):
+      for c in range(0, bb_pixels.shape[1]):
+        pot_box = bb_pixels[r, c]
+        if not (pot_box[0] == 228.0 and pot_box[1] == 228.0):
+          print([pot_box[0], pot_box[1]])
+          poly = Polygon([pot_box[0], pot_box[1]])
+          x, y = poly.exterior.xy
+          plt.plot(x, y)
 
         # for bbox_coords in bb_pixels:
         #     poly = Polygon(bbox_coords)
         #     x, y = poly.exterior.xy
         #     plt.plot(x, y)
 
-    else:
-        for bbox_coords in bb_pixels:
-            bottom_left = (bbox_coords[0]-(bbox_coords[2]/2),
-                           bbox_coords[1] - (bbox_coords[3]/2))
-            bottom_right = (
-                bbox_coords[0]+(bbox_coords[2]/2), bbox_coords[1] - (bbox_coords[3]/2))
-            top_left = (bbox_coords[0]-(bbox_coords[2]/2),
-                        bbox_coords[1]+(bbox_coords[3]/2))
-            top_right = (bbox_coords[0]+(bbox_coords[2]/2),
-                         bbox_coords[1]+(bbox_coords[3]/2))
 
-            coords = [bottom_left, top_left, top_right, bottom_right]
-            poly = Polygon(coords)
-            x, y = poly.exterior.xy
-            plt.plot(x, y)
 
     # fig, ax = plt.subplots()
     # myInterval=228
@@ -89,12 +75,14 @@ for i in range(0, classlabels.shape[0]):
                 print(classlabels[i, r, c])
 
 # for each tile, visualize boxes on it
-for i in range(len(tile_list)):
+for i in range(len(images)):
+    image = images[i]
+
     elts = tile_list[i]
     tile_image = elts[0]
     pixel_to_box_matrix = elts[1]
 
-    visualize_bounding_boxes(tile_image, pixel_to_box_matrix, YOLO=False)
+    visualize_bounding_boxes(tile_image, pixel_to_box_matrix)
 
 
 # # Size of image (3648, 5280, 3)
