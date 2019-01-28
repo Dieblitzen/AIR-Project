@@ -118,6 +118,7 @@ def get_pixor_center(bbox):
 
 def corner_boxes_in_pixels(image_size, buildings):
     fixed = []
+    print(buildings[0])
     for building in buildings:
         # Pixels for a single building
         pixels = []
