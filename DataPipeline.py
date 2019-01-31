@@ -10,6 +10,7 @@ from requests.auth import HTTPBasicAuth
 import zipfile, io
 from osgeo import gdal
 from time import sleep
+import overpy
 
 class DataPipeline:
   """ 
@@ -20,10 +21,16 @@ class DataPipeline:
   
   def __init__(self, coords, source="IBM", download_path='./downloads'):
     """
-    Constructor takes [coords] as an array of 4 latitude and longitude coordinates in 
-    the following format [[LAT_MIN, LON_MIN, LAT_MAX, LON_MAX]]
-    Constructor also takes the [source] of the data (eg. IBM, Google, etc.)
-    Constructor takes the location
+    Initialises the query image coordinates, query source and image download path. 
+
+    [coords] is an array of 4 latitude and longitude coordinates in the following format 
+    [[LAT_MIN, LON_MIN, LAT_MAX, LON_MAX]]
+
+    [source] is the source API of the data (eg. IBM, Google, etc.)
+
+    [download_path] is the path to the file where the queried image will be stored.
+
+    If [source=="IBM"], then [(user, password)] is also required.
     """
     self.coordinates = coords
     self.source = source
@@ -38,7 +45,7 @@ class DataPipeline:
 
   def query_image(self):
     """
-    Sends a request to OSM server and downloads the images in the area specified
+    Sends a request to PAIRS server and downloads the images in the area specified
     by self.coordinates
     """
 
@@ -109,16 +116,32 @@ class DataPipeline:
     z.extractall(self.download_path)
       
 
-
-
-
-  
   def query_OSM(self):
     """
     Sends a request to OSM server and saves an array of all the building nodes
     in the area specified by self.coordinates to self.download_path
     """
-    pass
+    api = overpy.Overpass()
+    query_result = api.query(("""
+        way
+            ({}, {}, {}, {}) ["building"];
+        (._;>;);
+        out body;
+        """).format(self.coordinates[0], self.coordinates[1], self.coordinates[2], self.coordinates[3]))
+    
+    # Unprocessed building data from the query
+    buildings = query_result.ways
+
+    # The list of each building'c coordinates.
+    # Each item in this list is a list of points in (lat,lon) for each building's nodes.
+    building_coords = []
+
+    for building in buildings:
+      points = [(float(str(n.lat)), float(str(n.lon))) for n in building.nodes]
+      building_coords.append(points)
+    
+    return building_coords
+
 
   def image_to_array(self):
     """
