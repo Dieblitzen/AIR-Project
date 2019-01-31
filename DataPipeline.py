@@ -132,7 +132,7 @@ class DataPipeline:
     # Unprocessed building data from the query
     buildings = query_result.ways
 
-    # The list of each building'c coordinates.
+    # The list of each building's coordinates.
     # Each item in this list is a list of points in (lat,lon) for each building's nodes.
     building_coords = []
 
