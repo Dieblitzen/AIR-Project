@@ -14,7 +14,6 @@ import overpy
 import pickle 
 import scipy.misc
 import math
-import matplotlib.pyplot as plt
 
 
 class DataPipeline:
@@ -155,8 +154,6 @@ class DataPipeline:
       pickle.dump(building_coords, filename)
 
 
-
-
   def image_to_array(self):
     """
     Takes the image(s) downloaded in DataPipeline.download_path and converts them into 
@@ -182,11 +179,13 @@ class DataPipeline:
     with open(f"{DataPipeline.download_path}/{DataPipeline.im_arr_filename}", "wb") as filename:
       pickle.dump(im_arr, filename)
 
+
   def remove_indices(self, indices_to_remove):
     """
     Removes OSM data at the indices specified
     """
     pass
+
 
   def coords_to_pixels(self):
     """
@@ -210,10 +209,8 @@ class DataPipeline:
       for n_ind in range(len(building_coords[b_ind])):
         lat, lon = building_coords[b_ind][n_ind]
         nodeX = math.floor(((lon-lon_min)/width)*self.im_size[1])
-        nodeY = math.floor(((lat_max - lat)/height)*self.im_size[0])
+        nodeY = math.floor(((lat_max-lat)/height)*self.im_size[0])
         building_coords[b_ind][n_ind] = (nodeX, nodeY) 
-
-    print(building_coords)
 
     # Save pixel data to pkl file
     with open(f"{DataPipeline.download_path}/{DataPipeline.osm_filename}", "wb") as filename:
@@ -226,6 +223,35 @@ class DataPipeline:
     """
     Provides a visualization of the OSM and image data in DataPipeline.download_path
     """
+    import matplotlib.pyplot as plt
+    import matplotlib.patches as patches
+    import matplotlib.ticker as plticker
+    from shapely.geometry.polygon import Polygon
+
+    bboxes = []
+    # Open pickle file with osm data
+    with open(f"{DataPipeline.download_path}/{DataPipeline.osm_filename}", "rb") as filename:
+      bboxes = pickle.load(filename)
+
+    im_arr = []
+    # Open pickle file with image array
+    with open(f"{DataPipeline.download_path}/{DataPipeline.im_arr_filename}", "rb") as filename:
+      im_arr = pickle.load(filename)
+
+    plt.imshow(im_arr)
+    for building_coords in bboxes:
+      poly = Polygon(building_coords)
+      x, y = poly.exterior.xy
+      plt.plot(x, y)
+    
+    # # Add the grid
+    # ax.grid(which='major', axis='both', linestyle='-')
+    # ax.show()
+    plt.grid()
+    # plt.xticks(np.arange(0, 6000, 228), range(0, 23))
+    # plt.yticks(np.arange(0, 6000, 228), range(0, 23))
+    plt.show()
+
 
   
   def create_bbox(self):
@@ -244,6 +270,10 @@ class DataPipeline:
     """
     """
     pass
+
+  def test(self):
+    print("Lat height" + str(self.coordinates[2] - self.coordinates[0]))
+    print("Lon width" + str(self.coordinates[3] - self.coordinates[1]))
   
 
 
