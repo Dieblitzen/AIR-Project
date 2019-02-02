@@ -6,7 +6,8 @@ import matplotlib.pyplot as plt
 import statistics as st
 import get_bounding_boxes
 from get_bounding_boxes import get_two_closest_points, convert_coord_to_pixel, corner_boxes_in_pixels, LON_WIDTH, LAT_HEIGHT, LAT_MAX, LON_MIN
-import data_extract
+import save_data from data_extract
+import image_to_np_array from data_extract
 import tile
 from scipy.spatial import Delaunay
 
@@ -38,7 +39,7 @@ def inside_box(p, hull, entire_img_shape):
 
 if __name__ == "__main__":
     # get the image as an array
-    im_array = data_extract.image_to_np_array("./downloads/")
+    im_array = image_to_np_array("./downloads/")
 
     # get bounding boxes from OSM
     bboxes = get_bounding_boxes.get_bounding_boxes(YOLO = False)
@@ -53,6 +54,6 @@ if __name__ == "__main__":
     print("length of converted_corner_boxes: " + str(len(converted_corner_boxes)))
     print("begin tiling")
     images, boxes, classes = tile.tile_image(im_array, pixel_boxes, converted_corner_boxes, 228, indices_to_remove)
-    data_extract.save_data(images, 'images.pkl')
-    data_extract.save_data(boxes, 'box_labels.pkl')
-    data_extract.save_data(classes, 'class_labels.pkl')
+    save_data(images, 'images.pkl')
+    save_data(boxes, 'box_labels.pkl')
+    save_data(classes, 'class_labels.pkl')
