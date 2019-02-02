@@ -11,6 +11,11 @@ import zipfile, io
 from osgeo import gdal
 from time import sleep
 import overpy
+import pickle 
+import scipy.misc
+import math
+import matplotlib.pyplot as plt
+
 
 class DataPipeline:
   """ 
@@ -18,8 +23,15 @@ class DataPipeline:
   Minimal processing is done.
   """
 
+  # im_arr_filename is the name for the queried image data to be stored to (in an np array)
+  im_arr_filename="im_arr.pkl"
+  # osm_filename is the name for the queried OSM coordinates to be stored to
+  osm_filename="OSM_bbox.pkl"
+  # download_path is the path to the file where the queried image will be stored.
+  download_path='./downloads'
+
   
-  def __init__(self, coords, source="IBM", download_path='./downloads'):
+  def __init__(self, coords, source="IBM"):
     """
     Initialises the query image coordinates, query source and image download path. 
 
@@ -28,13 +40,12 @@ class DataPipeline:
 
     [source] is the source API of the data (eg. IBM, Google, etc.)
 
-    [download_path] is the path to the file where the queried image will be stored.
 
     If [source=="IBM"], then [(user, password)] is also required.
     """
     self.coordinates = coords
     self.source = source
-    self.download_path = download_path
+    self.im_size = None
 
     if self.source == "IBM":
       user = input("Input your PAIRS Username: ")
@@ -113,13 +124,13 @@ class DataPipeline:
     z = zipfile.ZipFile(io.BytesIO(download.content))
 
     ## Extract to download path specified
-    z.extractall(self.download_path)
+    z.extractall(DataPipeline.download_path)
       
 
   def query_OSM(self):
     """
     Sends a request to OSM server and saves an array of all the building nodes
-    in the area specified by self.coordinates to self.download_path
+    in the area specified by self.coordinates to DataPipeline.download_path
     """
     api = overpy.Overpass()
     query_result = api.query(("""
@@ -140,15 +151,36 @@ class DataPipeline:
       points = [(float(str(n.lat)), float(str(n.lon))) for n in building.nodes]
       building_coords.append(points)
     
-    return building_coords
+    with open(f"{DataPipeline.download_path}/{DataPipeline.osm_filename}", "wb") as filename:
+      pickle.dump(building_coords, filename)
+
+
 
 
   def image_to_array(self):
     """
-    Takes the image(s) downloaded in self.download_path and converts them into 
-    np arrays. Returns a list of these arrays
+    Takes the image(s) downloaded in DataPipeline.download_path and converts them into 
+    np arrays. Returns a list of these arrays. 
     """
-    pass
+
+    # Fetches images from download folder
+    images_arr = []
+    # Loop through files in downloads directory (if multiple)
+    file_names = os.listdir(DataPipeline.download_path)
+    file_names.sort(reverse=True)
+    for filename in file_names:
+        if filename.endswith(".tiff"):
+            path_to_file = DataPipeline.download_path + '/' + filename
+            dataset = gdal.Open(path_to_file)
+            array = np.array(dataset.GetRasterBand(1).ReadAsArray(), np.uint8)
+            images_arr.append(array)
+    # Return rgb image in np array format
+    im_arr = np.dstack(images_arr)
+
+    self.im_size = im_arr.shape
+
+    with open(f"{DataPipeline.download_path}/{DataPipeline.im_arr_filename}", "wb") as filename:
+      pickle.dump(im_arr, filename)
 
   def remove_indices(self, indices_to_remove):
     """
@@ -160,24 +192,45 @@ class DataPipeline:
     """
     Converts the OSM coordinates to pixels relative to the image data
     """
-    pass
+
+    assert self.im_size != None, "Image array has not yet been saved. Try image_to_array first"
+
+    building_coords = []
+
+    # Open pickle file with osm data
+    with open(f"{DataPipeline.download_path}/{DataPipeline.osm_filename}", "rb") as filename:
+      building_coords = pickle.load(filename)
+
+    lat_min, lon_min, lat_max, lon_max = self.coordinates
+    width = lon_max - lon_min # width in longitude of image
+    height = lat_max - lat_min # height in latitude of image
+
+    # Replaces lat,lon building coordinates with x,y coordinates relative to image array
+    for b_ind in range(len(building_coords)):
+      for n_ind in range(len(building_coords[b_ind])):
+        lat, lon = building_coords[b_ind][n_ind]
+        nodeX = math.floor(((lon-lon_min)/width)*self.im_size[1])
+        nodeY = math.floor(((lat_max - lat)/height)*self.im_size[0])
+        building_coords[b_ind][n_ind] = (nodeX, nodeY) 
+
+    print(building_coords)
+
+    # Save pixel data to pkl file
+    with open(f"{DataPipeline.download_path}/{DataPipeline.osm_filename}", "wb") as filename:
+      pickle.dump(building_coords, filename)
+     
+    
+
   
   def visualize_data(self):
     """
-    Provides a visualization of the OSM and image data in self.download_path
+    Provides a visualization of the OSM and image data in DataPipeline.download_path
     """
-    pass
-  
-  def save_data(self):
-    """
-    Saves OSM and image data saved in self.download_path to a .pkl file in the 
-    same location
-    """
-    pass
+
   
   def create_bbox(self):
     """
-    Creates formatted bounding box data from OSM data in self.download_path.
+    Creates formatted bounding box data from OSM data in DataPipeline.download_path.
     Function defined specifically for each model/subclass. 
     """
     pass
