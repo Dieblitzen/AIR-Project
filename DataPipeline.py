@@ -150,6 +150,7 @@ class DataPipeline:
       points = [(float(str(n.lat)), float(str(n.lon))) for n in building.nodes]
       building_coords.append(points)
     
+    # Save the bounding boxes (in lat,lon coordinates) to a pickle file
     with open(f"{DataPipeline.download_path}/{DataPipeline.osm_filename}", "wb") as filename:
       pickle.dump(building_coords, filename)
 
@@ -174,8 +175,10 @@ class DataPipeline:
     # Return rgb image in np array format
     im_arr = np.dstack(images_arr)
 
+    # Update the [im_size] attribute to the correct image shape.
     self.im_size = im_arr.shape
 
+    # Save the image np array in a pickle file
     with open(f"{DataPipeline.download_path}/{DataPipeline.im_arr_filename}", "wb") as filename:
       pickle.dump(im_arr, filename)
 
@@ -272,6 +275,9 @@ class DataPipeline:
     pass
 
   def test(self):
+    """
+    Use this function to test any of the other functions.
+    """
     print("Lat height" + str(self.coordinates[2] - self.coordinates[0]))
     print("Lon width" + str(self.coordinates[3] - self.coordinates[1]))
     print(self.im_size)
