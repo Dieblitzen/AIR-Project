@@ -26,8 +26,11 @@ class DataPipeline:
   im_arr_filename="im_arr.pkl"
   # osm_filename is the name for the queried OSM coordinates to be stored to
   osm_filename="OSM_bbox.pkl"
+  # name of tiles pkl file containing img tiles and bounding boxes
+  tiles_filename="tiles.pkl"
   # download_path is the path to the file where the queried image will be stored.
   download_path='./downloads'
+
 
   
   def __init__(self, coords, source="IBM"):
@@ -255,22 +258,43 @@ class DataPipeline:
     # plt.yticks(np.arange(0, 6000, 228), range(0, 23))
     plt.show()
 
+  def boxes_in_tile(self):
+    """
+    
+    """
+    pass
+  
+  def tile_image(self, tile_size):
+    """
+    Tiles image array saved in DataPipeline.im_array_filename and saves tiles of 
+    size [tile_size x tile_size] and corresponding bounding boxes in 
+    DataPipeline.tiles_filename
 
+    pkl file contains a list of tuples in the following format:
+    [(tile_im_array, bboxes_in_tile), ...]
+    """
+
+    height, width, depth = self.im_size
+    total_rows = height//tile_size
+    total_cols = width//tile_size
+
+    for row in range(total_rows):
+      for col in range(total_cols):
+        # row_start, row_end, col_start, col_end in pixels relative to entire img
+        row_start = row*tile_size
+        row_end = (row+1)*tile_size
+        col_start = col*tile_size
+        col_end = (col+1)*tile_size
+
+        
+
+
+    
   
   def create_bbox(self):
     """
     Creates formatted bounding box data from OSM data in DataPipeline.download_path.
     Function defined specifically for each model/subclass. 
-    """
-    pass
-  
-  def boxes_in_tile(self):
-    """
-    """
-    pass
-  
-  def tile_image(self):
-    """
     """
     pass
 
@@ -282,7 +306,6 @@ class DataPipeline:
     print("Lon width" + str(self.coordinates[3] - self.coordinates[1]))
     print(self.im_size)
   
-
 
 ## Tests with coordinates
 # Perfect Square: [41.009, -73.779, 41.03, -73.758]
