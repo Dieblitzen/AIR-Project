@@ -109,9 +109,6 @@ class DataPipeline:
     z.extractall(self.download_path)
       
 
-
-
-
   
   def query_OSM(self):
     """
