@@ -274,6 +274,9 @@ class DataPipeline:
   def test(self):
     print("Lat height" + str(self.coordinates[2] - self.coordinates[0]))
     print("Lon width" + str(self.coordinates[3] - self.coordinates[1]))
+    print(self.im_size)
   
 
 
+## Tests with coordinates
+# Perfect Square: [41.009, -73.779, 41.03, -73.758]
