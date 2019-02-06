@@ -192,13 +192,6 @@ class DataPipeline:
       pickle.dump(im_arr, filename)
 
 
-  def remove_indices(self, indices_to_remove):
-    """
-    Removes OSM data at the indices specified
-    """
-    pass
-
-
   def coords_to_pixels(self):
     """
     Converts the OSM coordinates to pixels relative to the image data.
@@ -232,7 +225,6 @@ class DataPipeline:
       pickle.dump(building_coords, filename)
      
     
-
   def boxes_in_tile(self, building_coords, col_start, col_end, row_start, row_end):
     """
     Helper function that returns the list of boxes that are in the tile specified by
@@ -273,9 +265,7 @@ class DataPipeline:
     
     return buildings_in_tile
 
-      
-
-  
+        
   def tile_image(self, tile_size):
     """
     Tiles image array saved in DataPipeline.im_array_filename and saves tiles of 
@@ -319,7 +309,25 @@ class DataPipeline:
     with open(f"{DataPipeline.download_path}/{DataPipeline.tiles_filename}", "wb") as filename:
       pickle.dump(tiles_and_boxes, filename)
 
-        
+
+  def remove_indices(self, indices_to_remove):
+    """
+    Removes tiles associated with index in indices_to_remove.
+    indices_to_remove is a list of indices.
+
+    Saves the edited [(tile, buildings), ...] in the pickle file. 
+    """
+
+    tiles_and_boxes = []
+
+    with open(f"{DataPipeline.download_path}/{DataPipeline.tiles_filename}", "rb") as filename:
+      tiles_and_boxes = pickle.load(filename)
+    
+    # Iterates through all tiles, keeps those whose index is not in indices_to_remove
+    edited = [tiles_and_boxes[i] for i in range(len(tiles_and_boxes)) if i not in indices_to_remove]
+
+    with open(f"{DataPipeline.download_path}/{DataPipeline.tiles_filename}", "wb") as filename:
+      pickle.dump(edited, filename)
 
 
   def visualize_data(self):
