@@ -15,6 +15,12 @@ import pickle
 import scipy.misc
 import math
 
+# Visualising
+import matplotlib.pyplot as plt
+import matplotlib.patches as patches
+import matplotlib.ticker as plticker
+from shapely.geometry.polygon import Polygon
+
 
 class DataPipeline:
   """ 
@@ -195,7 +201,10 @@ class DataPipeline:
 
   def coords_to_pixels(self):
     """
-    Converts the OSM coordinates to pixels relative to the image data
+    Converts the OSM coordinates to pixels relative to the image data.
+
+    Return format is [[building1_node, ...], [building2_node, ...], ...]
+    where each building_node is (pixel_x, pixel_y)
     """
 
     assert self.im_size != None, "Image array has not yet been saved. Try image_to_array first"
@@ -224,15 +233,99 @@ class DataPipeline:
      
     
 
+  def boxes_in_tile(self, building_coords, col_start, col_end, row_start, row_end):
+    """
+    Helper function that returns the list of boxes that are in the tile specified by
+    col_start..col_end (the x range) and row_start..row_end (the y range). 
+
+    Precondition: building_coords are in pixels not in lat,lon
+
+    Returns [[building1_node, ...], [building2_node, ...], ...] of the buildings inside the 
+    given tile range, with coordinates of building_nodes converted so that they are relative to tile.
+    """
+    
+    # Output buildings that are in the tile
+    buildings_in_tile = []
+
+    for building in building_coords:
+
+      # All the x and y coordinates of the nodes in a building, separated
+      x_coords = [node[0] for node in building]
+      y_coords = [node[1] for node in building]
+
+      min_x = min(x_coords)
+      max_x = max(x_coords)
+
+      min_y = min(y_coords)
+      max_y = max(y_coords)
+
+      centre_x = (min_x + max_x) / 2
+      centre_y = (min_y + max_y) / 2
+
+      if col_start <= centre_x < col_end and row_start <= centre_y < row_end:
+        
+        # Goes through each node in building, converts coords relative to entire image to 
+        # coords relative to tile
+        new_building = list(map(lambda pos: (pos[0] - col_start, pos[1] - row_start), building))
+
+        buildings_in_tile.append(new_building)
+      
+    
+    return buildings_in_tile
+
+      
+
   
+  def tile_image(self, tile_size):
+    """
+    Tiles image array saved in DataPipeline.im_array_filename and saves tiles of 
+    size [tile_size x tile_size] and corresponding bounding boxes in DataPipeline.tiles_filename
+
+    pkl file contains a list of tuples in the following format:
+    [(tile_im_array, bboxes_in_tile), ...]
+    """
+
+    tiles_and_boxes = []
+
+    # Open pickle file with osm data, assumes building coordinates are in pixels not lat, lon
+    building_coords = []
+    with open(f"{DataPipeline.download_path}/{DataPipeline.osm_filename}", "rb") as filename:
+      building_coords = pickle.load(filename)
+
+    # Open pickle file with entire image np array
+    im_arr = []
+    with open(f"{DataPipeline.download_path}/{DataPipeline.im_arr_filename}", "rb") as filename:
+      im_arr = pickle.load(filename)
+
+    height, width, depth = self.im_size
+    total_rows = height//tile_size
+    total_cols = width//tile_size
+
+    for row in range(total_rows):
+      for col in range(total_cols):
+        # row_start, row_end, col_start, col_end in pixels relative to entire img
+        row_start = row*tile_size
+        row_end = (row+1)*tile_size
+        col_start = col*tile_size
+        col_end = (col+1)*tile_size
+
+        # All the building bounding boxes in the tile range
+        buildings_in_tile = self.boxes_in_tile(building_coords, col_start, col_end, row_start,row_end)
+
+        tile = im_arr[row_start:row_end, col_start:col_end, :]
+
+        tiles_and_boxes.append((tile, buildings_in_tile))
+    
+    with open(f"{DataPipeline.download_path}/{DataPipeline.tiles_filename}", "wb") as filename:
+      pickle.dump(tiles_and_boxes, filename)
+
+        
+
+
   def visualize_data(self):
     """
     Provides a visualization of the OSM and image data in DataPipeline.download_path
     """
-    import matplotlib.pyplot as plt
-    import matplotlib.patches as patches
-    import matplotlib.ticker as plticker
-    from shapely.geometry.polygon import Polygon
 
     bboxes = []
     # Open pickle file with osm data
@@ -257,39 +350,26 @@ class DataPipeline:
     # plt.xticks(np.arange(0, 6000, 228), range(0, 23))
     # plt.yticks(np.arange(0, 6000, 228), range(0, 23))
     plt.show()
-
-  def boxes_in_tile(self):
-    """
     
-    """
-    pass
-  
-  def tile_image(self, tile_size):
-    """
-    Tiles image array saved in DataPipeline.im_array_filename and saves tiles of 
-    size [tile_size x tile_size] and corresponding bounding boxes in 
-    DataPipeline.tiles_filename
 
-    pkl file contains a list of tuples in the following format:
-    [(tile_im_array, bboxes_in_tile), ...]
+  def visualize_tiles(self):
+    """
+    Provides a visualization of the OSM and tiled data
     """
 
-    height, width, depth = self.im_size
-    total_rows = height//tile_size
-    total_cols = width//tile_size
+    tiles_and_boxes = []
 
-    for row in range(total_rows):
-      for col in range(total_cols):
-        # row_start, row_end, col_start, col_end in pixels relative to entire img
-        row_start = row*tile_size
-        row_end = (row+1)*tile_size
-        col_start = col*tile_size
-        col_end = (col+1)*tile_size
-
-        
-
-
+    with open(f"{DataPipeline.download_path}/{DataPipeline.tiles_filename}", "rb") as filename:
+      tiles_and_boxes = pickle.load(filename)
     
+    for (tile, building_coords) in tiles_and_boxes:
+      plt.imshow(tile)
+
+      plt.plot(building_coords)
+    
+      plt.show()
+
+
   
   def create_bbox(self):
     """
