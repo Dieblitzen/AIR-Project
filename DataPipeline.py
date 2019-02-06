@@ -4,9 +4,7 @@ import os
 import pandas as pd
 import numpy as np
 import geojson
-from pytz import UTC
 import requests
-from requests.auth import HTTPBasicAuth
 import zipfile, io
 from osgeo import gdal
 from time import sleep
@@ -17,7 +15,6 @@ import math
 
 # Visualising
 import matplotlib.pyplot as plt
-import matplotlib.patches as patches
 import matplotlib.ticker as plticker
 from shapely.geometry.polygon import Polygon
 
