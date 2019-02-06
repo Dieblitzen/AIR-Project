@@ -362,10 +362,13 @@ class DataPipeline:
     with open(f"{DataPipeline.download_path}/{DataPipeline.tiles_filename}", "rb") as filename:
       tiles_and_boxes = pickle.load(filename)
     
-    for (tile, building_coords) in tiles_and_boxes:
+    for (tile, buildings) in tiles_and_boxes:
       plt.imshow(tile)
 
-      plt.plot(building_coords)
+      for building_coords in buildings:
+        poly = Polygon(building_coords)
+        x, y = poly.exterior.xy
+        plt.plot(x, y)
     
       plt.show()
 
