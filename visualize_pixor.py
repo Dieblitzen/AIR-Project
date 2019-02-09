@@ -42,6 +42,8 @@ def rotate_point(point, center_x, center_y, cos_angle, sin_angle):
 def pixor_to_corners(box):
 
     center_x, center_y, cos_angle, sin_angle, width, length = box
+    width = 50
+    length = 50
     four_corners = [(center_x+width/2, center_y+length/2),
         (center_x+width/2, center_y-length/2),
         (center_x-width/2, center_y-length/2),
@@ -67,7 +69,9 @@ def visualize_bounding_boxes(image_array, bboxes):
         coordinates = pixor_to_corners(box)
         poly = Polygon(coordinates)
         x, y = poly.exterior.xy
-        plt.plot(x, y)
+        plt.plot(x,y)
+        # x, y = box
+        # plt.plot(x, y, 'ro', alpha = .)
 
 
     # fig, ax = plt.subplots()
@@ -122,14 +126,52 @@ classlabels = np.asarray(classlabels)
 
 
 # VISUALIZING FOR EACH TILE
+# print(boxlabels)
 counter = 0
 for i in range(len(images)):
-    image = images[i]
-    boxes_in_image = extract_positive_labels(boxlabels[i])
-    counter+= len(boxes_in_image)
-    # print(len(boxes_in_image))
+    if i != 3:
+        image = images[i]
+        bboxes = boxlabels[i]
+        boxes_in_image = []
+        # print(image.shape)
+        unique_boxes_set = set()
+        boxes_in_image = []
+        pixels_to_color = []
+        for r in range(0, image.shape[0]):
+            for c in range(0, image.shape[1]):
+                if bboxes[r,c][-1] != 0. and tuple(bboxes[r,c][2:]) not in unique_boxes_set:
+                    unique_boxes_set.add(tuple(bboxes[r,c][2:]))
+                    center_x = float(r) + bboxes[r,c][0]
+                    center_y = float(c) + bboxes[r,c][1]
+                    center = np.array([center_x, center_y])
+                    box = np.concatenate([center, bboxes[r,c][2:]])
+                    boxes_in_image.append(box)
+                    boxes_in_image.append(bboxes[r,c])
+                    # pixels_to_color.append((r,c))
+        # for r in range(0, image.shape[0]):
+        #     for c in range(0, image.shape[1]):
+        #         if bboxes[r,c][-1] != 0.:
+        #             print(bboxes[r,c])
+                    # center_x = float(r) + bboxes[r,c][0]
+                    # center_y = float(c) + bboxes[r,c][1]
+                    # center = np.array([center_x, center_y])
+                    # print("center is " + str(center))
+                    # print("pixel loc is " + str(r) + ", " + str(c))
+                    # print("delta loc is " + str(bboxes[r,c][0]) + ", " + str(bboxes[r,c][1]))
+                    # box = np.concatenate([center, bboxes[r,c][2:]])
+                    # boxes_in_image.append(box)
+        # print(images.shape)
+        # print(boxlabels.shape)
+        # print(boxlabels[i])
+        # boxes_in_image = extract_positive_labels(boxlabels[i])
+        # for box in boxes_in_image:
+        #     print(box)
+        # print(boxes_in_image)
+        counter+= len(boxes_in_image)
+        # print(len(boxes_in_image))
 
-    # visualize_bounding_boxes(image, boxes_in_image)
+        visualize_bounding_boxes(image, boxes_in_image)
+        # visualize_bounding_boxes(image, pixels_to_color)
 print(counter)
 
 # # Size of image (3648, 5280, 3)
