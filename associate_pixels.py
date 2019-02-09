@@ -5,10 +5,9 @@ import math
 import matplotlib.pyplot as plt
 import statistics as st
 import get_bounding_boxes
-from get_bounding_boxes import get_two_closest_points, convert_coord_to_pixel, corner_boxes_in_pixels, LON_WIDTH, LAT_HEIGHT, LAT_MAX, LON_MIN
-import save_data from data_extract
-import image_to_np_array from data_extract
 import tile
+from get_bounding_boxes import get_two_closest_points, convert_coord_to_pixel, corner_boxes_in_pixels, LON_WIDTH, LAT_HEIGHT, LAT_MAX, LON_MIN
+from data_extract import image_to_np_array, save_data
 from scipy.spatial import Delaunay
 
 ENTIRE_IMG_SIZE = (3648, 5280, 3)
@@ -39,7 +38,10 @@ def inside_box(p, hull, entire_img_shape):
 
 if __name__ == "__main__":
     # get the image as an array
+    
+    # MODIFIED CHECK WITH GREY - do we even need this
     im_array = image_to_np_array("./downloads/")
+    # im_array = image_to_np_array("images/PAIRS_Area.jpg")
 
     # get bounding boxes from OSM
     bboxes = get_bounding_boxes.get_bounding_boxes(YOLO = False)
@@ -54,6 +56,8 @@ if __name__ == "__main__":
     print("length of converted_corner_boxes: " + str(len(converted_corner_boxes)))
     print("begin tiling")
     images, boxes, classes = tile.tile_image(im_array, pixel_boxes, converted_corner_boxes, 228, indices_to_remove)
-    save_data(images, 'images.pkl')
-    save_data(boxes, 'box_labels.pkl')
-    save_data(classes, 'class_labels.pkl')
+
+    # MODIFIED FOR DEBUGGING
+    save_data(images, 'images_debug.pkl')
+    save_data(boxes, 'box_labels_debug.pkl')
+    save_data(classes, 'class_labels_debug.pkl')

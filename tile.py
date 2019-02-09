@@ -55,8 +55,14 @@ def boxes_in_tile_pixor(bboxes, corner_boxes, row_start, row_end, col_start, col
 
                 if inside_box(pixel, corner_boxes[selected_indices[bbox_index]], entire_img_shape):
 
-                    new_dx = abs((pixel[0] - row_start) - boxes_within_tile[bbox_index][0])
-                    new_dy = abs((pixel[1] - col_start) - boxes_within_tile[bbox_index][1])
+                    # new_dx = abs((pixel[0] - row_start) - boxes_within_tile[bbox_index][0])
+                    # new_dy = abs((pixel[1] - col_start) - boxes_within_tile[bbox_index][1])
+
+                    # believe Grey flipped it
+                    
+                    new_dx = (pixel[1] - col_start) - boxes_within_tile[bbox_index][0]
+                    new_dy = (pixel[0] - row_start) - boxes_within_tile[bbox_index][1]
+
                     counter+=1
 
                     if(np.sqrt(new_dx**2 + new_dy**2) <= np.sqrt(dx**2 + dy**2)):
@@ -96,8 +102,14 @@ def tile_image(entire_img, b_boxes, corner_boxes, tile_size, indices_to_remove, 
     print("total rows: " + str(total_rows))
     print("total columns: " + str(total_cols))
     for row in range(num_rows//tile_size):
+
+
         print("Progress: " + str(row/total_rows))
         for col in range(num_cols//tile_size):
+
+            # MODIFIED FOR DEBUGGING PURPOSES
+            if col > 5:
+                break
 
             row_start = row*tile_size
             row_end = (row+1)*tile_size
@@ -121,13 +133,20 @@ def tile_image(entire_img, b_boxes, corner_boxes, tile_size, indices_to_remove, 
             output_images.append(tile)
             output_boxes.append(pixel_box_labels)
             output_classes.append(pixel_class_labels)
+        
+        # MODIFIED FOR DEBUGGING PURPOSES
+        if row > -1:
+            break
 
     new_output_images = []
     new_output_boxes = []
     new_output_classes = []
 
     for ind in range(len(output_images)):
-        if ind not in indices_to_remove:
+
+        # MODIFIED FOR DEBUGGING PURPOSES
+
+        if ind not in indices_to_remove and ind < len(output_images):
             new_output_images.append(output_images[ind])
             new_output_boxes.append(output_boxes[ind])
             new_output_classes.append(output_classes[ind])

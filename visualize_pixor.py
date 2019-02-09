@@ -42,8 +42,8 @@ def rotate_point(point, center_x, center_y, cos_angle, sin_angle):
 def pixor_to_corners(box):
 
     center_x, center_y, cos_angle, sin_angle, width, length = box
-    width = 50
-    length = 50
+    # width = 50
+    # length = 50
     four_corners = [(center_x+width/2, center_y+length/2),
         (center_x+width/2, center_y-length/2),
         (center_x-width/2, center_y-length/2),
@@ -89,47 +89,53 @@ def visualize_bounding_boxes(image_array, bboxes):
     plt.show()
 
 
-# tile the image, which returns a list
-images = extract_data("images.pkl")
-images = np.asarray(images)
-boxlabels = extract_data("box_labels.pkl")
-boxlabels = np.asarray(boxlabels)
-classlabels = extract_data("class_labels.pkl")
-classlabels = np.asarray(classlabels)
-# for i in range(0, classlabels.shape[0]):
-#     print("row" + str(i))
-#     for r in range(0, classlabels.shape[1]):
-#         for c in range(0, classlabels.shape[2]):
-#             if classlabels[i, r, c] != 0:
-#                 print(classlabels[i, r, c])
+if __name__ == "__main__":
+    # tile the image, which returns a list
+
+    # MODIFIED FOR DEBUGGING
+    images = extract_data("images_debug.pkl")
+    images = np.asarray(images)
+    boxlabels = extract_data("box_labels_debug.pkl")
+    boxlabels = np.asarray(boxlabels)
+    classlabels = extract_data("class_labels_debug.pkl")
+    classlabels = np.asarray(classlabels)
 
 
-# im_array = image_to_np_array("./downloads/")
-# for box in boxlabels:
-#     for r in range(0, box.shape[0]):
-#         for c in range(0, box.shape[1]):
-#             if box[r,c][-1] != 0.:
-#                 print(box[r,c])
 
-#VISUALIZING BASED OFF OF LABELS IN PICKLE, ONLY DOING UNIQUE BOXES
-# boxes_in_image = [extract_positive_labels(b) for b in boxlabels]
-# visualize_bounding_boxes(image, boxes_in_image)
-
-#VISUALIZING BASED OFF OF ONLY OSM DATA, NOT LABELS:
-# get bounding boxes from OSM
-# bboxes = get_bounding_boxes.get_bounding_boxes(YOLO = False)
-# print(len(bboxes)) # We have 3975 buildings. Seems like more than enough
-# pixel_boxes = get_bounding_boxes.OSM_to_pixels(im_array.shape[:2], bboxes, YOLO=False, PIXOR = True)
-# converted_corner_boxes = corner_boxes_in_pixels(im_array.shape, bboxes)
-# print(len(converted_corner_boxes))
-# visualize_bounding_boxes(im_array, converted_corner_boxes)
+    # for i in range(0, classlabels.shape[0]):
+    #     print("row" + str(i))
+    #     for r in range(0, classlabels.shape[1]):
+    #         for c in range(0, classlabels.shape[2]):
+    #             if classlabels[i, r, c] != 0:
+    #                 print(classlabels[i, r, c])
 
 
-# VISUALIZING FOR EACH TILE
-# print(boxlabels)
-counter = 0
-for i in range(len(images)):
-    if i != 3:
+    # im_array = image_to_np_array("./downloads/")
+    # for box in boxlabels:
+    #     for r in range(0, box.shape[0]):
+    #         for c in range(0, box.shape[1]):
+    #             if box[r,c][-1] != 0.:
+    #                 print(box[r,c])
+
+    #VISUALIZING BASED OFF OF LABELS IN PICKLE, ONLY DOING UNIQUE BOXES
+    # boxes_in_image = [extract_positive_labels(b) for b in boxlabels]
+    # visualize_bounding_boxes(image, boxes_in_image)
+
+    #VISUALIZING BASED OFF OF ONLY OSM DATA, NOT LABELS:
+    # get bounding boxes from OSM
+    # bboxes = get_bounding_boxes.get_bounding_boxes(YOLO = False)
+    # print(len(bboxes)) # We have 3975 buildings. Seems like more than enough
+    # pixel_boxes = get_bounding_boxes.OSM_to_pixels(im_array.shape[:2], bboxes, YOLO=False, PIXOR = True)
+    # converted_corner_boxes = corner_boxes_in_pixels(im_array.shape, bboxes)
+    # print(len(converted_corner_boxes))
+    # visualize_bounding_boxes(im_array, converted_corner_boxes)
+
+
+    # VISUALIZING FOR EACH TILE
+    # print(boxlabels)
+    counter = 0
+    for i in range(len(images)):
+        # if i != 3:
         image = images[i]
         bboxes = boxlabels[i]
         boxes_in_image = []
@@ -141,12 +147,18 @@ for i in range(len(images)):
             for c in range(0, image.shape[1]):
                 if bboxes[r,c][-1] != 0. and tuple(bboxes[r,c][2:]) not in unique_boxes_set:
                     unique_boxes_set.add(tuple(bboxes[r,c][2:]))
-                    center_x = float(r) + bboxes[r,c][0]
-                    center_y = float(c) + bboxes[r,c][1]
+        
+                    center_x = float(c) + bboxes[r,c][0]
+                    center_y = float(r) + bboxes[r,c][1]
+
                     center = np.array([center_x, center_y])
+
+                    print(center)
+
                     box = np.concatenate([center, bboxes[r,c][2:]])
                     boxes_in_image.append(box)
-                    boxes_in_image.append(bboxes[r,c])
+
+                    
                     # pixels_to_color.append((r,c))
         # for r in range(0, image.shape[0]):
         #     for c in range(0, image.shape[1]):
@@ -172,7 +184,7 @@ for i in range(len(images)):
 
         visualize_bounding_boxes(image, boxes_in_image)
         # visualize_bounding_boxes(image, pixels_to_color)
-print(counter)
+    print(counter)
 
-# # Size of image (3648, 5280, 3)
-# # We are aiming for (3648, 5244, 3), as this will divide by 228 (our target image size)
+    # # Size of image (3648, 5280, 3)
+    # # We are aiming for (3648, 5244, 3), as this will divide by 228 (our target image size)

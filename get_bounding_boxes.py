@@ -89,16 +89,16 @@ def calculate_angle(corner, others):
 # 2. find biggest angle, assign that as your corner
 # 3. of the two remaining points, the closer one is the width vector, the farthest is length
 def get_two_closest_points(bbox):
-    points = np.array(bbox[0:3])
-    angles = [(i, calculate_angle(point, [p for p in points if not np.array_equal(p,point)])) for i, point in enumerate(points)]
-    sorted_angles = sorted(angles, key= lambda pair: pair[1])
-    corner = sorted_angles[0]
+    points = np.array(bbox[0:4])
+    # angles = [(i, calculate_angle(point, [p for p in points if not np.array_equal(p,point)])) for i, point in enumerate(points)]
+    # sorted_angles = sorted(angles, key= lambda pair: pair[1])
+    corner = points[0]
 
     distances = [(i,np.linalg.norm(corner-c)) for i, c in enumerate(points)]
     sorted_distances = sorted(distances, key= lambda pair: pair[1])
 
     closest_index, second_closest_index = sorted_distances[1][0], sorted_distances[2][0]
-    closest, second_closest = np.array(bbox[closest_index]), np.array(bbox[second_closest_index])
+    closest, second_closest = np.array(points[closest_index]), np.array(points[second_closest_index])
     return corner, closest, second_closest, sorted_distances
 
 #returns the angle of the heading. bbox is coordinates of the four corners
@@ -107,6 +107,14 @@ def get_pixor_box_dimensions(bbox):
     vector = np.array(np.subtract(second_closest,corner)) if corner[0] > second_closest[0] else np.array(np.subtract(corner,second_closest))
     unit_vector = vector / np.linalg.norm(vector)
     width, length = math.floor(sorted_distances[1][1]), math.floor(sorted_distances[2][1])
+    print("sorted distances: ")
+    print(sorted_distances)
+    print("width: " + str(width))
+    print("length: " + str(length))
+    print("corners: ")
+    print(corner)
+    print("bbox: ")
+    print(bbox)
     return np.arccos(np.clip(np.dot(unit_vector, (1,0)), -1.0, 1.0)), width, length
 
 def get_pixor_center(bbox):
