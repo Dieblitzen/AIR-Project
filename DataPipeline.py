@@ -21,7 +21,7 @@ import math
 DATA_PATH = './data_path'
 
 # RAW_DATA_PATH is the path to the directory where the raw queried image(s) will be saved
-RAW_DATA_PATH = f'./{DATA_PATH}/raw_data'
+RAW_DATA_PATH = f'{DATA_PATH}/raw_data'
 
 # OSM_FILENAME is the name of the pickle file where the queried raw OSM data will be saved
 OSM_FILENAME = 'OSM_bbox.pkl'
@@ -44,19 +44,28 @@ def create_dataset(coords, source="IBM"):
 
   # If directory for dataset does not exist, create directory
   if not os.path.isdir(DATA_PATH):
+    print(f"Creating directory to store your dataset.")
     os.mkdir(DATA_PATH)
 
   if not os.path.isdir(RAW_DATA_PATH):
+    print(f"Creating directory to store raw data, including queried image.")
     os.mkdir(RAW_DATA_PATH)
 
+  print(f"Your dataset's directory is {DATA_PATH} and the raw data is stored in {RAW_DATA_PATH}")
+
   # First query image layers from API
+  print("Querying raw image from PAIRS using coordinates given. ")
   query_PAIRS(coords)
 
-  # Then query bounding box data from OSM
-  raw_OSM = query_OSM(coords)
+  print("")
 
   # Convert the raw image layers into a numpy array (delete the raw image layers)
+  print("Converting raw image to numpy array.\nDeleting raw images, saving jpeg instead.")
   im_arr = image_to_array()
+
+  # Then query bounding box data from OSM
+  print("Querying raw bounding box data from OpenStreetMap using coordinates given. ")
+  raw_OSM = query_OSM(coords)
 
   # Size of the image
   im_size = im_arr.shape
@@ -65,6 +74,7 @@ def create_dataset(coords, source="IBM"):
   building_coords = coords_to_pixels(raw_OSM, coords, im_size)
 
   # Finally, tile the image and save it in the DATA_PATH
+  print("Tiling image and saving .jpeg files (for tile) and .json files (for bounding boxes)")
   tile_image(TILE_SIZE, building_coords, im_arr, im_size)
 
 
@@ -131,12 +141,10 @@ def query_PAIRS(coords):
         url=f'{pairs_server}/v2/queryjobs/{id}',
         auth=pairs_auth,
     )
-    print("Query status... ")
-    print(response.json()["status"])
+    print("Query status: " + response.json()["status"])
 
   # Status updates
-  print("json eventual response: ")
-  print(response.json()["status"])
+  print("json eventual response: " + response.json()["status"])
 
   #Download and extract to files
   download = requests.get(
