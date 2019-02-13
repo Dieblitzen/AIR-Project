@@ -1,5 +1,6 @@
-## This is the superclass for the dataset generation pipeline
-
+## DataPipeline fetches image and bounding box data from the source APIs in pixel format.
+## Minimal processing is done.
+import json
 import os
 import pandas as pd
 import numpy as np
@@ -14,342 +15,377 @@ import scipy.misc
 import math
 from PIL import Image
 
-# Visualising
-import matplotlib.pyplot as plt
-import matplotlib.ticker as plticker
-from shapely.geometry.polygon import Polygon
+## Previous Query Coordinates:
+# White Plains: [41.009, -73.779, 41.03, -73.758] (returns image of approx 5280x5280)
 
+# DATA_PATH is the path to the directory where the processed and queried data will be saved
+DATA_PATH = './data_path'
 
-class DataPipeline:
-  """ 
-  DataPipeline fetches image and bounding box data from the source APIs in pixel format.
-  Minimal processing is done.
+# RAW_DATA_PATH is the path to the directory where the raw queried image(s) will be saved
+RAW_DATA_PATH = f'{DATA_PATH}/raw_data'
+
+# OSM_FILENAME is the name of the pickle file where the queried raw OSM data will be saved
+OSM_FILENAME = 'OSM_bbox.pkl'
+
+# TILE_SIZE is the size of the tile the entire image will be cut up into
+TILE_SIZE = 228
+  
+def create_dataset(coords, source="IBM"):
+  """
+  Initialises the query image coordinates, query source and image download path. 
+  This is the main function to be called from this module.
+
+  [coords] is an array of 4 latitude and longitude coordinates in the following format 
+  [[LAT_MIN, LON_MIN, LAT_MAX, LON_MAX]]
+
+  [source] is the source API of the data (eg. IBM, Google, etc.)
+
+  If [source=="IBM"], then [(user, password)] is also required.
   """
 
-  # im_arr_filename is the name for the queried image data to be stored to (in an np array)
-  im_arr_filename="im_arr.pkl"
-  # osm_filename is the name for the queried OSM coordinates to be stored to
-  osm_filename="OSM_bbox.pkl"
-  # name of tiles pkl file containing img tiles and bounding boxes
-  tiles_filename="tiles.pkl"
-  # download_path is the path to the file where the queried image will be stored.
-  download_path='./downloads'
+  # If directory for dataset does not exist, create directory
+  if not os.path.isdir(DATA_PATH):
+    print(f"Creating directory to store your dataset.")
+    os.mkdir(DATA_PATH)
+
+  if not os.path.isdir(RAW_DATA_PATH):
+    print(f"Creating directory to store raw data, including queried image.")
+    os.mkdir(RAW_DATA_PATH)
+
+  print(f"Your dataset's directory is {DATA_PATH} and the raw data is stored in {RAW_DATA_PATH}")
+
+  # First query image layers from API
+  print("Querying raw image from PAIRS using coordinates given. ")
+  query_PAIRS(coords)
+
+  print("")
+
+  # Convert the raw image layers into a numpy array (delete the raw image layers)
+  print("Converting raw image to numpy array.\nDeleting raw images, saving jpeg instead.")
+  im_arr = image_to_array()
+
+  # Then query bounding box data from OSM
+  print("Querying raw bounding box data from OpenStreetMap using coordinates given. ")
+  raw_OSM = query_OSM(coords)
+
+  # Size of the image
+  im_size = im_arr.shape
+
+  # Bounding box data in pixel format
+  building_coords = coords_to_pixels(raw_OSM, coords, im_size)
+
+  # Finally, tile the image and save it in the DATA_PATH
+  print("Tiling image and saving .jpeg files (for tile) and .json files (for bounding boxes)")
+  tile_image(TILE_SIZE, building_coords, im_arr, im_size)
 
 
-  
-  def __init__(self, coords, source="IBM"):
-    """
-    Initialises the query image coordinates, query source and image download path. 
 
-    [coords] is an array of 4 latitude and longitude coordinates in the following format 
-    [[LAT_MIN, LON_MIN, LAT_MAX, LON_MAX]]
+def query_PAIRS(coords):
+  """
+  Sends a request to PAIRS server and downloads the images in the area specified
+  by coords. The raw images are saved in RAW_DATA_PATH
+  """
 
-    [source] is the source API of the data (eg. IBM, Google, etc.)
+  # PAIRS server
+  pairs_server = "https://pairs.res.ibm.com"
+
+  # Pairs auth for making requests to server
+  user = input("Input your PAIRS Username: ")
+  password = input("Input your PAIRS Password: ")
+  pairs_auth = (user,password)
 
 
-    If [source=="IBM"], then [(user, password)] is also required.
-    """
-    self.coordinates = coords
-    self.source = source
-    self.im_size = None
-
-    if self.source == "IBM":
-      user = input("Input your PAIRS Username: ")
-      password = input("Input your PAIRS Password: ")
-      # Pairs auth for making requests to server
-      self.pairs_auth = (user, password)
-  
-
-  def query_image(self):
-    """
-    Sends a request to PAIRS server and downloads the images in the area specified
-    by self.coordinates
-    """
-
-    # PAIRS server
-    pairs_server = "https://pairs.res.ibm.com"
-
-    # Make request to IBM server for images from area within coordinates
-    response = requests.post(
-      json = {
-        "layers" : [
-          {
-              "type": "raster",
-              "id": 36431
-          },
-          {
-              "type": "raster",
-              "id": 35445
-          },
-          {
-              "type": "raster",
-              "id": 36432
-          },
-      ],
-      "spatial": {
-          "type": "square",
-          "coordinates": [str(self.coordinates[0]), str(self.coordinates[1]), str(self.coordinates[2]), str(self.coordinates[3])]
-      },
-      "temporal": {
-          "intervals": [{"start": "2014-12-31T00:00:00Z","end": "2015-01-01T00:00:00Z"}]
-      }
+  # Make request to IBM server for images from area within coordinates
+  response = requests.post(
+    json = {
+      "layers" : [
+        {
+            "type": "raster",
+            "id": 36431
+        },
+        {
+            "type": "raster",
+            "id": 35445
+        },
+        {
+            "type": "raster",
+            "id": 36432
+        },
+    ],
+    "spatial": {
+        "type": "square",
+        "coordinates": [str(coords[0]), str(coords[1]), str(coords[2]), str(coords[3])]
     },
-        url=f'{pairs_server}/v2/query',
-        auth=self.pairs_auth,
-    )   
+    "temporal": {
+        "intervals": [{"start": "2014-12-31T00:00:00Z","end": "2015-01-01T00:00:00Z"}]
+    }
+  },
+      url=f'{pairs_server}/v2/query',
+      auth=pairs_auth,
+  )   
 
-    res = response.json()
-    id = res['id'] # each request has an id we can access it with
-    
+  res = response.json()
+  id = res['id'] # each request has an id we can access it with
+  
 
-    # Check status of query, make sure it's finished before downloading
+  # Check status of query, make sure it's finished before downloading
+  response = requests.get(
+      url=f'{pairs_server}/v2/queryjobs/{id}',
+      auth=pairs_auth,
+  )
+
+  # Do not download until the query is succeeded
+  while response.json()["status"] != "Succeeded" and response.json()["status"] != "Failed":
+    sleep(3)
+    # Recheck status after waiting 3 seconds
     response = requests.get(
         url=f'{pairs_server}/v2/queryjobs/{id}',
-        auth=self.pairs_auth,
+        auth=pairs_auth,
     )
+    print("Query status: " + response.json()["status"])
 
-    # Do not download until the query is succeeded
-    while response.json()["status"] != "Succeeded" and response.json()["status"] != "Failed":
-      sleep(3)
-      # Recheck status after waiting 3 seconds
-      response = requests.get(
-          url=f'{pairs_server}/v2/queryjobs/{id}',
-          auth=self.pairs_auth,
-      )
-      print("Query status... ")
-      print(response.json()["status"])
+  # Status updates
+  print("json eventual response: " + response.json()["status"])
 
-    # Status updates
-    print("json eventual response: ")
-    print(response.json()["status"])
+  #Download and extract to files
+  download = requests.get(
+      f'{pairs_server}/download/{id}', auth=pairs_auth, stream=True,
+  )
+  z = zipfile.ZipFile(io.BytesIO(download.content))
 
-    #Download and extract to files
-    download = requests.get(
-        f'{pairs_server}/download/{id}', auth=self.pairs_auth, stream=True,
-    )
-    z = zipfile.ZipFile(io.BytesIO(download.content))
+  ## Extract to download path specified
+  z.extractall(RAW_DATA_PATH)
+    
 
-    ## Extract to download path specified
-    z.extractall(DataPipeline.download_path)
+def image_to_array():
+  """
+  Takes the image(s) downloaded in RAW_DATA_PATH and converts them into an 
+  np array. Deletes the raw images in the process.
+
+  Returns: 
+  A numpy array of the entire image.
+  """
+
+  # Fetches images from download folder
+  images_arr = []
+  # Loop through files in downloads directory (if multiple)
+  file_names = os.listdir(RAW_DATA_PATH)
+  file_names.sort(reverse=True)
+  for filename in file_names:
+      if filename.endswith(".tiff"):
+          path_to_file = RAW_DATA_PATH + '/' + filename
+          dataset = gdal.Open(path_to_file)
+          array = np.array(dataset.GetRasterBand(1).ReadAsArray(), np.uint8)
+          images_arr.append(array)
+          
+          # Remove the raw .tiff image
+          os.remove(path_to_file)
+          os.remove(path_to_file + '.json')
+
+  # Return rgb image in np array format
+  im_arr = np.dstack(images_arr)
+
+  # Turns np array into jpg and saves into RAW_DATA_PATH
+  scipy.misc.imsave(f'{RAW_DATA_PATH}/Entire_Area.jpg', im_arr)
+
+  return im_arr
+
+
+def query_OSM(coords):
+  """
+  Sends a request to OSM server and returns an array of all the building nodes
+  in the area specified by [coords]
+
+  Returns: 
+  [[building1_node, ...], [building2_node, ...], ...] where each building_node
+  is in (lat,lon) format.
+  """
+  api = overpy.Overpass()
+  query_result = api.query(("""
+      way
+          ({}, {}, {}, {}) ["building"];
+      (._;>;);
+      out body;
+      """).format(coords[0], coords[1], coords[2], coords[3]))
+  
+  # Unprocessed building data from the query
+  buildings = query_result.ways
+
+  # The list of each building's coordinates.
+  # Each item in this list is a list of points in (lat,lon) for each building's nodes.
+  building_coords = []
+
+  for building in buildings:
+    points = [(float(str(n.lat)), float(str(n.lon))) for n in building.nodes]
+    building_coords.append(points)
+  
+  return building_coords
+
+  # # Save the bounding boxes (in lat,lon coordinates) to a pickle file
+  # with open(f"{RAW_DATA_PATH}/{OSM_FILENAME}", "wb") as filename:
+  #   pickle.dump(building_coords, filename)
+
+
+def coords_to_pixels(raw_OSM, coords, im_size):
+  """
+  Converts the OSM coordinates to pixels relative to the image data.
+
+  Requires:
+  [coords] is is in [LAT_MIN, LON_MIN, LAT_MAX, LON_MAX] format
+  [im_size] is the shape of the shape of the entire image numpy array
+
+  Returns:
+  [[building1_node, ...], [building2_node, ...], ...] where each building_node 
+  is in (pixel_x, pixel_y) format
+  """
+
+  building_coords = raw_OSM
+
+  lat_min, lon_min, lat_max, lon_max = coords
+  width = lon_max - lon_min # width in longitude of image
+  height = lat_max - lat_min # height in latitude of image
+
+  # Replaces lat,lon building coordinates with x,y coordinates relative to image array
+  for b_ind in range(len(building_coords)):
+    for n_ind in range(len(building_coords[b_ind])):
+      lat, lon = building_coords[b_ind][n_ind]
+      nodeX = math.floor(((lon-lon_min)/width)*im_size[1])
+      nodeY = math.floor(((lat_max-lat)/height)*im_size[0])
+      building_coords[b_ind][n_ind] = (nodeX, nodeY) 
+    
+  # with open(f"{DataPipeline.download_path}/{DataPipeline.osm_filename}", "wb") as filename:
+  #   pickle.dump(building_coords, filename)
+
+  # Reutrn the pixel building coords
+  return building_coords
+    
+  
+def boxes_in_tile(building_coords, col_start, col_end, row_start, row_end):
+  """
+  Helper function that returns the dictionary of boxes that are in the tile specified by
+  col_start..col_end (the x range) and row_start..row_end (the y range). 
+
+  Requires: 
+  [building_coords] are in pixels not in lat,lon
+
+  Returns:
+  {0:[building1_node, ...], 1:[building2_node, ...], ...} of the buildings inside the 
+  given tile range, with coordinates of building_nodes converted so that they are relative to tile.
+  """
+  
+  # Output buildings that are in the tile
+  buildings_in_tile = {}
+
+  building_index = 0
+
+  for building in building_coords:
+
+    # All the x and y coordinates of the nodes in a building, separated
+    x_coords = [node[0] for node in building]
+    y_coords = [node[1] for node in building]
+
+    min_x = min(x_coords)
+    max_x = max(x_coords)
+
+    min_y = min(y_coords)
+    max_y = max(y_coords)
+
+    centre_x = (min_x + max_x) / 2
+    centre_y = (min_y + max_y) / 2
+
+    if col_start <= centre_x < col_end and row_start <= centre_y < row_end:
       
+      # Goes through each node in building, converts coords relative to entire image to 
+      # coords relative to tile
+      new_building = list(map(lambda pos: (pos[0] - col_start, pos[1] - row_start), building))
 
-  def query_OSM(self):
-    """
-    Sends a request to OSM server and saves an array of all the building nodes
-    in the area specified by self.coordinates to DataPipeline.download_path
-    """
-    api = overpy.Overpass()
-    query_result = api.query(("""
-        way
-            ({}, {}, {}, {}) ["building"];
-        (._;>;);
-        out body;
-        """).format(self.coordinates[0], self.coordinates[1], self.coordinates[2], self.coordinates[3]))
+      buildings_in_tile[building_index] = new_building
+
+      building_index += 1
     
-    # Unprocessed building data from the query
-    buildings = query_result.ways
+  return buildings_in_tile
 
-    # The list of each building's coordinates.
-    # Each item in this list is a list of points in (lat,lon) for each building's nodes.
-    building_coords = []
+def save_tile_and_bboxes(tile, building_coords, file_index):
+  """
+  Saves the tile as an indexed .jpeg image and the building_coords as an indexed .json file.
 
-    for building in buildings:
-      points = [(float(str(n.lat)), float(str(n.lon))) for n in building.nodes]
-      building_coords.append(points)
-    
-    # Save the bounding boxes (in lat,lon coordinates) to a pickle file
-    with open(f"{DataPipeline.download_path}/{DataPipeline.osm_filename}", "wb") as filename:
-      pickle.dump(building_coords, filename)
+  Requires: 
+  [tile] is a numpy array, 
+  [building_coords] is a dictionary of int, list pairs of the building coordinates
+    associated with the tile
+  [file_index] is an integer.
+  """
 
+  img_name = "img_" + str(file_index) + '.jpg'
+  bbox_name = "img_coords_" + str(file_index) + '.json'
 
-  def image_to_array(self):
-    """
-    Takes the image(s) downloaded in DataPipeline.download_path and converts them into 
-    np arrays. Returns a list of these arrays. 
-    """
+  # save jpeg
+  with open(f'{DATA_PATH}/{img_name}', 'w') as filename:
+    scipy.misc.imsave(filename, tile)
 
-    # # Fetches images from download folder
-    # images_arr = []
-    # # Loop through files in downloads directory (if multiple)
-    # file_names = os.listdir(DataPipeline.download_path)
-    # file_names.sort(reverse=True)
-    # for filename in file_names:
-    #     if filename.endswith(".tiff"):
-    #         path_to_file = DataPipeline.download_path + '/' + filename
-    #         dataset = gdal.Open(path_to_file)
-    #         array = np.array(dataset.GetRasterBand(1).ReadAsArray(), np.uint8)
-    #         images_arr.append(array)
-    # # Return rgb image in np array format
-    # im_arr = np.dstack(images_arr)
-
-    im_arr = np.array(Image.open(f"{DataPipeline.download_path}/im_arr.jpg"))
-
-    # Update the [im_size] attribute to the correct image shape.
-    self.im_size = im_arr.shape
-
-    
-
-    # scipy.misc.imsave(f"{DataPipeline.download_path}/im_arr.jpg",im_arr)
-
-    # Save the image np array in a pickle file
-    with open(f"{DataPipeline.download_path}/{DataPipeline.im_arr_filename}", "wb") as filename:
-      pickle.dump(im_arr, filename)
+  # save json
+  with open(f'{DATA_PATH}/{bbox_name}', 'w') as filename:
+    json.dump(building_coords, filename, indent=2)
 
 
-  def coords_to_pixels(self):
-    """
-    Converts the OSM coordinates to pixels relative to the image data.
+      
+def tile_image(tile_size, building_coords, im_arr, im_size):
+  """
+  Tiles image array [im_arr] and saves tiles of size [tile_size x tile_size] 
+  and corresponding bounding boxes in [DATA_PATH] as individual .jpeg and .json files
 
-    Return format is [[building1_node, ...], [building2_node, ...], ...]
-    where each building_node is (pixel_x, pixel_y)
-    """
+  Requires: 
+  [tile_size] is a positive integer
+  [building_coords] is [[building1_node, ...], [building2_node, ...], ...] where each 
+   building_node is (pixel_x, pixel_y)
+  [im_arr] is a numpy array of the entire queried image
+  [im_size] is the shape of the numpy array
+  """
 
-    assert self.im_size != None, "Image array has not yet been saved. Try image_to_array first"
+  height, width, depth = im_size
+  total_rows = height//tile_size
+  total_cols = width//tile_size
 
-    building_coords = []
+  index = 0
 
-    # Open pickle file with osm data
-    with open(f"{DataPipeline.download_path}/{DataPipeline.osm_filename}", "rb") as filename:
-      building_coords = pickle.load(filename)
+  for row in range(total_rows):
+    for col in range(total_cols):
+      # row_start, row_end, col_start, col_end in pixels relative to entire img
+      row_start = row*tile_size
+      row_end = (row+1)*tile_size
+      col_start = col*tile_size
+      col_end = (col+1)*tile_size
 
-    lat_min, lon_min, lat_max, lon_max = self.coordinates
-    width = lon_max - lon_min # width in longitude of image
-    height = lat_max - lat_min # height in latitude of image
+      # All the building bounding boxes in the tile range
+      buildings_in_tile = boxes_in_tile(building_coords, col_start, col_end, row_start,row_end)
 
-    # Replaces lat,lon building coordinates with x,y coordinates relative to image array
-    for b_ind in range(len(building_coords)):
-      for n_ind in range(len(building_coords[b_ind])):
-        lat, lon = building_coords[b_ind][n_ind]
-        nodeX = math.floor(((lon-lon_min)/width)*self.im_size[1])
-        nodeY = math.floor(((lat_max-lat)/height)*self.im_size[0])
-        building_coords[b_ind][n_ind] = (nodeX, nodeY) 
+      tile = im_arr[row_start:row_end, col_start:col_end, :]
 
-    # Save pixel data to pkl file
-    with open(f"{DataPipeline.download_path}/{DataPipeline.osm_filename}", "wb") as filename:
-      pickle.dump(building_coords, filename)
+      save_tile_and_bboxes(tile, buildings_in_tile, index)
+      
+      index += 1
+  
+  # with open(f"{DataPipeline.download_path}/{DataPipeline.tiles_filename}", "wb") as filename:
+  #   pickle.dump(tiles_and_boxes, filename)
+
+
+# def remove_indices(tiles_and_boxes, indices_to_remove):
+#   """
+#   Removes tiles associated with index in indices_to_remove.
+#   indices_to_remove is a list of indices.
+
+#   Saves the edited [(tile, buildings), ...] in the pickle file. 
+#   """
+
+#   tiles_and_boxes = []
+  
+#   # Iterates through all tiles, keeps those whose index is not in indices_to_remove
+#   edited = [tiles_and_boxes[i] for i in range(len(tiles_and_boxes)) if i not in indices_to_remove]
+
+#   with open(f"{DataPipeline.download_path}/{DataPipeline.tiles_filename}", "wb") as filename:
+#     pickle.dump(edited, filename)
+
+
+
+
      
-    
-  def boxes_in_tile(self, building_coords, col_start, col_end, row_start, row_end):
-    """
-    Helper function that returns the list of boxes that are in the tile specified by
-    col_start..col_end (the x range) and row_start..row_end (the y range). 
-
-    Precondition: building_coords are in pixels not in lat,lon
-
-    Returns [[building1_node, ...], [building2_node, ...], ...] of the buildings inside the 
-    given tile range, with coordinates of building_nodes converted so that they are relative to tile.
-    """
-    
-    # Output buildings that are in the tile
-    buildings_in_tile = []
-
-    for building in building_coords:
-
-      # All the x and y coordinates of the nodes in a building, separated
-      x_coords = [node[0] for node in building]
-      y_coords = [node[1] for node in building]
-
-      min_x = min(x_coords)
-      max_x = max(x_coords)
-
-      min_y = min(y_coords)
-      max_y = max(y_coords)
-
-      centre_x = (min_x + max_x) / 2
-      centre_y = (min_y + max_y) / 2
-
-      if col_start <= centre_x < col_end and row_start <= centre_y < row_end:
-        
-        # Goes through each node in building, converts coords relative to entire image to 
-        # coords relative to tile
-        new_building = list(map(lambda pos: (pos[0] - col_start, pos[1] - row_start), building))
-
-        buildings_in_tile.append(new_building)
-      
-    
-    return buildings_in_tile
-
-        
-  def tile_image(self, tile_size):
-    """
-    Tiles image array saved in DataPipeline.im_array_filename and saves tiles of 
-    size [tile_size x tile_size] and corresponding bounding boxes in DataPipeline.tiles_filename
-
-    pkl file contains a list of tuples in the following format:
-    [(tile_im_array, bboxes_in_tile), ...]
-    """
-
-    tiles_and_boxes = []
-
-    # Open pickle file with osm data, assumes building coordinates are in pixels not lat, lon
-    building_coords = []
-    with open(f"{DataPipeline.download_path}/{DataPipeline.osm_filename}", "rb") as filename:
-      building_coords = pickle.load(filename)
-
-    # Open pickle file with entire image np array
-    im_arr = []
-    with open(f"{DataPipeline.download_path}/{DataPipeline.im_arr_filename}", "rb") as filename:
-      im_arr = pickle.load(filename)
-
-    height, width, depth = self.im_size
-    total_rows = height//tile_size
-    total_cols = width//tile_size
-
-    for row in range(total_rows):
-      for col in range(total_cols):
-        # row_start, row_end, col_start, col_end in pixels relative to entire img
-        row_start = row*tile_size
-        row_end = (row+1)*tile_size
-        col_start = col*tile_size
-        col_end = (col+1)*tile_size
-
-        # All the building bounding boxes in the tile range
-        buildings_in_tile = self.boxes_in_tile(building_coords, col_start, col_end, row_start,row_end)
-
-        tile = im_arr[row_start:row_end, col_start:col_end, :]
-
-        tiles_and_boxes.append((tile, buildings_in_tile))
-    
-    with open(f"{DataPipeline.download_path}/{DataPipeline.tiles_filename}", "wb") as filename:
-      pickle.dump(tiles_and_boxes, filename)
-
-
-  def remove_indices(self, indices_to_remove):
-    """
-    Removes tiles associated with index in indices_to_remove.
-    indices_to_remove is a list of indices.
-
-    Saves the edited [(tile, buildings), ...] in the pickle file. 
-    """
-
-    tiles_and_boxes = []
-
-    with open(f"{DataPipeline.download_path}/{DataPipeline.tiles_filename}", "rb") as filename:
-      tiles_and_boxes = pickle.load(filename)
-    
-    # Iterates through all tiles, keeps those whose index is not in indices_to_remove
-    edited = [tiles_and_boxes[i] for i in range(len(tiles_and_boxes)) if i not in indices_to_remove]
-
-    with open(f"{DataPipeline.download_path}/{DataPipeline.tiles_filename}", "wb") as filename:
-      pickle.dump(edited, filename)
-
-
-  
-  def create_bbox(self):
-    """
-    Creates formatted bounding box data from OSM data in DataPipeline.download_path.
-    Function defined specifically for each model/subclass. 
-    """
-    pass
-
-  def test(self):
-    """
-    Use this function to test any of the other functions.
-    """
-    print("Lat height" + str(self.coordinates[2] - self.coordinates[0]))
-    print("Lon width" + str(self.coordinates[3] - self.coordinates[1]))
-    print(self.im_size)
-  
-
-## Tests with coordinates
-# Perfect Square: [41.009, -73.779, 41.03, -73.758]
