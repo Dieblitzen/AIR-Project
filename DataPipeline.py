@@ -156,6 +156,40 @@ def query_PAIRS(coords):
   z.extractall(RAW_DATA_PATH)
     
 
+def image_to_array():
+  """
+  Takes the image(s) downloaded in RAW_DATA_PATH and converts them into an 
+  np array. Deletes the raw images in the process.
+
+  Returns: 
+  A numpy array of the entire image.
+  """
+
+  # Fetches images from download folder
+  images_arr = []
+  # Loop through files in downloads directory (if multiple)
+  file_names = os.listdir(RAW_DATA_PATH)
+  file_names.sort(reverse=True)
+  for filename in file_names:
+      if filename.endswith(".tiff"):
+          path_to_file = RAW_DATA_PATH + '/' + filename
+          dataset = gdal.Open(path_to_file)
+          array = np.array(dataset.GetRasterBand(1).ReadAsArray(), np.uint8)
+          images_arr.append(array)
+          
+          # Remove the raw .tiff image
+          os.remove(path_to_file)
+          os.remove(path_to_file + '.json')
+
+  # Return rgb image in np array format
+  im_arr = np.dstack(images_arr)
+
+  # Turns np array into jpg and saves into RAW_DATA_PATH
+  scipy.misc.imsave(f'{RAW_DATA_PATH}/Entire_Area.jpg', im_arr)
+
+  return im_arr
+
+
 def query_OSM(coords):
   """
   Sends a request to OSM server and returns an array of all the building nodes
@@ -189,40 +223,6 @@ def query_OSM(coords):
   # # Save the bounding boxes (in lat,lon coordinates) to a pickle file
   # with open(f"{RAW_DATA_PATH}/{OSM_FILENAME}", "wb") as filename:
   #   pickle.dump(building_coords, filename)
-
-
-def image_to_array():
-  """
-  Takes the image(s) downloaded in RAW_DATA_PATH and converts them into an 
-  np array. Deletes the raw images in the process.
-
-  Returns: 
-  A numpy array of the entire image.
-  """
-
-  # Fetches images from download folder
-  images_arr = []
-  # Loop through files in downloads directory (if multiple)
-  file_names = os.listdir(RAW_DATA_PATH)
-  file_names.sort(reverse=True)
-  for filename in file_names:
-      if filename.endswith(".tiff"):
-          path_to_file = RAW_DATA_PATH + '/' + filename
-          dataset = gdal.Open(path_to_file)
-          array = np.array(dataset.GetRasterBand(1).ReadAsArray(), np.uint8)
-          images_arr.append(array)
-          
-          # Remove the raw .tiff image
-          os.remove(path_to_file)
-          os.remove(path_to_file + '.json')
-
-  # Return rgb image in np array format
-  im_arr = np.dstack(images_arr)
-
-  # Turns np array into jpg and saves into RAW_DATA_PATH
-  scipy.misc.imsave(f'{RAW_DATA_PATH}/Entire_Area.jpg', im_arr)
-
-  return im_arr
 
 
 def coords_to_pixels(raw_OSM, coords, im_size):
