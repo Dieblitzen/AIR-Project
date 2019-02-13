@@ -12,6 +12,7 @@ import overpy
 import pickle 
 import scipy.misc
 import math
+from PIL import Image
 
 # Visualising
 import matplotlib.pyplot as plt
@@ -167,22 +168,28 @@ class DataPipeline:
     np arrays. Returns a list of these arrays. 
     """
 
-    # Fetches images from download folder
-    images_arr = []
-    # Loop through files in downloads directory (if multiple)
-    file_names = os.listdir(DataPipeline.download_path)
-    file_names.sort(reverse=True)
-    for filename in file_names:
-        if filename.endswith(".tiff"):
-            path_to_file = DataPipeline.download_path + '/' + filename
-            dataset = gdal.Open(path_to_file)
-            array = np.array(dataset.GetRasterBand(1).ReadAsArray(), np.uint8)
-            images_arr.append(array)
-    # Return rgb image in np array format
-    im_arr = np.dstack(images_arr)
+    # # Fetches images from download folder
+    # images_arr = []
+    # # Loop through files in downloads directory (if multiple)
+    # file_names = os.listdir(DataPipeline.download_path)
+    # file_names.sort(reverse=True)
+    # for filename in file_names:
+    #     if filename.endswith(".tiff"):
+    #         path_to_file = DataPipeline.download_path + '/' + filename
+    #         dataset = gdal.Open(path_to_file)
+    #         array = np.array(dataset.GetRasterBand(1).ReadAsArray(), np.uint8)
+    #         images_arr.append(array)
+    # # Return rgb image in np array format
+    # im_arr = np.dstack(images_arr)
+
+    im_arr = np.array(Image.open(f"{DataPipeline.download_path}/im_arr.jpg"))
 
     # Update the [im_size] attribute to the correct image shape.
     self.im_size = im_arr.shape
+
+    
+
+    # scipy.misc.imsave(f"{DataPipeline.download_path}/im_arr.jpg",im_arr)
 
     # Save the image np array in a pickle file
     with open(f"{DataPipeline.download_path}/{DataPipeline.im_arr_filename}", "wb") as filename:
@@ -325,57 +332,6 @@ class DataPipeline:
 
     with open(f"{DataPipeline.download_path}/{DataPipeline.tiles_filename}", "wb") as filename:
       pickle.dump(edited, filename)
-
-
-  def visualize_data(self):
-    """
-    Provides a visualization of the OSM and image data in DataPipeline.download_path
-    """
-
-    bboxes = []
-    # Open pickle file with osm data
-    with open(f"{DataPipeline.download_path}/{DataPipeline.osm_filename}", "rb") as filename:
-      bboxes = pickle.load(filename)
-
-    im_arr = []
-    # Open pickle file with image array
-    with open(f"{DataPipeline.download_path}/{DataPipeline.im_arr_filename}", "rb") as filename:
-      im_arr = pickle.load(filename)
-
-    plt.imshow(im_arr)
-    for building_coords in bboxes:
-      poly = Polygon(building_coords)
-      x, y = poly.exterior.xy
-      plt.plot(x, y)
-    
-    # # Add the grid
-    # ax.grid(which='major', axis='both', linestyle='-')
-    # ax.show()
-    plt.grid()
-    # plt.xticks(np.arange(0, 6000, 228), range(0, 23))
-    # plt.yticks(np.arange(0, 6000, 228), range(0, 23))
-    plt.show()
-    
-
-  def visualize_tiles(self):
-    """
-    Provides a visualization of the OSM and tiled data
-    """
-
-    tiles_and_boxes = []
-
-    with open(f"{DataPipeline.download_path}/{DataPipeline.tiles_filename}", "rb") as filename:
-      tiles_and_boxes = pickle.load(filename)
-    
-    for (tile, buildings) in tiles_and_boxes:
-      plt.imshow(tile)
-
-      for building_coords in buildings:
-        poly = Polygon(building_coords)
-        x, y = poly.exterior.xy
-        plt.plot(x, y)
-    
-      plt.show()
 
 
   
