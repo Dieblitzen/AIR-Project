@@ -175,8 +175,17 @@ def image_to_array():
       if filename.endswith(".tiff"):
           path_to_file = RAW_DATA_PATH + '/' + filename
           dataset = gdal.Open(path_to_file)
-          array = np.array(dataset.GetRasterBand(1).ReadAsArray(), np.uint8)
-          images_arr.append(array)
+          raw_array = np.array(dataset.GetRasterBand(1).ReadAsArray())
+          # Remove masked rows and transpose so we can do the same to cols
+          row_mask = (raw_array != -9999).any(axis=1)
+          print(row_mask)
+          arr_clean_rows = raw_array[row_mask]
+          col_mask = (arr_clean_rows.T != -9999).any(axis=1)
+          print(col_mask)
+          clean_array = ((arr_clean_rows.T)[col_mask]).T
+
+          # Append clean image array 
+          images_arr.append(clean_array)
           
           # Remove the raw .tiff image
           os.remove(path_to_file)
