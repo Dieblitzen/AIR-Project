@@ -24,6 +24,12 @@ DATA_PATH = './data_path'
 # RAW_DATA_PATH is the path to the directory where the raw queried image(s) will be saved
 RAW_DATA_PATH = f'{DATA_PATH}/raw_data'
 
+# IMAGES_PATH is the path to the directory where the images will be saved
+IMAGES_PATH = f'{DATA_PATH}/images'
+
+# ANNOTATIONS_PATH is the path to the directory where the bounding box labels will be saved
+ANNOTATIONS_PATH = f'{DATA_PATH}/annotations'
+
 # OSM_FILENAME is the name of the pickle file where the queried raw OSM data will be saved
 OSM_FILENAME = 'OSM_bbox.pkl'
 
@@ -51,6 +57,14 @@ def create_dataset(coords, source="IBM"):
   if not os.path.isdir(RAW_DATA_PATH):
     print(f"Creating directory to store raw data, including queried image.")
     os.mkdir(RAW_DATA_PATH)
+
+  if not os.path.isdir(IMAGES_PATH):
+    print(f"Creating directory to store jpeg images.")
+    os.mkdir(IMAGES_PATH)
+
+  if not os.path.isdir(ANNOTATIONS_PATH):
+    print(f"Creating directory to store json annotations.")
+    os.mkdir(ANNOTATIONS_PATH)
 
   print(f"Your dataset's directory is {DATA_PATH} and the raw data is stored in {RAW_DATA_PATH}")
 
@@ -261,8 +275,8 @@ def coords_to_pixels(raw_OSM, coords, im_size):
       nodeY = math.floor(((lat_max-lat)/height)*im_size[0])
       building_coords[b_ind][n_ind] = (nodeX, nodeY) 
     
-  # with open(f"{DataPipeline.download_path}/{DataPipeline.osm_filename}", "wb") as filename:
-  #   pickle.dump(building_coords, filename)
+  with open(f"{RAW_DATA_PATH}/buildings.pkl", "wb") as filename:
+    pickle.dump(building_coords, filename)
 
   # Reutrn the pixel building coords
   return building_coords
@@ -325,14 +339,14 @@ def save_tile_and_bboxes(tile, building_coords, file_index):
   """
 
   img_name = "img_" + str(file_index) + '.jpg'
-  bbox_name = "img_coords_" + str(file_index) + '.json'
+  bbox_name = "annotation_" + str(file_index) + '.json'
 
   # save jpeg
-  with open(f'{DATA_PATH}/{img_name}', 'w') as filename:
+  with open(f'{IMAGES_PATH}/{img_name}', 'w') as filename:
     scipy.misc.imsave(filename, tile)
 
   # save json
-  with open(f'{DATA_PATH}/{bbox_name}', 'w') as filename:
+  with open(f'{ANNOTATIONS_PATH}/{bbox_name}', 'w') as filename:
     json.dump(building_coords, filename, indent=2)
 
 
