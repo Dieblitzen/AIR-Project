@@ -251,6 +251,7 @@ def query_OSM(coords):
 def coords_to_pixels(raw_OSM, coords, im_size):
   """
   Converts the OSM coordinates to pixels relative to the image data.
+  Also stores the returned list of buildings in a pickle file called 'annotations.pkl'
 
   Requires:
   [coords] is is in [LAT_MIN, LON_MIN, LAT_MAX, LON_MAX] format
@@ -275,7 +276,7 @@ def coords_to_pixels(raw_OSM, coords, im_size):
       nodeY = math.floor(((lat_max-lat)/height)*im_size[0])
       building_coords[b_ind][n_ind] = (nodeX, nodeY) 
     
-  with open(f"{RAW_DATA_PATH}/buildings.pkl", "wb") as filename:
+  with open(f"{RAW_DATA_PATH}/annotations.pkl", "wb") as filename:
     pickle.dump(building_coords, filename)
 
   # Reutrn the pixel building coords
