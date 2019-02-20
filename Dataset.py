@@ -14,10 +14,10 @@ from shapely.geometry.polygon import Polygon
 
 class Dataset:
   """
-  The Dataset class provides an interface for working with a dataset consisting 
+  The 'Dataset' class provides an interface for working with a dataset consisting 
   of images and annotations. 
 
-  This object will provide the following functionality:
+  An object of this class will provide the following functionality:
 
   Attributes:
   1) The path to the dataset, images and annotations.
@@ -176,7 +176,7 @@ class Dataset:
     """
     bboxes = []
     # Open pickle file with osm data
-    with open(f"{self.data_path}/raw_data/buildings.pkl", "rb") as filename:
+    with open(f"{self.data_path}/raw_data/annotations.pkl", "rb") as filename:
       bboxes = pickle.load(filename)
 
     im = Image.open(f"{self.data_path}/raw_data/Entire_Area.jpg")
