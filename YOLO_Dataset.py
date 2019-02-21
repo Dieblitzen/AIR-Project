@@ -1,4 +1,4 @@
-import Dataset
+from Dataset import Dataset
 import os
 import numpy as np
 import scipy.misc
@@ -9,7 +9,6 @@ from lxml import etree
 import random
 from shutil import copyfile
 from functools import reduce
-
 
 # Visualising
 import matplotlib.pyplot as plt
@@ -42,7 +41,7 @@ class YOLO_Dataset(Dataset):
         assert train_val_test[0] > 0 and train_val_test[1] > 0 and train_val_test[
             2] > 0, 'Train, val and test percentages should be non-negative'
 
-        Dataset.__init__(data_path)
+        Dataset.__init__(self, data_path)
 
         self.train_val_test = train_val_test
         self.train_path = self.data_path + '/yolo/train'
@@ -66,11 +65,11 @@ class YOLO_Dataset(Dataset):
                 os.mkdir(directory + '/annotations')
 
     def build_dataset(self):
-        pass
+        self.split_data()
 
     def split_data(self):
         """
-        Helper method only called in build_dataset that splits data into test 
+        Helper method only called in build_dataset that splits data into test
         train and validation sets.
         """
         data = list(zip(self.img_list, self.annotation_list))
@@ -82,26 +81,26 @@ class YOLO_Dataset(Dataset):
         # index counter i
         i = 0
         while i < len(shuffled_img):
-            if i < train*len(shuffled_img):
+            if i < math.floor(train*len(shuffled_img)):
                 # Add to train folder
                 copyfile(
-                    f"{self.images_path}/{shuffled_img[i]}", f"{self.train_path}/images/{i}")
+                    f"{self.images_path}/{shuffled_img[i]}", f"{self.train_path}/images/{i}.jpg")
                 self.json_to_xml(
-                    f"{self.annotations_path}/{shuffled_annotations[i]}", f"{self.train_path}/annotations/{i}")
-            elif i < (train+val)*len(shuffled_img):
+                    f"{self.annotations_path}/{shuffled_annotations[i]}", f"{self.train_path}/annotations/{i}.xml")
+            elif i < math.floor((train+val)*len(shuffled_img)):
                 # Add to val folder
-                ind = i - (train)*len(shuffled_img)
+                ind = i - math.floor((train)*len(shuffled_img))
                 copyfile(
-                    f"{self.images_path}/{shuffled_img[i]}", f"{self.val_path}/images/{ind}")
+                    f"{self.images_path}/{shuffled_img[i]}", f"{self.val_path}/images/{ind}.jpg")
                 self.json_to_xml(
-                    f"{self.annotations_path}/{shuffled_annotations[i]}", f"{self.val_path}/annotations/{ind}")
+                    f"{self.annotations_path}/{shuffled_annotations[i]}", f"{self.val_path}/annotations/{ind}.xml")
             else:
                 # Add to test folder
-                ind = i - (train+val)*len(shuffled_img)
+                ind = i - math.floor((train+val)*len(shuffled_img))
                 copyfile(
-                    f"{self.images_path}/{shuffled_img[i]}", f"{self.test_path}/images/{ind}")
+                    f"{self.images_path}/{shuffled_img[i]}", f"{self.test_path}/images/{ind}.jpg")
                 self.json_to_xml(
-                    f"{self.annotations_path}/{shuffled_annotations[i]}", f"{self.test_path}/annotations/{ind}")
+                    f"{self.annotations_path}/{shuffled_annotations[i]}", f"{self.test_path}/annotations/{ind}.xml")
             # increment index counter
             i += 1
 
@@ -110,6 +109,85 @@ class YOLO_Dataset(Dataset):
         Helper method only called in split_data that takes a json file at
         path_to_file and writes a corresponding xml at path_to_dest.
         """
+        # Im_size: [width, height, depth] ??? should be squares anyways
+        with open(path_to_file) as f:
+            try:
+                buildings_dict = self.format_coords(json.load(f))
+            except:
+                buildings_dict = {}
+
+        # begin creating annotation
+        annotation = etree.Element('annotation')
+
+        # Filename
+        last_sep = path_to_file.rfind("/")
+        img_name = path_to_file[last_sep+1:]
+        # Add to xml etree
+        filename = etree.Element('filename')
+        filename.text = img_name
+
+        # Image size
+        size = etree.Element('size')
+        im_size = self.get_img_size()
+        # nested elements in size
+        width = etree.Element('width')
+        height = etree.Element('height')
+        depth = etree.Element('depth')
+        width.text = str(im_size[1])
+        height.text = str(im_size[0])
+        depth.text = str(im_size[2])
+        # append nested elements to size element
+        size.append(width)
+        size.append(height)
+        size.append(depth)
+
+        # append filename and size to main xml etree
+        annotation.append(filename)
+        annotation.append(size)
+
+        for bbox in buildings_dict.values():
+            # object for each bounding box
+            obj = etree.Element('object')
+
+            # We only have one class for now. (Note: name is label)
+            name = etree.Element('name')
+            name.text = "building"
+
+            # Bounding box preocessing. We assume that bboxes are in
+            # [centerX, centerY, width, height] format, and convert it to
+            # x_min, x_max, y_min, y_max
+            bndbox = etree.Element('bndbox')
+            xmin = etree.Element('xmin')
+            xmin.text = str(bbox[0] - (bbox[2]/2))
+
+            ymin = etree.Element('ymin')
+            ymin.text = str(bbox[1] - (bbox[3]/2))
+
+            xmax = etree.Element('xmax')
+            xmax.text = str(bbox[0] + (bbox[2]/2))
+
+            ymax = etree.Element('ymax')
+            ymax.text = str(bbox[1] + (bbox[3]/2))
+
+            # Append xmin, xmax, ymin, ymax to bounding box object
+            bndbox.append(xmin)
+            bndbox.append(ymin)
+            bndbox.append(xmax)
+            bndbox.append(ymax)
+
+            # append nested elements in obj
+            obj.append(name)
+            obj.append(bndbox)
+
+            # Append the whole obj to the annotation.
+            annotation.append(obj)
+
+        # Full annotation, ready to be written
+        xml_annotation = etree.ElementTree(annotation)
+
+        # save annotation in file
+        with open(path_to_dest, 'wb') as dest:
+            xml_annotation.write(dest)
 
     def format_coords(self, buildings):
         """
@@ -128,3 +206,5 @@ class YOLO_Dataset(Dataset):
             centerX = minX + width/2.0
             centerY = minY + height/2.0
             buildings[k] = [centerX, centerY, width, height]
+
+        return buildings
