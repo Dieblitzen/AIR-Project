@@ -64,10 +64,8 @@ class YOLO_Dataset(Dataset):
       if not os.path.isdir(directory + '/annotations'):
           os.mkdir(directory + '/annotations')
 
-  def build_dataset(self):
-    self.split_data()
 
-  def split_data(self):
+  def build_dataset(self):
     """
     Helper method only called in build_dataset that splits data into test
     train and validation sets.
