@@ -84,25 +84,25 @@ class YOLO_Dataset(Dataset):
         copyfile(
             f"{self.images_path}/{shuffled_img[i]}", f"{self.train_path}/images/{i}.jpg")
         self.json_to_xml(
-            f"{self.annotations_path}/{shuffled_annotations[i]}", f"{self.train_path}/annotations/{i}.xml")
+            f"{self.annotations_path}/{shuffled_annotations[i]}", f"{self.train_path}/annotations/{i}.xml", f"{i}.jpg")
       elif i < math.floor((train+val)*len(shuffled_img)):
         # Add to val folder
         ind = i - math.floor((train)*len(shuffled_img))
         copyfile(
             f"{self.images_path}/{shuffled_img[i]}", f"{self.val_path}/images/{ind}.jpg")
         self.json_to_xml(
-            f"{self.annotations_path}/{shuffled_annotations[i]}", f"{self.val_path}/annotations/{ind}.xml")
+            f"{self.annotations_path}/{shuffled_annotations[i]}", f"{self.val_path}/annotations/{ind}.xml", f"{ind}.jpg")
       else:
         # Add to test folder
         ind = i - math.floor((train+val)*len(shuffled_img))
         copyfile(
             f"{self.images_path}/{shuffled_img[i]}", f"{self.test_path}/images/{ind}.jpg")
         self.json_to_xml(
-            f"{self.annotations_path}/{shuffled_annotations[i]}", f"{self.test_path}/annotations/{ind}.xml")
+            f"{self.annotations_path}/{shuffled_annotations[i]}", f"{self.test_path}/annotations/{ind}.xml", f"{ind}.jpg")
       # increment index counter
       i += 1
 
-  def json_to_xml(self, path_to_file, path_to_dest):
+  def json_to_xml(self, path_to_file, path_to_dest, img_name):
     """
     Helper method only called in split_data that takes a json file at
     path_to_file and writes a corresponding xml at path_to_dest.
@@ -117,9 +117,6 @@ class YOLO_Dataset(Dataset):
     # begin creating annotation
     annotation = etree.Element('annotation')
 
-    # Filename
-    last_sep = path_to_file.rfind("/")
-    img_name = path_to_file[last_sep+1:]
     # Add to xml etree
     filename = etree.Element('filename')
     filename.text = img_name
