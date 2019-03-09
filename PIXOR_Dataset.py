@@ -264,3 +264,36 @@ class PIXOR_Dataset(Dataset):
                 unique_boxes[str(r) + "_" + str(c)] = bboxes[r,c]
 
     return unique_boxes
+
+  def get_batch(self, start_index, batch_size, base_path):
+    """
+    Method 3)
+    Gets batch of tiles and labels associated with data start_index.
+
+    Returns:
+    [(tile_array, list_of_buildings), ...]
+    """
+    batch = np.zeros((batch_size, 3))
+    for i in range(start_index, start_index + batch_size):
+      batch[i] = self.get_tile_and_label(i, base_path)
+    
+    return batch
+
+  def get_tile_and_label(self, index, base_path):
+    """
+    Method 2)
+    Gets the tile and label associated with data index.
+
+    Returns:
+    (tile_array, dictionary_of_buildings)
+    """
+
+    # Open the jpeg image and save as numpy array
+    im = Image.open(base_path + '/images/' + str(index) + '.jpg')
+    im_arr = np.array(im)
+
+    # Open the json file and parse into dictionary of index -> buildings pairs
+    box_annotation = np.load(base_path + '/box_annotations/' + str(index) + '.npy')
+    class_annotation = np.load(base_path + '/class_annotations/' + str(index) + '.npy')
+    
+    return np.array([im_arr, box_annotation, class_annotation])

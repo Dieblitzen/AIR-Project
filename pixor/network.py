@@ -1,9 +1,8 @@
 import tensorflow as tf
 import numpy as np
+from PIL import Image
 import sys
 sys.path.append("..")
-from data_extract import extract_data
-from sklearn.utils import shuffle
 #launch session to connect to C++ computation power
 sess = tf.InteractiveSession()
 
@@ -15,6 +14,44 @@ BATCH_SIZE=32
 def conv2d_transpose(input, filter_size, out_channels, stride, activation="None"):
   return tf.layers.conv2d_transpose(inputs=input, filters=out_channels,
          kernel_size=filter_size, strides=stride, padding='same', activation=activation)
+
+
+def get_tile_and_label(index, base_path):
+    """
+    Method 2)
+    Gets the tile and label associated with data index.
+
+    Returns:
+    (tile_array, dictionary_of_buildings)
+    """
+
+    # Open the jpeg image and save as numpy array
+    im = Image.open(base_path + '/images/' + str(index) + '.jpg')
+    im_arr = np.array(im)
+
+    # Open the json file and parse into dictionary of index -> buildings pairs
+    box_annotation = np.load(base_path + '/box_annotations/' + str(index) + '.npy')
+    class_annotation = np.load(base_path + '/class_annotations/' + str(index) + '.npy')
+    
+    return im_arr, box_annotation, class_annotation
+
+
+def get_batch(start_index, batch_size, batch_indices, base_path):
+    """
+    Method 3)
+    Gets batch of tiles and labels associated with data start_index.
+
+    Returns:
+    [(tile_array, list_of_buildings), ...]
+    """
+    batch_images = np.zeros((batch_size, 228, 228, 3))
+    batch_boxes = np.zeros((batch_size, 228, 228, 6))
+    batch_classes = np.zeros((batch_size, 228, 228, 1))
+    for i in range(start_index, start_index + batch_size):
+      batch_images[i % batch_size], batch_boxes[i % batch_size], batch_classes[i % batch_size] = get_tile_and_label(batch_indices[i], base_path)
+    
+    return batch_images, batch_boxes, batch_classes
+
 
 #Initialize expected input for images
 x = tf.placeholder(tf.float32, shape=(None, 228, 228, 3))
@@ -135,93 +172,77 @@ def custom_cross_entropy(class_labels, class_preds):
     lolz = tf.where(tf.equal(class_labels, 1), -tf.log(tf.add(class_preds, 0.0000001)), -tf.log(tf.add(1 - class_preds, 0.0000001)))
     return tf.reduce_mean(lolz)
 
+if __name__ == "__main__":
+
+    class_loss = custom_cross_entropy(class_labels=y_class, class_preds=output_class)
+    box_loss = smooth_L1(box_labels=y_box, box_preds=output_box, class_labels=y_class)
+    pixor_loss = class_loss + box_loss
+
+    #A step to minimize our cost function
+    train_step = tf.train.AdamOptimizer(1e-4).minimize(pixor_loss)
+
+    # RUN THINGS
+
+    saver = tf.train.Saver()
+
+    with tf.Session() as sess:
+
+      #initialize everything
+      sess.run(tf.global_variables_initializer())
+      num_epochs = 50
+
+      per_epoch_train_loss = 0
+      lowest_val_loss = np.inf
+
+      TRAIN_LEN = 301
+      VAL_LEN = 38
+
+      batch_indices = np.arange(TRAIN_LEN)
+      val_batch_indices = np.arange(VAL_LEN)
+
+      train_base_path = '../data_path/pixor/train'
+      val_base_path = '../data_path/pixor/val'
+
+      for epoch in range(num_epochs):
+        per_epoch_train_loss = 0
+        print("\nepoch " + str(epoch))
+
+        np.random.shuffle(batch_indices)
+
+        # RIGHT NOW IF DOESN'T PERFECTLY DIVIDE IT DOESN'T COVER REMAINING, MIGHT WANT TO CHANGE THIS
+        num_batches = TRAIN_LEN // BATCH_SIZE
+
+        for batch_number in range(0, num_batches):
+          print("batch " + str(batch_number))
+          start_idx = batch_number * BATCH_SIZE
+          end_idx = start_idx + BATCH_SIZE
+
+          batch_images, batch_boxes, batch_classes = get_batch(start_idx, BATCH_SIZE, batch_indices, train_base_path)
+
+          # train on the batch
+          _, b_loss, c_loss, batch_train_loss = sess.run([train_step, box_loss, class_loss, pixor_loss], feed_dict =
+            {x: batch_images,
+            y_box: batch_boxes,
+            y_class: batch_classes})
+
+          per_epoch_train_loss += batch_train_loss
+          # print("overall batch loss: " + str(batch_train_loss))
+          # print("box loss: " + str(b_loss))
+          # print("class loss: " + str(c_loss))
 
 
-class_loss = custom_cross_entropy(class_labels=y_class, class_preds=output_class)
-box_loss = smooth_L1(box_labels=y_box, box_preds=output_box, class_labels=y_class)
-pixor_loss = class_loss + box_loss
+        # at each epoch, print training and validation loss
+        val_images, val_boxes, val_classes = get_batch(0, VAL_LEN, val_batch_indices, val_base_path)
+        val_loss = sess.run([pixor_loss], feed_dict = {x: val_images,
+          y_box: val_boxes, y_class: val_classes})
+        print('epoch %d, training loss %g' % (epoch, per_epoch_train_loss))
+        print('epoch %d, validation loss %g' % (epoch, val_loss[0]))
 
-#A step to minimize our cost function
-train_step = tf.train.AdamOptimizer(1e-4).minimize(pixor_loss)
-
-# RUN THINGS
-
-saver = tf.train.Saver()
-
-with tf.Session() as sess:
-  # load in data
-  images = extract_data("../images.pkl")
-  images = np.asarray(images)
-  boxlabels = extract_data("../box_labels.pkl")
-  boxlabels = np.asarray(boxlabels)
-  classlabels = extract_data("../class_labels.pkl")
-  classlabels = np.asarray(classlabels)
-
-  counter = 0
-  num_images = 0
-
-  for elt in range(0, boxlabels.shape[0]):
-    num_images += 1
-    for r in range(0, boxlabels.shape[1]):
-      for c in range(0, boxlabels.shape[2]):
-          if(boxlabels[elt,r,c,0] != 228.):
-              counter +=1
-  print("number of actual boxes: " + str(counter))
-  print("number of images processed: " + str(num_images))
-
-  # shuffle to break correlations
-  images, boxlabels, classlabels = shuffle(images, boxlabels, classlabels, random_state=0)
-
-  train_data = images[0:300]
-  train_classlabels = classlabels[0:300]
-  train_boxlabels = boxlabels[0:300]
-
-  val_data = images[300:images.shape[0]]
-  val_classlabels = classlabels[300:images.shape[0]]
-  val_boxlabels = boxlabels[300:images.shape[0]]
-
-  #initialize everything
-  sess.run(tf.global_variables_initializer())
-  num_epochs = 50
-
-  per_epoch_train_loss = 0
-  lowest_val_loss = np.inf
-  for epoch in range(num_epochs):
-    per_epoch_train_loss = 0
-    print("\nepoch " + str(epoch))
-
-    # shuffle data to randomize order of network exposure
-    train_data, train_classlabels, train_boxlabels = shuffle(train_data, train_classlabels,train_boxlabels, random_state=0)
-
-    num_batches = train_data.shape[0] // BATCH_SIZE
-    for batch_number in range(0, num_batches):
-      print("batch " + str(batch_number))
-      start_idx = batch_number * BATCH_SIZE
-      end_idx = start_idx + BATCH_SIZE
-
-      # train on the batch
-      _,  b_loss, c_loss, batch_train_loss = sess.run([train_step, box_loss, class_loss, pixor_loss], feed_dict =
-        {x: train_data[start_idx: end_idx],
-        y_box: train_boxlabels[start_idx: end_idx],
-        y_class: train_classlabels[start_idx: end_idx]})
-
-      per_epoch_train_loss += batch_train_loss
-      # print("overall batch loss: " + str(batch_train_loss))
-      # print("box loss: " + str(b_loss))
-      # print("class loss: " + str(c_loss))
+        # checkpoint model if best so far
 
 
-    # at each epoch, print training and validation loss
-    val_loss = sess.run([pixor_loss], feed_dict = {x: val_data,
-      y_box: val_boxlabels, y_class: val_classlabels})
-    print('epoch %d, training loss %g' % (epoch, per_epoch_train_loss))
-    print('epoch %d, validation loss %g' % (epoch, val_loss[0]))
-
-    # checkpoint model if best so far
-
-
-    # checkpoint model if best so far
-    if val_loss[0] < lowest_val_loss:
-        lowest_val_loss = val_loss
-        saver.save(sess, 'ckpt/', global_step=epoch)
+        # checkpoint model if best so far
+        if val_loss[0] < lowest_val_loss:
+            lowest_val_loss = val_loss
+            saver.save(sess, 'ckpt/', global_step=epoch)
 
