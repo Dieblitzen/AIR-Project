@@ -392,21 +392,6 @@ def tile_image(tile_size, building_coords, im_arr, im_size):
   #   pickle.dump(tiles_and_boxes, filename)
 
 
-# def remove_indices(tiles_and_boxes, indices_to_remove):
-#   """
-#   Removes tiles associated with index in indices_to_remove.
-#   indices_to_remove is a list of indices.
-
-#   Saves the edited [(tile, buildings), ...] in the pickle file. 
-#   """
-
-#   tiles_and_boxes = []
-  
-#   # Iterates through all tiles, keeps those whose index is not in indices_to_remove
-#   edited = [tiles_and_boxes[i] for i in range(len(tiles_and_boxes)) if i not in indices_to_remove]
-
-#   with open(f"{DataPipeline.download_path}/{DataPipeline.tiles_filename}", "wb") as filename:
-#     pickle.dump(edited, filename)
 
 
 
