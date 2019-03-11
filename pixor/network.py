@@ -2,7 +2,12 @@ import tensorflow as tf
 import numpy as np
 from PIL import Image
 import sys
+import logging
+
+logging.basicConfig(level=logging.INFO, filename="PIXOR_logfile", filemode="a+",
+                    format="%(asctime)-15s %(levelname)-8s %(message)s")
 sys.path.append("..")
+
 #launch session to connect to C++ computation power
 sess = tf.InteractiveSession()
 
@@ -54,11 +59,11 @@ def get_batch(start_index, batch_size, batch_indices, base_path):
 
 
 #Initialize expected input for images
-x = tf.placeholder(tf.float32, shape=(None, 228, 228, 3))
+x = tf.placeholder(tf.float32, shape=(None, 228, 228, 3), name='x')
 #Initialize holder for per-pixel bounding boxes
-y_box = tf.placeholder(tf.float32, shape=(None, 228, 228, 6))
+y_box = tf.placeholder(tf.float32, shape=(None, 228, 228, 6), name='y_box')
 #Initialize holder for per-pixel labels
-y_class = tf.placeholder(tf.float32, shape=(None, 228, 228, 1))
+y_class = tf.placeholder(tf.float32, shape=(None, 228, 228, 1), name='y_class')
 
 # two convolutional layers, 3x3, 32 filters
 conv1 = tf.layers.conv2d(inputs=x, filters=32, kernel_size=3, padding='same', activation=tf.nn.relu)
@@ -144,10 +149,10 @@ header3 = tf.layers.conv2d(inputs=header2, filters=96, kernel_size=3, padding='s
 header4 = tf.layers.conv2d(inputs=header3, filters=96, kernel_size=3, padding='same', activation=tf.nn.relu)
 
 # one convolutional layer, 3x3, 1 filter
-output_class = tf.layers.conv2d(inputs=header4, filters=1, kernel_size=3, padding='same', activation=tf.nn.sigmoid)
+output_class = tf.layers.conv2d(inputs=header4, filters=1, kernel_size=3, padding='same', activation=tf.nn.sigmoid, name='output_class')
 
 # one convolutional layer, 3x3, 6 filters
-output_box = tf.layers.conv2d(inputs=header4, filters=6, kernel_size=3, padding='same')
+output_box = tf.layers.conv2d(inputs=header4, filters=6, kernel_size=3, padding='same', name='output_box')
 
 
 ## DEFINING LOSS
@@ -205,7 +210,7 @@ if __name__ == "__main__":
 
       for epoch in range(num_epochs):
         per_epoch_train_loss = 0
-        print("\nepoch " + str(epoch))
+        logging.info("\nepoch " + str(epoch))
 
         np.random.shuffle(batch_indices)
 
@@ -213,7 +218,7 @@ if __name__ == "__main__":
         num_batches = TRAIN_LEN // BATCH_SIZE
 
         for batch_number in range(0, num_batches):
-          print("batch " + str(batch_number))
+          logging.info("batch " + str(batch_number))
           start_idx = batch_number * BATCH_SIZE
           end_idx = start_idx + BATCH_SIZE
 
@@ -235,8 +240,8 @@ if __name__ == "__main__":
         val_images, val_boxes, val_classes = get_batch(0, VAL_LEN, val_batch_indices, val_base_path)
         val_loss = sess.run([pixor_loss], feed_dict = {x: val_images,
           y_box: val_boxes, y_class: val_classes})
-        print('epoch %d, training loss %g' % (epoch, per_epoch_train_loss))
-        print('epoch %d, validation loss %g' % (epoch, val_loss[0]))
+        logging.info('epoch %d, training loss %g' % (epoch, per_epoch_train_loss))
+        logging.info('epoch %d, validation loss %g' % (epoch, val_loss[0]))
 
         # checkpoint model if best so far
 
