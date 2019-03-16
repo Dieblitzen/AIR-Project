@@ -19,7 +19,7 @@ from PIL import Image
 # White Plains: [41.009, -73.779, 41.03, -73.758] (returns image of approx 5280x5280)
 
 # DATA_PATH is the path to the directory where the processed and queried data will be saved
-DATA_PATH = './data_path'
+DATA_PATH = './Plano_Data'
 
 # RAW_DATA_PATH is the path to the directory where the raw queried image(s) will be saved
 RAW_DATA_PATH = f'{DATA_PATH}/raw_data'
