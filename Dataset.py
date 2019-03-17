@@ -62,8 +62,8 @@ class Dataset:
     Finds the integer present in the string file_name. If an integer cannot be found,
     returns the file_name itself. Used as key function in sorting list of file names.
     """
-    d = re.search('\d', file_name)
-    return int(file_name[d.start():d.end()+1]) if d else file_name
+    d = re.search('[0-9]+', file_name)
+    return int(file_name[d.start():d.end()]) if d else file_name
 
   def get_img_size(self):
     """
