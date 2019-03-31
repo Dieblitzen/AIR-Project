@@ -5,6 +5,7 @@ import math
 from PIL import Image
 import json
 import pickle
+import re
 
 # Visualising
 import matplotlib.pyplot as plt
@@ -45,16 +46,24 @@ class Dataset:
     self.data_path = data_path
     self.images_path = f'{data_path}/images'
     self.annotations_path = f'{data_path}/annotations'
-
+      
     # Attribute 2)
-    self.img_list = sorted(os.listdir(self.images_path))
+    self.img_list = sorted(os.listdir(self.images_path), key = self.sort_key)
 
     # Attritbute 3)
-    self.annotation_list = sorted(os.listdir(self.annotations_path))
+    self.annotation_list = sorted(os.listdir(self.annotations_path), key = self.sort_key)
 
     # Attribute 4)
     self.length = len(self.img_list)
 
+  def sort_key(self, file_name):
+    """
+    Helper method only.
+    Finds the integer present in the string file_name. If an integer cannot be found,
+    returns the file_name itself. Used as key function in sorting list of file names.
+    """
+    d = re.search('[0-9]+', file_name)
+    return int(file_name[d.start():d.end()]) if d else file_name
 
   def get_img_size(self):
     """
@@ -131,8 +140,8 @@ class Dataset:
         file_index += 1
 
     # Update attributes 1)
-    self.img_list = sorted(os.listdir(self.images_path))
-    self.annotation_list = sorted(os.listdir(self.annotations_path))
+    self.img_list = sorted(os.listdir(self.images_path), key = self.sort_key)
+    self.annotation_list = sorted(os.listdir(self.annotations_path), key = self.sort_key)
     self.length = len(self.img_list)
 
   def visualize_tile(self, index):
