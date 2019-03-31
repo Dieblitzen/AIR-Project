@@ -11,9 +11,12 @@ val_base_path = '../data_path/pixor/val'
 # sess = tf.InteractiveSession()
 
 #First let's load meta graph and restore weights
-saver = tf.train.import_meta_graph('ckpt/-40.meta')
+saver = tf.train.import_meta_graph('ckpt/-48.meta')
 
 init_op = tf.initialize_all_variables()
+
+mean = np.load('mean.npy')
+std = np.load('std.npy')
 
 with tf.Session() as sess:
     
@@ -29,7 +32,7 @@ with tf.Session() as sess:
 #     for op in graph.get_operations():
 #         print(op.name)
 
-    val_images, val_boxes, val_classes = get_batch(0, VAL_LEN, val_batch_indices, val_base_path)
+    val_images, val_boxes, val_classes = get_batch(0, VAL_LEN, val_batch_indices, val_base_path, mean, std)
 
     x = graph.get_tensor_by_name("x:0")
     y_box = graph.get_tensor_by_name("y_box:0")
