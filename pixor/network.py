@@ -180,7 +180,7 @@ def smooth_L1(box_labels, box_preds, class_labels):
   return tf.reduce_mean(processed_result), processed_result
 
 # alpha is the weight of the less frequent class
-def custom_cross_entropy(class_labels, unnormalized_class_preds, class_weight = 0.9, alpha=0.25, gamma=2.0):
+def custom_cross_entropy(class_labels, box_labels, unnormalized_class_preds, class_weight = 0.9, alpha=0.25, gamma=2.0):
     
     ce = tf.nn.sigmoid_cross_entropy_with_logits(labels=class_labels , logits=unnormalized_class_preds)
     class_preds = tf.sigmoid(unnormalized_class_preds)
@@ -190,7 +190,30 @@ def custom_cross_entropy(class_labels, unnormalized_class_preds, class_weight = 
     alpha_t = tf.scalar_mul(alpha, tf.ones_like(class_labels, dtype=tf.float32))
     alpha_t = tf.where(tf.equal(class_labels, 1.0), alpha_t, 1-alpha_t)
     weighted_loss = ce * tf.pow(1-predictions_pt, gamma) * alpha_t * class_weights_t
-    return tf.reduce_sum(weighted_loss)
+    
+    # SUBSAMPLING CODE BEGINS
+    dx_component = box_labels[:, :, :, 0]
+    dy_component = box_labels[:, :, :, 1]
+    width_component = box_labels[:, :, :, 4]
+    
+    negative_label = tf.equal(tf.squeeze(class_labels), 0)
+    print("negative label shape: ")
+    print(negative_label.shape)
+    
+    max_distance = tf.multiply((7.0/8), width_component)
+    euclidean_distances = tf.sqrt(tf.add(tf.square(dx_component), tf.square(dy_component)))
+    width_ball = euclidean_distances < max_distance
+    close_or_neg = tf.logical_or(width_ball, negative_label)
+    
+    boundary_mask = tf.where(close_or_neg, tf.ones_like(euclidean_distances, dtype = tf.float32), tf.zeros_like(euclidean_distances, dtype = tf.float32))
+    boundary_mask = tf.expand_dims(boundary_mask, axis=3)   
+    # SUBSAMPLING CODE ENDS
+    
+    # only consider loss that is NOT on the boundary
+    masked_loss = tf.multiply(weighted_loss, boundary_mask)
+    
+    
+    return tf.reduce_sum(masked_loss)
     
     
    
@@ -200,7 +223,7 @@ if __name__ == "__main__":
     TRAIN_LEN = 301
     VAL_LEN = 38
     
-    class_loss = custom_cross_entropy(class_labels=y_class, unnormalized_class_preds=output_class)
+    class_loss = custom_cross_entropy(class_labels=y_class, box_labels=y_box, unnormalized_class_preds=output_class)
     smooth_L1_loss, l1_distance_track = smooth_L1(box_labels=y_box, box_preds=output_box, class_labels=y_class)
     box_loss = 1000 * smooth_L1_loss
     pixor_loss = class_loss + box_loss
@@ -221,7 +244,7 @@ if __name__ == "__main__":
 
       #initialize everything
       sess.run(tf.global_variables_initializer())
-      num_epochs = 150
+      num_epochs = 300
 
       per_epoch_train_loss = 0
       lowest_val_loss = np.inf
@@ -325,12 +348,12 @@ if __name__ == "__main__":
             
             
     #save outputs for visualizing (skipping eval.py)
-        if epoch == 200:
+        if epoch == 299:
 
             
             output_boxes = box_preds
             output_classes = class_preds
-            vis_val_images, vis_val_boxes, vis_val_classes = get_batch(0, VAL_LEN, val_batch_indices, val_base_path, np.zeros((228,228,3)), np.ones((228,228,3)))
+            vis_val_images, vis_val_boxes, vis_val_classes = get_batch(0, VAL_LEN, val_batch_indices, val_base_path, np.zeros((228,228,3)), np.ones((228,228,3)), train_mean, train_std)
             unique_boxes_set = set()
             boxes_in_image = []
             for i in range(len(vis_val_images)):
