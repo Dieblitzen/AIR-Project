@@ -19,7 +19,7 @@ from PIL import Image
 # White Plains: [41.009, -73.779, 41.03, -73.758] (returns image of approx 5280x5280)
 
 # DATA_PATH is the path to the directory where the processed and queried data will be saved
-DATA_PATH = './Plano_Data'
+DATA_PATH = './data_path'
 
 # RAW_DATA_PATH is the path to the directory where the raw queried image(s) will be saved
 RAW_DATA_PATH = f'{DATA_PATH}/raw_data'
@@ -91,6 +91,8 @@ def create_dataset(coords, source="IBM"):
   # Finally, tile the image and save it in the DATA_PATH
   print("Tiling image and saving .jpeg files (for tile) and .json files (for bounding boxes)")
   tile_image(TILE_SIZE, building_coords, im_arr, im_size)
+
+  print("Success! Your raw dataset is now ready!")
 
 
 
