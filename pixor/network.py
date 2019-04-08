@@ -7,6 +7,9 @@ import visualize_data
 import matplotlib.pyplot as plt
 from sklearn.metrics import average_precision_score
 from sklearn.metrics import precision_score, recall_score
+from nms import nms
+import cv2
+import meanAP
 
 logging.basicConfig(level=logging.INFO, filename="PIXOR_logfile", filemode="a+",
                     format="%(asctime)-15s %(levelname)-8s %(message)s")
@@ -191,14 +194,15 @@ def custom_cross_entropy(class_labels, box_labels, unnormalized_class_preds, cla
     alpha_t = tf.where(tf.equal(class_labels, 1.0), alpha_t, 1-alpha_t)
     weighted_loss = ce * tf.pow(1-predictions_pt, gamma) * alpha_t * class_weights_t
     
-    # SUBSAMPLING CODE BEGINS
+    
+    # SUBSAMPLING CODE BEGINS - CURRENTLY NOT USING
     dx_component = box_labels[:, :, :, 0]
     dy_component = box_labels[:, :, :, 1]
     width_component = box_labels[:, :, :, 4]
     
     negative_label = tf.equal(tf.squeeze(class_labels), 0)
-    print("negative label shape: ")
-    print(negative_label.shape)
+#     print("negative label shape: ")
+#     print(negative_label.shape)
     
     max_distance = tf.multiply((7.0/8), width_component)
     euclidean_distances = tf.sqrt(tf.add(tf.square(dx_component), tf.square(dy_component)))
@@ -207,13 +211,23 @@ def custom_cross_entropy(class_labels, box_labels, unnormalized_class_preds, cla
     
     boundary_mask = tf.where(close_or_neg, tf.ones_like(euclidean_distances, dtype = tf.float32), tf.zeros_like(euclidean_distances, dtype = tf.float32))
     boundary_mask = tf.expand_dims(boundary_mask, axis=3)   
-    # SUBSAMPLING CODE ENDS
+    # SUBSAMPLING CODE ENDS - CURRENTLY NOT USING
+    
     
     # only consider loss that is NOT on the boundary
     masked_loss = tf.multiply(weighted_loss, boundary_mask)
     
-    
-    return tf.reduce_sum(masked_loss)
+    return tf.reduce_mean(weighted_loss)
+
+def find_angle(box):
+    try:
+        angle = np.arccos(box[2])
+    except:
+        try:
+            angle = np.arcsin(box[3])
+        except:
+            angle = np.arccos(round(box[2]%math.pi, 4))
+    return angle
     
     
    
@@ -223,9 +237,9 @@ if __name__ == "__main__":
     TRAIN_LEN = 301
     VAL_LEN = 38
     
-    class_loss = custom_cross_entropy(class_labels=y_class, box_labels=y_box, unnormalized_class_preds=output_class)
+    class_loss = 1000 * custom_cross_entropy(class_labels=y_class, box_labels=y_box, unnormalized_class_preds=output_class)
     smooth_L1_loss, l1_distance_track = smooth_L1(box_labels=y_box, box_preds=output_box, class_labels=y_class)
-    box_loss = 1000 * smooth_L1_loss
+    box_loss = smooth_L1_loss
     pixor_loss = class_loss + box_loss
 
     #A step to minimize our cost function
@@ -322,9 +336,9 @@ if __name__ == "__main__":
         # print(pos_indices[0].shape)
         # print(pos_indices)
         
-        print("results: ")
-        print(box_preds[pos_indices].shape)
-        print(box_preds[pos_indices])
+#         print("results: ")
+#         print(box_preds[pos_indices].shape)
+#         print(box_preds[pos_indices])
         logging.info(box_preds[pos_indices])
 
         # checkpoint model if best so far
@@ -348,27 +362,68 @@ if __name__ == "__main__":
             
             
     #save outputs for visualizing (skipping eval.py)
-        if epoch == 299:
+        if epoch == 0:
 
             
             output_boxes = box_preds
             output_classes = class_preds
             vis_val_images, vis_val_boxes, vis_val_classes = get_batch(0, VAL_LEN, val_batch_indices, val_base_path, np.zeros((228,228,3)), np.ones((228,228,3)), train_mean, train_std)
-            unique_boxes_set = set()
-            boxes_in_image = []
             for i in range(len(vis_val_images)):
+                unique_boxes_set = set()
+                boxes_in_image = []
+                nms_boxes_in_image = []
+                box_classes_in_image = []
+                boxes_reduced = []
                 image = vis_val_images[i].astype(int)
                 for r in range(image.shape[0]):
                     for c in range(image.shape[1]):
                         if output_classes[i][r,c][0] > .5:
-                            center_x = (c) - (int(output_boxes[i][r,c][0]))
-                            center_y = (r) - (int(output_boxes[i][r,c][1]))
+                            center_x = (c) + (int(output_boxes[i][r,c][0]))
+                            center_y = (r) + (int(output_boxes[i][r,c][1]))
                             center = np.array([center_x, center_y])
                             box = np.concatenate([center, output_boxes[i][r,c][2:]])
+#                             box = (box*train_std) + train_mean
+                            angle = find_angle(box)
+                            
+                            nms_box = ((box[0], box[1]), (box[-2], box[-1]), angle)
                             if tuple(output_boxes[i][r,c][2:]) not in unique_boxes_set:
                                 unique_boxes_set.add(tuple(output_boxes[i][r,c][2:]))
 #                                 box[-2:] = [20, 20]
 #                                 print("here's the box " + str(box))
+                                if not np.isnan(cv2.boxPoints(nms_box)).any():
+                                    nms_boxes_in_image.append(nms_box)
+                                    box_classes_in_image.append(output_classes[i][r,c][0])
                                 boxes_in_image.append(box)
-                visualize_data.visualize_bounding_boxes(image, boxes_in_image, True, i)
+                #nms goes here
+#                 print("boxes")
+#                 print(boxes_in_image)
+#                 print("nms boxes")
+#                 print(nms_boxes_in_image)
+#                 print("classes")
+#                 print(box_classes_in_image)
+#                 np.save("nms_boxes_in_image", nms_boxes_in_image)
+                selected_indices = nms.rboxes(nms_boxes_in_image, box_classes_in_image)
+                print("-----")
+                print("selected indices:")
+                print(selected_indices)
+                boxes_reduced = [boxes_in_image[i] for i in selected_indices]
+                print("boxes_reduced len")
+                print(len(boxes_reduced))
+                print("boxes_reduced")
+                print(boxes_reduced)
+                unique_val_boxes = meanAP.extract_unique_labels(vis_val_boxes[i])
+                val_boxes_reformatted = [((box[0], box[1]), (box[-2], box[-1]), find_angle(box)) for box in unique_val_boxes]
+                boxes_reduced_reformatted = [((box[0], box[1]), (box[-2], box[-1]), find_angle(box)) for box in boxes_reduced]
+                np.save("val_boxes_rf", val_boxes_reformatted)
+                np.save("boxes_reduced_reformatted", boxes_reduced_reformatted)
+                meanAP_result = meanAP.image_meanAP(boxes_reduced_reformatted, val_boxes_reformatted, .5)
+                print("mAP:")
+                logging.info("mAP:")
+                print(meanAP_result)
+#                 print("unique val boxes:")
+#                 print(unique_val_boxes[0:3])
+#                 print("vis_val boxes:")
+#                 print(np.unique(vis_val_boxes[0], axis = 0))
+                visualize_data.visualize_bounding_boxes(image, boxes_reduced, True, i, 'output_visualized')
+                visualize_data.visualize_bounding_boxes(image, unique_val_boxes, True, i, 'label_visualized')
     
