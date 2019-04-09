@@ -41,11 +41,12 @@ def rotate_point(point, center_x, center_y, cos_angle, sin_angle):
 
 #Converts pixor description of a box into four coordinates.
 def pixor_to_corners(box):
-    center_x, center_y, sin_angle, cos_angle, width, length = box
+    center_x, center_y, cos_angle, sin_angle, width, length = box
     four_corners = [(center_x+width//2, center_y+length//2),
         (center_x+width//2, center_y-length//2),
         (center_x-width//2, center_y-length//2),
         (center_x-width//2, center_y+length//2)]
+
     rotated_corners = [rotate_point(corner, center_x, center_y, cos_angle, sin_angle) for corner in four_corners]
     return rotated_corners
 
@@ -85,13 +86,16 @@ def visualize_bounding_boxes(image_array, bboxes, save, counter, save_path):
 
 
 if __name__ == "__main__":
+    
+    data_path = '../WhitePlains_data'
+    
     for i in range(300):
 
-        image = Image.open("../data_path/pixor/train/images/" + str(i) + ".jpg")
+        image = Image.open(data_path + "/pixor/train/images/" + str(i) + ".jpg")
         image = np.array(image)
-        bboxes = np.load("../data_path/pixor/train/box_annotations/"+ str(i) + ".npy")
+        bboxes = np.load(data_path + "/pixor/train/box_annotations/"+ str(i) + ".npy")
         # bboxes = np.load("./data_path/pixor/val/box_annotations/"+ str(i) + ".npy")
-        class_labels = np.load("../data_path/pixor/train/class_annotations/"+ str(i) + ".npy")
+        class_labels = np.load(data_path + "/pixor/train/class_annotations/"+ str(i) + ".npy")
         unique_boxes_set = set()
         pixels_to_color = []
         boxes_in_image = []
@@ -101,9 +105,9 @@ if __name__ == "__main__":
                 # print(bboxes[r,c])
                 if class_labels[r,c][0] > .8:
                 # if bboxes[r,c][-1] != 0:
-                    center_x = -1 * ((c) + (int(bboxes[r,c][0])))
+                    center_x = (c) + (int(bboxes[r,c][0]))
                       
-                    center_y = -1 * ((r) + (int(bboxes[r,c][1])))
+                    center_y = (r) + (int(bboxes[r,c][1]))
                     center = np.array([center_x, center_y])
                     box = np.concatenate([center, bboxes[r,c][2:]])
                     pixels_to_color.append((r,c))

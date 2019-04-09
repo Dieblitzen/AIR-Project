@@ -172,8 +172,8 @@ class PIXOR_Dataset(Dataset):
                 pixel_xyform = (c, r)
                 
                 if self.inside_box(pixel_xyform, corner_boxes[bbox_index]):
-                    new_dx = -1*(pixel_xyform[0]) - bboxes[bbox_index][0]
-                    new_dy = -1*(pixel_xyform[1]) - bboxes[bbox_index][1]
+                    new_dx = -1*(pixel_xyform[0] - bboxes[bbox_index][0])
+                    new_dy = -1*(pixel_xyform[1] - bboxes[bbox_index][1])
                     counter+=1
                         
                     if(np.sqrt(new_dx**2 + new_dy**2) <= np.sqrt(dx**2 + dy**2)):
