@@ -110,9 +110,9 @@ class YOLO_Dataset(Dataset):
     # Im_size: [width, height, depth] ??? should be squares anyways
     with open(path_to_file) as f:
       try:
-          buildings_dict = self.format_coords(json.load(f))
+        buildings_dict = self.format_coords(json.load(f))
       except:
-          buildings_dict = {}
+        buildings_dict = {}
 
     # begin creating annotation
     annotation = etree.Element('annotation')
