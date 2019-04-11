@@ -1,7 +1,8 @@
 import cv2
 import math
 import numpy as np
-
+from shapely.geometry import Polygon
+from shapely.ops import cascaded_union
 
 #taken from nms package 
 def poly_areas(polys):
@@ -82,12 +83,17 @@ def polygon_intersection_area(polygons):
 
     dx = 0
     dy = 0
-
+    print("polygons below:")
+    print(polygons)
     maxx = np.amax(np.array(polygons)[...,0])
     minx = np.amin(np.array(polygons)[...,0])
     maxy = np.amax(np.array(polygons)[...,1])
     miny = np.amin(np.array(polygons)[...,1])
-
+    print("max x, min x, max y, min y")
+    print(maxx)
+    print(minx)
+    print(maxy)
+    print(miny)
     if minx < 0:
         dx = -int(minx)
         maxx = maxx + dx
@@ -129,19 +135,31 @@ def poly_compare(poly1, polygons, truth_areas):
     """
     # return intersection of poly1 with polys[i]/area[i]
     overlap = []
-    pred_area = cv2.contourArea(np.array(poly1, np.int32))
     for i,poly2 in enumerate(polygons):
-        intersection_area = polygon_intersection_area([poly1, poly2])
-        overlap.append(intersection_area/(truth_areas[i]+pred_area))
+#         intersection_area = polygon_intersection_area([poly1, poly2])
+        p1 = Polygon(poly1)
+        
+#         print("poly2 below:")
+#         print(poly2)
+#         print("polys")
+#         print(polygons[:15])
+        p2 = Polygon(poly2)
+        intersection_area = p1.intersection(p2).area
+        union_area = cascaded_union([Polygon(poly1), Polygon(poly2)]).area
+        iou = (intersection_area/union_area) if union_area != 0 else 0
+        overlap.append(iou)
 
     return np.array(overlap)
 
 def convert_to_poly(boxes):
     polys = []
     for box in boxes:
+#         print(box)
         r = cv2.boxPoints(box)
         if not np.isnan(r).any():
+#             r = np.array([[0.,0.], [0.,0.], [0.,0.], [0.,0.]])
             polys.append(r)
+       
         
     return polys
 
@@ -156,29 +174,41 @@ def convert_to_poly(boxes):
 ## map = tp/(tp+fp)
 
 #from nms package
+# INVARIANT: GUARENTEED THAT PREDICTIONS IS NONEMPTY
 def image_meanAP(predictions, truth, threshold):
     predictions = convert_to_poly(predictions)
     truth = convert_to_poly(truth)
-    
+    print("lengths of boxes")
+    print(len(predictions))
+    print(len(truth))
     true_pos = 0.
     false_pos = 0.
     truth_areas = poly_areas(truth)
     for box in predictions:
-        ratios = poly_compare(box, truth, truth_areas)
-        best_index = np.argsort(ratios)[-1]
-        best_IoU = ratios[best_index]
-        print("best_IoU")
-        print(best_IoU)
-        if best_IoU >= threshold:
-            true_pos += 1
-            truth = np.delete(truth, best_index)
-        else:
+        # handle special case where there are no ground truths => box is automatically false positive
+        if len(truth) == 0:
             false_pos += 1
-    print("num of true pos")
-    print(true_pos)
-    print("num of false pos")
-    print(false_pos)
-    meanAP = (true_pos)/(true_pos+false_pos) if false_pos != 0. else 0  
+        # handle case where there are some ground truths
+        else:
+            ratios = poly_compare(box, truth, truth_areas)
+            best_index = np.argsort(ratios)[-1]
+            best_IoU = ratios[best_index]
+    #         print("best_IoU")
+    #         print(best_IoU)
+            if best_IoU >= threshold:
+                true_pos += 1
+                del truth[best_index]
+            else:
+    #             print("false box")
+    #             print(box)
+    #             print(truth)
+                false_pos += 1
+#     print("num of true pos")
+#     print(true_pos)
+#     print("num of false pos")
+#     print(false_pos)
+    return true_pos, false_pos
+#     meanAP = (true_pos)/(true_pos+false_pos) if (false_pos + true_pos) != 0. else 0  
         
     
-    return meanAP
+#     return meanAP

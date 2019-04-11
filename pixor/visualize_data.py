@@ -59,9 +59,11 @@ def visualize_pixels(image_array, bboxes):
 
     plt.show()
 
-def visualize_bounding_boxes(image_array, bboxes, save, counter, save_path):
+def visualize_bounding_boxes(image_array, bboxes, save, counter, save_path, box_color):
     # Visualize bounding boxes on an image with bb_pixels either as horizontal boxes
-    plt.clf()
+#     plt.clf()
+    if box_color == 'blue':
+        plt.clf()
     plt.imshow(image_array)
     print("len of bboxes")
     print(len(bboxes))
@@ -74,7 +76,7 @@ def visualize_bounding_boxes(image_array, bboxes, save, counter, save_path):
 #             print("here are coordinates: " + str(coordinates))
 #             print(box)
             x, y = poly.exterior.xy
-            plt.plot(x,y)
+            plt.plot(x,y, color = box_color)
         # print(box)
     # if counter % 5 == 0 or counter >375:
     #     plt.savefig('tile_images/tile'+str(counter)+".png")
