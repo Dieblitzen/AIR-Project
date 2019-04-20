@@ -198,9 +198,9 @@ def image_to_array():
       raw_array = np.array(dataset.GetRasterBand(1).ReadAsArray())
 
       # Remove masked rows and transpose so we can do the same to cols
-      row_mask = (raw_array > -9999).any(axis=1)
+      row_mask = (raw_array > -128).any(axis=1)
       arr_clean_rows = raw_array[row_mask].T
-      col_mask = (arr_clean_rows > -9999).any(axis=1)
+      col_mask = (arr_clean_rows > -128).any(axis=1)
       clean_array = (arr_clean_rows[col_mask]).T
 
       # Append clean image array 
