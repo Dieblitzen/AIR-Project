@@ -64,7 +64,7 @@ class ImSeg_Dataset(Dataset):
       self.data_sizes.append(num_samples)
 
 
-  def get_batch(self, indices, path=self.train_path):
+  def get_batch(self, indices, path):
     """
     Returns the batch of images and labels associated with the images,
     based on the list of indicies to look up.
