@@ -41,6 +41,7 @@ class ImSeg_Dataset(Dataset):
     self.train_path = self.data_path + '/im_seg/train'
     self.val_path = self.data_path + '/im_seg/val'
     self.test_path = self.data_path + '/im_seg/test'
+    self.data_sizes = [] # [train_size, val_size, test_size]
 
     if not os.path.isdir(self.data_path + '/im_seg'):
       print(f"Creating directory to store semantic segmentation formatted dataset.")
@@ -57,6 +58,31 @@ class ImSeg_Dataset(Dataset):
 
       if not os.path.isdir(directory + '/annotations'):
         os.mkdir(directory + '/annotations')
+
+      # Size of each training, val and test directories  
+      num_samples = len([name for name in os.listdir(f'{directory}/images') if name.endswith('.jpg')])
+      self.data_sizes.append(num_samples)
+
+
+  def get_batch(self, indices, path=self.train_path):
+    """
+    Returns the batch of images and labels associated with the images,
+    based on the list of indicies to look up.
+    Requires:
+      indices: list of indices with which to make a batch
+    Format: (block of images, labels)
+    """
+    batch = []
+    for i in indices:
+      image = Image.open(f'{path}/images/{i}.jpg')
+      image = np.array(image)
+
+      with open(f'{path}/annotations/{i}.json', 'r') as ann:
+        annotation = np.array(json.load(ann)['annotation'])
+        
+      batch.append((image, annotation))
+
+    return batch
 
   def build_dataset(self):
     """
@@ -78,6 +104,9 @@ class ImSeg_Dataset(Dataset):
           f"{self.images_path}/{shuffled_img[i]}", f"{self.train_path}/images/{i}.jpg")
         self.format_json(
           f"{self.annotations_path}/{shuffled_annotations[i]}", f"{self.train_path}/annotations/{i}.json", f"{i}.jpg")
+        
+        self.data_sizes[0] += 1
+
       elif i < math.floor((train+val)*len(shuffled_img)):
         # Add to val folder
         ind = i - math.floor(train*len(shuffled_img))
@@ -85,6 +114,9 @@ class ImSeg_Dataset(Dataset):
           f"{self.images_path}/{shuffled_img[i]}", f"{self.val_path}/images/{ind}.jpg")
         self.format_json(
           f"{self.annotations_path}/{shuffled_annotations[i]}", f"{self.val_path}/annotations/{ind}.json", f"{ind}.jpg")
+        
+        self.data_sizes[1] += 1
+        
       else:
         # Add to test folder
         ind = i - math.floor((train+val)*len(shuffled_img))
@@ -92,6 +124,8 @@ class ImSeg_Dataset(Dataset):
           f"{self.images_path}/{shuffled_img[i]}", f"{self.test_path}/images/{ind}.jpg")
         self.format_json(
           f"{self.annotations_path}/{shuffled_annotations[i]}", f"{self.test_path}/annotations/{ind}.json", f"{ind}.jpg")
+        
+        self.data_sizes[2] += 1
       # increment index counter
       i += 1
 
