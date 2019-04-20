@@ -189,13 +189,13 @@ def image_to_array():
 
     # Remove output.info
     if filename.endswith(".info"):
+      path_to_file = RAW_DATA_PATH + '/' + filename
       os.remove(path_to_file)
 
     if filename.endswith(".tiff"):
       path_to_file = RAW_DATA_PATH + '/' + filename
       dataset = gdal.Open(path_to_file)
       raw_array = np.array(dataset.GetRasterBand(1).ReadAsArray())
-      print(raw_array)
 
       # Remove masked rows and transpose so we can do the same to cols
       row_mask = (raw_array > -9999).any(axis=1)
