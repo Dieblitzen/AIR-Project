@@ -11,10 +11,6 @@
         {
             "id": "49240",
             "aggregation": "Max"
-        },
-        {
-            "id": "49241",
-            "aggregation": "Max"
         }
     ],
     "spatial": {
