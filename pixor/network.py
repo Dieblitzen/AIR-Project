@@ -16,12 +16,25 @@ logging.basicConfig(level=logging.INFO, filename="PIXOR_logfile", filemode="a+",
                     format="%(asctime)-15s %(levelname)-8s %(message)s")
 sys.path.append("..")
 
-#launch session to connect to C++ computation power
-sess = tf.InteractiveSession()
-
+# launch session to connect to C++ computation power
+# gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.25)
+config = tf.ConfigProto()
+config.gpu_options.allow_growth=True
+# sess = tf.InteractiveSession(config=tf.ConfigProto(gpu_options=gpu_options))
+sess = tf.Session()
 # LACKING MORE SKIP CONNECTIONS
 
 BATCH_SIZE=32
+
+def pixor_to_corners_tf(box):
+    center_x, center_y, cos_angle, sin_angle, width, length = box
+    four_corners = [(center_x+width//2, center_y+length//2),
+        (center_x+width//2, center_y-length//2),
+        (center_x-width//2, center_y-length//2),
+        (center_x-width//2, center_y+length//2)]
+
+    rotated_corners = [rotate_point(corner, center_x, center_y, cos_angle, sin_angle) for corner in four_corners]
+    return rotated_corners
 
 """ Standard transposed convolutional layer."""
 def conv2d_transpose(input, filter_size, out_channels, stride, activation="None"):
@@ -168,43 +181,45 @@ output_class = tf.layers.conv2d(inputs=header4, filters=1, kernel_size=3, paddin
 # one convolutional layer, 3x3, 6 filters
 output_box = tf.layers.conv2d(inputs=header4, filters=6, kernel_size=3, padding='same', name='output_box')
 
-
 # alpha is the weight of the less frequent class
-def custom_cross_entropy(class_labels, box_labels, unnormalized_class_preds, class_weight = 0.9, alpha=0.25, gamma=2.0):
+def custom_cross_entropy(class_labels, box_labels, unnormalized_class_preds, class_weights, alpha=0.25, gamma=2.0):
     
     ce = tf.nn.sigmoid_cross_entropy_with_logits(labels=class_labels , logits=unnormalized_class_preds)
     class_preds = tf.sigmoid(unnormalized_class_preds)
     predictions_pt = tf.where(tf.equal(class_labels, 1), class_preds, 1.-class_preds)
-    class_weights_t = tf.scalar_mul(class_weight, tf.ones_like(class_labels, dtype=tf.float32))
-    class_weights_t = tf.where(tf.equal(class_labels, 1.0), class_weights_t, 1.-class_weights_t)
-    alpha_t = tf.scalar_mul(alpha, tf.ones_like(class_labels, dtype=tf.float32))
-    alpha_t = tf.where(tf.equal(class_labels, 1.0), alpha_t, 1-alpha_t)
-    weighted_loss = ce * tf.pow(1-predictions_pt, gamma) * alpha_t * class_weights_t
+    class_weights_pos_t = tf.scalar_mul(class_weights[0], tf.ones_like(class_labels, dtype=tf.float32))
+    class_weights_neg_t = tf.scalar_mul(class_weights[1], tf.ones_like(class_labels, dtype=tf.float32))
+    class_weights_t = tf.where(tf.equal(class_labels, 0.0), class_weights_pos_t, class_weights_neg_t)
+    inverse_freq_loss = ce * class_weights_t
+#     alpha_t = tf.scalar_mul(alpha, tf.ones_like(class_labels, dtype=tf.float32))
+#     alpha_t = tf.where(tf.equal(class_labels, 1.0), alpha_t, 1-alpha_t)
+#     weighted_loss = ce * tf.pow(1-predictions_pt, gamma) * alpha_t * class_weights_t
     
     
-    # SUBSAMPLING CODE BEGINS - CURRENTLY NOT USING
-    dx_component = box_labels[:, :, :, 0]
-    dy_component = box_labels[:, :, :, 1]
-    width_component = box_labels[:, :, :, 4]
+#     # SUBSAMPLING CODE BEGINS - CURRENTLY NOT USING
+#     dx_component = box_labels[:, :, :, 0]
+#     dy_component = box_labels[:, :, :, 1]
+#     width_component = box_labels[:, :, :, 4]
     
-    negative_label = tf.equal(tf.squeeze(class_labels), 0)
-#     print("negative label shape: ")
-#     print(negative_label.shape)
+#     negative_label = tf.equal(tf.squeeze(class_labels), 0)
+# #     print("negative label shape: ")
+# #     print(negative_label.shape)
     
-    max_distance = tf.multiply((7.0/8), width_component)
-    euclidean_distances = tf.sqrt(tf.add(tf.square(dx_component), tf.square(dy_component)))
-    width_ball = euclidean_distances < max_distance
-    close_or_neg = tf.logical_or(width_ball, negative_label)
+#     max_distance = tf.multiply((7.0/8), width_component)
+#     euclidean_distances = tf.sqrt(tf.add(tf.square(dx_component), tf.square(dy_component)))
+#     width_ball = euclidean_distances < max_distance
+#     close_or_neg = tf.logical_or(width_ball, negative_label)
     
-    boundary_mask = tf.where(close_or_neg, tf.ones_like(euclidean_distances, dtype = tf.float32), tf.zeros_like(euclidean_distances, dtype = tf.float32))
-    boundary_mask = tf.expand_dims(boundary_mask, axis=3)   
-    # SUBSAMPLING CODE ENDS - CURRENTLY NOT USING
+#     boundary_mask = tf.where(close_or_neg, tf.ones_like(euclidean_distances, dtype = tf.float32), tf.zeros_like(euclidean_distances, dtype = tf.float32))
+#     boundary_mask = tf.expand_dims(boundary_mask, axis=3)   
+#     # SUBSAMPLING CODE ENDS - CURRENTLY NOT USING
     
     
-    # only consider loss that is NOT on the boundary
-    masked_loss = tf.multiply(weighted_loss, boundary_mask)
+#     # only consider loss that is NOT on the boundary
+#     masked_loss = tf.multiply(weighted_loss, boundary_mask)
     
-    return tf.reduce_mean(weighted_loss)
+    # return tf.reduce_mean(weighted_loss)
+    return tf.reduce_mean(inverse_freq_loss)
 
 
 def find_angle(box):
@@ -337,11 +352,17 @@ def get_MAP(box_preds, class_preds):
 #                 print("classes")
 #                 print(box_classes_in_image)
 #                 np.save("nms_boxes_in_image", nms_boxes_in_image)
-        selected_indices = nms.rboxes(nms_boxes_in_image, box_classes_in_image)
+        # sorted_by_conf = sorted(list(zip(nms_boxes_in_image, box_classes_in_image)), key= lambda pair: pair[1], reverse = True)
+        # nms_boxes_in_image, box_classes_in_image = zip(*sorted_by_conf)
+        # nms_boxes_in_image = list(nms_boxes_in_image)
+        # box_classes_in_image = list(box_classes_in_image)
+        selected_indices = nms.rboxes(nms_boxes_in_image, box_classes_in_image, nms_threshold=0.1)
 #             print("-----")
 #             print("selected indices:")
 #             print(selected_indices)
-        boxes_reduced = [boxes_in_image[i] for i in selected_indices]
+        boxes_reduced = [(boxes_in_image[i], box_classes_in_image[i]) for i in selected_indices]
+        sorted_by_conf = sorted(boxes_reduced, key= lambda pair: pair[1], reverse = True)
+        boxes_reduced, _ = zip(*sorted_by_conf)
 #             print("boxes_reduced len")
 #             print(len(boxes_reduced))
 #             print("boxes_reduced")
@@ -378,13 +399,25 @@ if __name__ == "__main__":
     TRAIN_LEN = 301
     VAL_LEN = 38
     
-    class_loss = 100 * custom_cross_entropy(class_labels=y_class, box_labels=y_box, unnormalized_class_preds=output_class)
+    # pos_weight = 60000000/2763487
+    # neg_weight = 60000000/12831713
+    pos_weight = 1
+    neg_weight = 1
+    class_loss_result = custom_cross_entropy(class_labels=y_class, box_labels=y_box, unnormalized_class_preds=output_class, class_weights=(pos_weight, neg_weight))
+    class_loss = 10 * class_loss_result
     smooth_L1_loss = 100 * smooth_L1(box_labels=y_box, box_preds=output_box, class_labels=y_class)
+    # decoded_output = np.array([visualize_data.pixor_to_corners(b) for b in np.array(output_box)])
+    # decoded_output = tf.map_fn(visualize_data.pixor_to_corners, output_box)
+    # decoded_labels = tf.map_fn(visualize_data.pixor_to_corners, y_box)
+    # decoded_labels = np.array([visualize_data.pixor_to_corners(b) for b in np.array(y_box)])
+#     decode_loss = 100 * smooth_L1(box_labels=decoded_labels, box_preds=decoded_output, class_labels=y_class)
     box_loss = smooth_L1_loss
     pixor_loss = class_loss + box_loss
+#     decode_pixor_loss = class_loss + decode_loss
 
     #A step to minimize our cost function
     train_step = tf.train.AdamOptimizer(1e-4).minimize(pixor_loss)
+#     decode_train_step = tf.train.AdamOptimizer(1e-4).minimize(decode_pixor_loss)
     
     mean = np.load('mean.npy')
     std = np.load('std.npy')
@@ -436,12 +469,17 @@ if __name__ == "__main__":
 #           tf.map_fn(lambda image: tf.image.per_image_standardization(image), batch_images)
 
           # train on the batch
-          _, b_loss, c_loss, batch_train_loss= sess.run([train_step, box_loss, class_loss, pixor_loss], feed_dict =
-            {x: batch_images,
-            y_box: batch_boxes,
-            y_class: batch_classes})
+          if epoch <= 340: 
+              _, b_loss, c_loss, batch_train_loss= sess.run([train_step, box_loss, class_loss, pixor_loss], feed_dict =
+                {x: batch_images,
+                y_box: batch_boxes,
+                y_class: batch_classes})
+          else:
+              _, b_loss, c_loss, batch_train_loss= sess.run([decode_train_step, decode_loss, class_loss, decode_pixor_loss], feed_dict =
+                {x: batch_images,
+                y_box: batch_boxes,
+                y_class: batch_classes})
 
-         
           # print("l1 distance tracker: ")
           # print(l1_distance_tracker)
         
@@ -455,8 +493,11 @@ if __name__ == "__main__":
 
         # at each epoch, print training and validation loss
         val_images, val_boxes, val_classes = get_batch(0, VAL_LEN, val_batch_indices, val_base_path, mean, std, train_mean, train_std)
-        val_loss, box_preds, unnorm_class_preds = sess.run([pixor_loss, output_box, output_class], feed_dict = {x: val_images,
-          y_box: val_boxes, y_class: val_classes})
+        if epoch <= 340:
+            val_loss, box_preds, unnorm_class_preds = sess.run([pixor_loss, output_box, output_class], feed_dict = {x: val_images,
+              y_box: val_boxes, y_class: val_classes})
+        else:
+            val_loss, box_preds, unnorm_class_preds = sess.run([decode_pixor_loss, output_box, output_class], feed_dict = {x: val_images, y_box: val_boxes, y_class: val_classes})
         
         logging.info('epoch %d, training loss %g' % (epoch, per_epoch_train_loss))
         logging.info('epoch %d, training class loss %g' % (epoch, per_epoch_class_loss))
@@ -474,7 +515,7 @@ if __name__ == "__main__":
         pos_indices = np.nonzero(max_op)
         pos_indices = pos_indices[:-1]
         
-        logging.info(box_preds[pos_indices])
+        # logging.info(box_preds[pos_indices])
         
 
         # checkpoint model if best so far
@@ -494,8 +535,8 @@ if __name__ == "__main__":
         logging.info("recall: " + str(recall))
             
     #save outputs for visualizing/calculate MAP (skipping eval.py)
-        if epoch == 75 or epoch == 125:
+        if epoch % 25 == 0 and epoch != 0 and epoch != 25:
             get_MAP(box_preds, class_preds)
-        if epoch == 75:
+        if epoch == 150:
             viz_preds(box_preds, class_preds)
             

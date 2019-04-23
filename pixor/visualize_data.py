@@ -26,26 +26,22 @@ def extract_positive_labels(bboxes):
 #applies translation, rotation, then un-translation of four points
 def rotate_point(point, center_x, center_y, cos_angle, sin_angle):
 
-    cos_angle = np.cos(np.arccos(cos_angle))
-    sin_angle = np.sin(np.arcsin(sin_angle))
-    temp_x = point[0] - center_x
-    temp_y = point[1] - center_y
-    cos_angle = np.cos(2*math.pi - np.arccos(cos_angle))
-    sin_angle = np.sin(2*math.pi - np.arcsin(sin_angle))
+    ox, oy = center_x, center_y
+    px, py = point
+    angle = np.arccos(cos_angle)
 
-    rotated_x = temp_x*cos_angle - temp_y*sin_angle
-    rotated_y = temp_x*sin_angle + temp_y*cos_angle
-    x = rotated_x + center_x
-    y = rotated_y + center_y
-    return x, y
+    qx = ox + math.cos(angle) * (px - ox) - math.sin(angle) * (py - oy)
+    qy = oy + math.sin(angle) * (px - ox) + math.cos(angle) * (py - oy)
+    
+    return qx, qy
 
 #Converts pixor description of a box into four coordinates.
 def pixor_to_corners(box):
-    center_x, center_y, cos_angle, sin_angle, width, length = box
-    four_corners = [(center_x+width//2, center_y+length//2),
-        (center_x+width//2, center_y-length//2),
-        (center_x-width//2, center_y-length//2),
-        (center_x-width//2, center_y+length//2)]
+    center_x, center_y, sin_angle, cos_angle, width, length = box
+    four_corners = [(center_x+length//2, center_y+width//2),
+        (center_x+length//2, center_y-width//2),
+        (center_x-length//2, center_y-width//2),
+        (center_x-length//2, center_y+width//2)]
 
     rotated_corners = [rotate_point(corner, center_x, center_y, cos_angle, sin_angle) for corner in four_corners]
     return rotated_corners
@@ -90,9 +86,8 @@ def visualize_bounding_boxes(image_array, bboxes, save, counter, save_path, box_
 if __name__ == "__main__":
     
     data_path = '../WhitePlains_data'
-    
+    truth_counter = 0
     for i in range(300):
-
         image = Image.open(data_path + "/pixor/train/images/" + str(i) + ".jpg")
         image = np.array(image)
         bboxes = np.load(data_path + "/pixor/train/box_annotations/"+ str(i) + ".npy")
@@ -108,7 +103,7 @@ if __name__ == "__main__":
                 if class_labels[r,c][0] > .8:
                 # if bboxes[r,c][-1] != 0:
                     center_x = (c) + (int(bboxes[r,c][0]))
-                      
+                    truth_counter+=1
                     center_y = (r) + (int(bboxes[r,c][1]))
                     center = np.array([center_x, center_y])
                     box = np.concatenate([center, bboxes[r,c][2:]])
@@ -129,4 +124,6 @@ if __name__ == "__main__":
                         counter+=1
 
         # visualize_pixels(image, pixels_to_color)
-        visualize_bounding_boxes(image, boxes_in_image, True, i, 'label_visualized')
+        visualize_bounding_boxes(image, boxes_in_image, True, i, 'label_visualized', 'blue')
+#     print('percent true')
+#     print(truth_counter / 15595200.)

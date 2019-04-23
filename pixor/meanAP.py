@@ -29,9 +29,6 @@ def extract_unique_labels(boxes):
                 center_y = (r) + (int(boxes[r,c][1]))
                 center = np.array([center_x, center_y])
                 others = np.array([boxes[r,c][2], boxes[r,c][3], boxes[r,c][4], boxes[r,c][5]])
-                print("others")
-                print(others)
-                print(boxes[r,c][2:])
                 box = np.concatenate([center, others])
                 unique_boxes[str(r) + "_" + str(c)] = box
     return list(unique_boxes.values())
@@ -207,6 +204,8 @@ def image_meanAP(predictions, truth, threshold):
 #     print(true_pos)
 #     print("num of false pos")
 #     print(false_pos)
+    print("len of truth")
+    print(len(truth))
     return true_pos, false_pos
 #     meanAP = (true_pos)/(true_pos+false_pos) if (false_pos + true_pos) != 0. else 0  
         
