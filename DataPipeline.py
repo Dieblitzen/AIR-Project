@@ -19,7 +19,7 @@ from PIL import Image
 # White Plains: [41.009, -73.779, 41.03, -73.758] (returns image of approx 5280x5280)
 
 # DATA_PATH is the path to the directory where the processed and queried data will be saved
-DATA_PATH = './Plano_Data'
+DATA_PATH = './data_test'
 
 # RAW_DATA_PATH is the path to the directory where the raw queried image(s) will be saved
 RAW_DATA_PATH = f'{DATA_PATH}/raw_data'
@@ -36,7 +36,7 @@ OSM_FILENAME = 'OSM_bbox.pkl'
 # TILE_SIZE is the size of the tile the entire image will be cut up into
 TILE_SIZE = 228
   
-def create_dataset(coords, source="IBM"):
+def create_dataset(query_path, source="IBM"):
   """
   Initialises the query image coordinates, query source and image download path. 
   This is the main function to be called from this module.
@@ -49,31 +49,29 @@ def create_dataset(coords, source="IBM"):
   If [source=="IBM"], then [(user, password)] is also required.
   """
 
+  # Read the query file, exit if wrong format
+  with open(f'{query_path}.json', 'r') as query_file:
+    try:
+      query = json.load(query_file)
+    except:
+      print("Your query file is not in proper json format (or is empty).")
+      return 
+  
+  # Extract coordinates from query [lat_min, lon_min, lat_max, lon_max]
+  try:
+    coords = query['spatial']['coordinates']
+  except:
+    print("Your .json query does not have coordinates specified in the right manner.")
+
   # If directory for dataset does not exist, create directory
-  if not os.path.isdir(DATA_PATH):
-    print(f"Creating directory to store your dataset.")
-    os.mkdir(DATA_PATH)
-
-  if not os.path.isdir(RAW_DATA_PATH):
-    print(f"Creating directory to store raw data, including queried image.")
-    os.mkdir(RAW_DATA_PATH)
-
-  if not os.path.isdir(IMAGES_PATH):
-    print(f"Creating directory to store jpeg images.")
-    os.mkdir(IMAGES_PATH)
-
-  if not os.path.isdir(ANNOTATIONS_PATH):
-    print(f"Creating directory to store json annotations.")
-    os.mkdir(ANNOTATIONS_PATH)
-
-  print(f"Your dataset's directory is {DATA_PATH} and the raw data is stored in {RAW_DATA_PATH}")
+  create_directories()
 
   # First query image layers from API
-  print("Querying raw image from PAIRS using coordinates given. ")
-  query_PAIRS(coords)
+  print("Querying raw image from PAIRS using coordinates given.")
+  query_PAIRS(query)
 
   print("")
-
+  
   # Convert the raw image layers into a numpy array (delete the raw image layers)
   print("Converting raw image to numpy array.\nDeleting raw images, saving jpeg instead.")
   im_arr = image_to_array()
@@ -92,9 +90,33 @@ def create_dataset(coords, source="IBM"):
   print("Tiling image and saving .jpeg files (for tile) and .json files (for bounding boxes)")
   tile_image(TILE_SIZE, building_coords, im_arr, im_size)
 
+  print("Success! Your raw dataset is now ready!")
 
 
-def query_PAIRS(coords):
+def create_directories():
+  """
+  Creates directory to store dataset specified by DATA_PATH, if one does not exist.
+  Nested inside DATA_PATH, creates directories for the raw data, images and annotations.
+  """
+  if not os.path.isdir(DATA_PATH):
+    print(f"Creating directory to store your dataset.")
+    os.mkdir(DATA_PATH)
+
+  if not os.path.isdir(RAW_DATA_PATH):
+    print(f"Creating directory to store raw data, including queried image.")
+    os.mkdir(RAW_DATA_PATH)
+
+  if not os.path.isdir(IMAGES_PATH):
+    print(f"Creating directory to store jpeg images.")
+    os.mkdir(IMAGES_PATH)
+
+  if not os.path.isdir(ANNOTATIONS_PATH):
+    print(f"Creating directory to store json annotations.")
+    os.mkdir(ANNOTATIONS_PATH)
+
+  print(f"Your dataset's directory is {DATA_PATH} and the raw data is stored in {RAW_DATA_PATH}")
+
+def query_PAIRS(query_json):
   """
   Sends a request to PAIRS server and downloads the images in the area specified
   by coords. The raw images are saved in RAW_DATA_PATH
@@ -111,31 +133,9 @@ def query_PAIRS(coords):
 
   # Make request to IBM server for images from area within coordinates
   response = requests.post(
-    json = {
-      "layers" : [
-        {
-            "type": "raster",
-            "id": 36431
-        },
-        {
-            "type": "raster",
-            "id": 35445
-        },
-        {
-            "type": "raster",
-            "id": 36432
-        },
-    ],
-    "spatial": {
-        "type": "square",
-        "coordinates": [str(coords[0]), str(coords[1]), str(coords[2]), str(coords[3])]
-    },
-    "temporal": {
-        "intervals": [{"start": "2014-12-31T00:00:00Z","end": "2015-01-01T00:00:00Z"}]
-    }
-  },
-      url=f'{pairs_server}/v2/query',
-      auth=pairs_auth,
+    json = query_json,
+    url=f'{pairs_server}/v2/query',
+    auth=pairs_auth,
   )   
 
   res = response.json()
@@ -186,23 +186,29 @@ def image_to_array():
   file_names = os.listdir(RAW_DATA_PATH)
   file_names.sort(reverse=True)
   for filename in file_names:
-      if filename.endswith(".tiff"):
-          path_to_file = RAW_DATA_PATH + '/' + filename
-          dataset = gdal.Open(path_to_file)
-          raw_array = np.array(dataset.GetRasterBand(1).ReadAsArray())
 
-          # Remove masked rows and transpose so we can do the same to cols
-          row_mask = (raw_array > -9999).any(axis=1)
-          arr_clean_rows = raw_array[row_mask].T
-          col_mask = (arr_clean_rows > -9999).any(axis=1)
-          clean_array = (arr_clean_rows[col_mask]).T
+    # Remove output.info
+    if filename.endswith(".info"):
+      path_to_file = RAW_DATA_PATH + '/' + filename
+      os.remove(path_to_file)
 
-          # Append clean image array 
-          images_arr.append(clean_array)
-          
-          # Remove the raw .tiff image
-          os.remove(path_to_file)
-          os.remove(path_to_file + '.json')
+    if filename.endswith(".tiff"):
+      path_to_file = RAW_DATA_PATH + '/' + filename
+      dataset = gdal.Open(path_to_file)
+      raw_array = np.array(dataset.GetRasterBand(1).ReadAsArray())
+
+      # Remove masked rows and transpose so we can do the same to cols
+      row_mask = (raw_array > -128).any(axis=1)
+      arr_clean_rows = raw_array[row_mask].T
+      col_mask = (arr_clean_rows > -128).any(axis=1)
+      clean_array = (arr_clean_rows[col_mask]).T
+
+      # Append clean image array 
+      images_arr.append(clean_array)
+      
+      # Remove the raw .tiff image
+      os.remove(path_to_file)
+      os.remove(path_to_file + '.json')
 
   # Return rgb image in np array format
   im_arr = np.dstack(images_arr)
@@ -392,6 +398,12 @@ def tile_image(tile_size, building_coords, im_arr, im_size):
   #   pickle.dump(tiles_and_boxes, filename)
 
 
+if __name__ == "__main__":
+  print("\nPipeline usage: ")
+  print(f"1) Make sure your data path is what you want it to be (it is currently: '{DATA_PATH}')")
+  print("2) Call the function: create_dataset(query_path)")
+  print("   query_path is the path to the json query that will be input when querying PAIRS")
+  print("   Eg: query_path can be './PAIRS_Queries/Query_WhitePlains' (file extension not needed)\n")
 
 
 
