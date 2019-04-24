@@ -11,7 +11,7 @@ val_base_path = '../data_path/pixor/val'
 # sess = tf.InteractiveSession()
 
 #First let's load meta graph and restore weights
-saver = tf.train.import_meta_graph('ckpt/-48.meta')
+saver = tf.train.import_meta_graph('ckpt/-44.meta')
 
 init_op = tf.initialize_all_variables()
 

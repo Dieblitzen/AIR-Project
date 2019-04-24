@@ -21,7 +21,7 @@ import logging
 logging.basicConfig(level=logging.INFO, filename="tile_logfile", filemode="a+",
                     format="%(asctime)-15s %(levelname)-8s %(message)s")
 
-INDICES_TO_REMOVE = list(range(4,24)) + list(range(3+23,24+23)) + [x+(23*2) for x in [2,3,4,5,6,7,8,12,13,14,15,16,17,17,22]] +[x+(23*3) for x in [0,10,11,12,13,14,15,16,22]] +[x+(23*4) for x in [10,11,13,14,15]] +[x+(23*5) for x in [0,8,9,10,11,14,15,16,17,18]] +[x+(23*6) for x in [6,7,8,9,10,15,16,17,18]] +[x+(23*7) for x in [10,11,17,18,19,22]] +[x+(23*8) for x in [18,19,20,21]] +[x+(23*9) for x in [20,21,22]] +[x+(23*10) for x in [4,5,6,20,21,22]] +[x+(23*11) for x in [5,6,7,20,21,22]] +[x+(23*12) for x in [1,2,20,21,22]] + [x+(23*13) for x in [1,2]] + [x+(23*16) for x in [0,1]] + [x+(23*17) for x in [0,1]] + [x+(23*18) for x in [0,1,2]] + [x+(23*19) for x in [0,1,2,3,17,18]] + [x+(23*20) for x in [0,1,2,3,4,17,18]] + [x+(23*21) for x in [0,1,2,3,4,5]] + [x+(23*22) for x in [0,1,2,3,4,5]]
+INDICES_TO_REMOVE = {3, 5, 6, 7, 9, 10, 11, 12, 13, 14, 15, 16, 17, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 35, 37, 39, 40, 42, 43, 45, 46, 49, 50, 51, 52, 53, 54, 55, 56, 57, 63, 64, 65, 72, 73, 74, 75, 76, 77, 79, 81, 86, 96, 97, 98, 100, 101, 103, 108, 110, 116, 117, 118, 119, 120, 121, 124, 125, 126, 138, 139, 140, 142, 147, 148, 149, 150, 151, 155, 160, 173, 174, 175, 176, 178, 197, 198, 199, 200, 201, 222, 223, 229, 230, 245, 247, 268, 269, 270, 291, 292, 293, 299, 370, 409, 410, 414, 432, 433, 434, 449, 455, 456, 457, 458, 471, 472, 478, 479, 480, 481, 482, 501, 503, 504, 505, 506}
 
 class PIXOR_Dataset(Dataset):
   """
@@ -172,8 +172,8 @@ class PIXOR_Dataset(Dataset):
                 pixel_xyform = (c, r)
                 
                 if self.inside_box(pixel_xyform, corner_boxes[bbox_index]):
-                    new_dx = -1*(pixel_xyform[0]) - bboxes[bbox_index][0]
-                    new_dy = -1*(pixel_xyform[1]) - bboxes[bbox_index][1]
+                    new_dx = -1*(pixel_xyform[0] - bboxes[bbox_index][0])
+                    new_dy = -1*(pixel_xyform[1] - bboxes[bbox_index][1])
                     counter+=1
                         
                     if(np.sqrt(new_dx**2 + new_dy**2) <= np.sqrt(dx**2 + dy**2)):

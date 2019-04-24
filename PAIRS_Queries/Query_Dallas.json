@@ -15,7 +15,7 @@
   ],
   "spatial": {
     "type": "square",
-    "coordinates": [33.015455, -96.706175, 33.025455, -96.696175]
+    "coordinates": [33.015455,-96.793168,33.0857,-96.666175] 
   },
   "temporal": {
     "intervals": [

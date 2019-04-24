@@ -19,7 +19,7 @@ from PIL import Image
 # White Plains: [41.009, -73.779, 41.03, -73.758] (returns image of approx 5280x5280)
 
 # DATA_PATH is the path to the directory where the processed and queried data will be saved
-DATA_PATH = './data_test'
+DATA_PATH = './data_path_dallas'
 
 # RAW_DATA_PATH is the path to the directory where the raw queried image(s) will be saved
 RAW_DATA_PATH = f'{DATA_PATH}/raw_data'
@@ -34,7 +34,7 @@ ANNOTATIONS_PATH = f'{DATA_PATH}/annotations'
 OSM_FILENAME = 'OSM_bbox.pkl'
 
 # TILE_SIZE is the size of the tile the entire image will be cut up into
-TILE_SIZE = 228
+TILE_SIZE = 224
   
 def create_dataset(query_path, source="IBM"):
   """
@@ -55,7 +55,7 @@ def create_dataset(query_path, source="IBM"):
       query = json.load(query_file)
     except:
       print("Your query file is not in proper json format (or is empty).")
-      return 
+      return
   
   # Extract coordinates from query [lat_min, lon_min, lat_max, lon_max]
   try:
