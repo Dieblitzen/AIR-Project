@@ -223,6 +223,7 @@ if __name__ == "__main__":
     TRAIN_LEN = 301
     VAL_LEN = 38
     
+
     class_loss = custom_cross_entropy(class_labels=y_class, box_labels=y_box, unnormalized_class_preds=output_class)
     smooth_L1_loss, l1_distance_track = smooth_L1(box_labels=y_box, box_preds=output_box, class_labels=y_class)
     box_loss = 1000 * smooth_L1_loss
