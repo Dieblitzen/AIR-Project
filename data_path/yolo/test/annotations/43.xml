@@ -1,1 +1,0 @@
-<annotation><filename>43.jpg</filename><size><width>228</width><height>228</height><depth>3</depth></size><object><name>building</name><bndbox><xmin>23.0</xmin><ymin>-75.0</ymin><xmax>215.0</xmax><ymax>164.0</ymax></bndbox></object></annotation>
