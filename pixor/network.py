@@ -12,7 +12,19 @@ from smooth_L1 import smooth_L1
 import cv2
 import meanAP
 
-logging.basicConfig(level=logging.INFO, filename="PIXOR_logfile", filemode="a+",
+##### SETTINGS #####
+TRAIN_LEN = 301
+VAL_LEN = 38
+NUM_EPOCHS = 300
+BATCH_SIZE = 32
+IMAGE_SIZE = (228, 228, 3)
+logfile_name = "PIXOR_logfile"
+
+train_base_path = '../WhitePlains_data/pixor/train'
+val_base_path = '../WhitePlains_data/pixor/val'
+##### End of SETTINGS #####
+
+logging.basicConfig(level=logging.INFO, filename=logfile_name, filemode="a+",
                     format="%(asctime)-15s %(levelname)-8s %(message)s")
 sys.path.append("..")
 
@@ -24,7 +36,6 @@ config.gpu_options.allow_growth=True
 sess = tf.Session()
 # LACKING MORE SKIP CONNECTIONS
 
-BATCH_SIZE=32
 
 def pixor_to_corners_tf(box):
     center_x, center_y, cos_angle, sin_angle, width, length = box
@@ -185,41 +196,23 @@ output_box = tf.layers.conv2d(inputs=header4, filters=6, kernel_size=3, padding=
 def custom_cross_entropy(class_labels, box_labels, unnormalized_class_preds, class_weights, alpha=0.25, gamma=2.0):
     
     ce = tf.nn.sigmoid_cross_entropy_with_logits(labels=class_labels , logits=unnormalized_class_preds)
-    class_preds = tf.sigmoid(unnormalized_class_preds)
-    predictions_pt = tf.where(tf.equal(class_labels, 1), class_preds, 1.-class_preds)
-    class_weights_pos_t = tf.scalar_mul(class_weights[0], tf.ones_like(class_labels, dtype=tf.float32))
-    class_weights_neg_t = tf.scalar_mul(class_weights[1], tf.ones_like(class_labels, dtype=tf.float32))
-    class_weights_t = tf.where(tf.equal(class_labels, 0.0), class_weights_pos_t, class_weights_neg_t)
-    inverse_freq_loss = ce * class_weights_t
+#     class_preds = tf.sigmoid(unnormalized_class_preds)
+#     predictions_pt = tf.where(tf.equal(class_labels, 1), class_preds, 1.-class_preds)
+#     class_weights_pos_t = tf.scalar_mul(class_weights[0], tf.ones_like(class_labels, dtype=tf.float32))
+#     class_weights_neg_t = tf.scalar_mul(class_weights[1], tf.ones_like(class_labels, dtype=tf.float32))
+#     class_weights_t = tf.where(tf.equal(class_labels, 0.0), class_weights_pos_t, class_weights_neg_t)
+#     inverse_freq_loss = ce * class_weights_t
 #     alpha_t = tf.scalar_mul(alpha, tf.ones_like(class_labels, dtype=tf.float32))
 #     alpha_t = tf.where(tf.equal(class_labels, 1.0), alpha_t, 1-alpha_t)
 #     weighted_loss = ce * tf.pow(1-predictions_pt, gamma) * alpha_t * class_weights_t
     
-    
-#     # SUBSAMPLING CODE BEGINS - CURRENTLY NOT USING
-#     dx_component = box_labels[:, :, :, 0]
-#     dy_component = box_labels[:, :, :, 1]
-#     width_component = box_labels[:, :, :, 4]
-    
-#     negative_label = tf.equal(tf.squeeze(class_labels), 0)
-# #     print("negative label shape: ")
-# #     print(negative_label.shape)
-    
-#     max_distance = tf.multiply((7.0/8), width_component)
-#     euclidean_distances = tf.sqrt(tf.add(tf.square(dx_component), tf.square(dy_component)))
-#     width_ball = euclidean_distances < max_distance
-#     close_or_neg = tf.logical_or(width_ball, negative_label)
-    
-#     boundary_mask = tf.where(close_or_neg, tf.ones_like(euclidean_distances, dtype = tf.float32), tf.zeros_like(euclidean_distances, dtype = tf.float32))
-#     boundary_mask = tf.expand_dims(boundary_mask, axis=3)   
-#     # SUBSAMPLING CODE ENDS - CURRENTLY NOT USING
     
     
 #     # only consider loss that is NOT on the boundary
 #     masked_loss = tf.multiply(weighted_loss, boundary_mask)
     
     # return tf.reduce_mean(weighted_loss)
-    return tf.reduce_mean(inverse_freq_loss)
+    return tf.reduce_mean(ce)
 
 
 def find_angle(box):
@@ -235,7 +228,7 @@ def find_angle(box):
         
 def viz_preds(box_preds, class_preds):
     
-    vis_val_images, vis_val_boxes, vis_val_classes = get_batch(0, VAL_LEN, val_batch_indices, val_base_path, np.zeros((228,228,3)), np.ones((228,228,3)), train_mean, train_std, norm=False)
+    vis_val_images, vis_val_boxes, vis_val_classes = get_batch(0, VAL_LEN, val_batch_indices, val_base_path, np.zeros(IMAGE_SIZE), np.ones(IMAGE_SIZE), train_mean, train_std, norm=False)
     true_pos = 0.
     false_pos = 0.
     
@@ -277,23 +270,9 @@ def viz_preds(box_preds, class_preds):
                     nms_boxes_in_image.append(nms_box)
                     box_classes_in_image.append(class_preds[i][r,c][0])
                 boxes_in_image.append(box)
-        #nms goes here
-#                 print("boxes")
-#                 print(boxes_in_image)
-#                 print("nms boxes")
-#                 print(nms_boxes_in_image)
-#                 print("classes")
-#                 print(box_classes_in_image)
-#                 np.save("nms_boxes_in_image", nms_boxes_in_image)
+  
         selected_indices = nms.rboxes(nms_boxes_in_image, box_classes_in_image)
-#             print("-----")
-#             print("selected indices:")
-#             print(selected_indices)
         boxes_reduced = [boxes_in_image[i] for i in selected_indices]
-#             print("boxes_reduced len")
-#             print(len(boxes_reduced))
-#             print("boxes_reduced")
-#             print(boxes_reduced)
         unique_val_boxes = meanAP.extract_unique_labels(vis_val_boxes[i])
         
         visualize_data.visualize_bounding_boxes(image, boxes_reduced, True, i, 'output_visualized', 'blue')
@@ -302,7 +281,7 @@ def viz_preds(box_preds, class_preds):
     
 def get_MAP(box_preds, class_preds):
     
-    vis_val_images, vis_val_boxes, vis_val_classes = get_batch(0, VAL_LEN, val_batch_indices, val_base_path, np.zeros((228,228,3)), np.ones((228,228,3)), train_mean, train_std, norm=False)
+    vis_val_images, vis_val_boxes, vis_val_classes = get_batch(0, VAL_LEN, val_batch_indices, val_base_path, np.zeros(IMAGE_SIZE), np.ones(IMAGE_SIZE), train_mean, train_std, norm=False)
     true_pos = 0.
     false_pos = 0.
     
@@ -344,49 +323,21 @@ def get_MAP(box_preds, class_preds):
                     nms_boxes_in_image.append(nms_box)
                     box_classes_in_image.append(class_preds[i][r,c][0])
                 boxes_in_image.append(box)
-        #nms goes here
-#                 print("boxes")
-#                 print(boxes_in_image)
-#                 print("nms boxes")
-#                 print(nms_boxes_in_image)
-#                 print("classes")
-#                 print(box_classes_in_image)
-#                 np.save("nms_boxes_in_image", nms_boxes_in_image)
-        # sorted_by_conf = sorted(list(zip(nms_boxes_in_image, box_classes_in_image)), key= lambda pair: pair[1], reverse = True)
-        # nms_boxes_in_image, box_classes_in_image = zip(*sorted_by_conf)
-        # nms_boxes_in_image = list(nms_boxes_in_image)
-        # box_classes_in_image = list(box_classes_in_image)
+        
         selected_indices = nms.rboxes(nms_boxes_in_image, box_classes_in_image, nms_threshold=0.1)
-#             print("-----")
-#             print("selected indices:")
-#             print(selected_indices)
         boxes_reduced = [(boxes_in_image[i], box_classes_in_image[i]) for i in selected_indices]
         sorted_by_conf = sorted(boxes_reduced, key= lambda pair: pair[1], reverse = True)
         boxes_reduced, _ = zip(*sorted_by_conf)
-#             print("boxes_reduced len")
-#             print(len(boxes_reduced))
-#             print("boxes_reduced")
-#             print(boxes_reduced)
         unique_val_boxes = meanAP.extract_unique_labels(vis_val_boxes[i])
         logging.info("validation boxes: ")
         logging.info(unique_val_boxes)
         val_boxes_reformatted = [((box[0], box[1]), (box[-2], box[-1]), find_angle(box)) for box in unique_val_boxes]
         boxes_reduced_reformatted = [((box[0], box[1]), (box[-2], box[-1]), find_angle(box)) for box in boxes_reduced]
-        np.save("val_boxes_rf", val_boxes_reformatted)
-        np.save("boxes_reduced_reformatted", boxes_reduced_reformatted)
         if boxes_reduced_reformatted != []:
             im_true_pos, im_false_pos = meanAP.image_meanAP(boxes_reduced_reformatted, val_boxes_reformatted[1:], .5)
-#                 print("mAP:")
             true_pos += im_true_pos
             false_pos += im_false_pos
-#                 logging.info("mAP:")
-#                 print(meanAP_result)
-#                 print("unique val boxes:")
-#                 print(unique_val_boxes[0:3])
-#                 print("vis_val boxes:")
-#                 print(np.unique(vis_val_boxes[0], axis = 0))
-#                 visualize_data.visualize_bounding_boxes(image, boxes_reduced, True, i, 'output_visualized', 'blue')
-#                 visualize_data.visualize_bounding_boxes(image, unique_val_boxes, True, i, 'label_visualized', 'green')
+
     logging.info("mAP:")
     if true_pos + false_pos != 0:
         logging.info(true_pos/(true_pos+false_pos))
@@ -395,9 +346,6 @@ def get_MAP(box_preds, class_preds):
    
 
 if __name__ == "__main__":
-    
-    TRAIN_LEN = 301
-    VAL_LEN = 38
     
     # pos_weight = 60000000/2763487
     # neg_weight = 60000000/12831713
@@ -432,7 +380,6 @@ if __name__ == "__main__":
 
       #initialize everything
       sess.run(tf.global_variables_initializer())
-      num_epochs = 300
 
       per_epoch_train_loss = 0
       lowest_val_loss = np.inf
@@ -440,10 +387,9 @@ if __name__ == "__main__":
       batch_indices = np.arange(TRAIN_LEN)
       val_batch_indices = np.arange(VAL_LEN)
 
-      train_base_path = '../WhitePlains_data/pixor/train'
-      val_base_path = '../WhitePlains_data/pixor/val'
       mAP = 0.
-      for epoch in range(num_epochs):
+    
+      for epoch in range(NUM_EPOCHS):
         per_epoch_train_loss = 0
         per_epoch_box_loss = 0
         per_epoch_class_loss = 0
