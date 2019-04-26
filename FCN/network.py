@@ -165,7 +165,7 @@ num_epochs = 300
 batch_size = 32
 
 # Defining Loss
-loss = tf.nn.softmax_cross_entropy_with_logits_v2(labels=y, logits=fcn8)
+loss = tf.nn.softmax_cross_entropy_with_logits(labels=y, logits=fcn8)
 loss = tf.reduce_mean(loss)
 
 # Use an Adam optimizer to train network
@@ -200,7 +200,7 @@ if __name__ == "__main__":
     num_samples = data.data_sizes[0]
     num_batches = num_samples//batch_size
     
-    for epoch in range(epochs):
+    for epoch in range(num_epochs):
       indices = list(range(num_samples))
       np.random.shuffle(indices)
       # Track epoch loss
