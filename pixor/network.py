@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 from sklearn.metrics import average_precision_score
 from sklearn.metrics import precision_score, recall_score
 from nms import nms
-from smooth_L1 import smooth_L1
+from smooth_L1 import smooth_L1, decode_smooth_L1
 import cv2
 import meanAP
 
@@ -354,18 +354,21 @@ if __name__ == "__main__":
     class_loss_result = custom_cross_entropy(class_labels=y_class, box_labels=y_box, unnormalized_class_preds=output_class, class_weights=(pos_weight, neg_weight))
     class_loss = 10 * class_loss_result
     smooth_L1_loss = 100 * smooth_L1(box_labels=y_box, box_preds=output_box, class_labels=y_class)
-    # decoded_output = np.array([visualize_data.pixor_to_corners(b) for b in np.array(output_box)])
-    # decoded_output = tf.map_fn(visualize_data.pixor_to_corners, output_box)
-    # decoded_labels = tf.map_fn(visualize_data.pixor_to_corners, y_box)
-    # decoded_labels = np.array([visualize_data.pixor_to_corners(b) for b in np.array(y_box)])
-#     decode_loss = 100 * smooth_L1(box_labels=decoded_labels, box_preds=decoded_output, class_labels=y_class)
+    
+    # decoded_output = np.array([visualize_data.pixor_to_corners(b) for b in np.array(list(output_box))])
+    # decoded_output = tf.map_fn(visualize_data.tf_pixor_to_corners, output_box, dtype = [(tf.float32, tf.float32), (tf.float32, tf.float32), (tf.float32, tf.float32), (tf.float32, tf.float32)])
+    decoded_output = visualize_data.tf_pixor_to_corners(output_box)
+    decoded_labels = visualize_data.tf_pixor_to_corners(y_box)
+    # decoded_labels = np.array([visualize_data.tf_pixor_to_corners(b) for b in np.array(y_box)])
+    decode_loss = 100 * decode_smooth_L1(box_labels=decoded_labels, box_preds=decoded_output, class_labels=y_class)
+    
     box_loss = smooth_L1_loss
     pixor_loss = class_loss + box_loss
-#     decode_pixor_loss = class_loss + decode_loss
+    decode_pixor_loss = class_loss + decode_loss
 
     #A step to minimize our cost function
     train_step = tf.train.AdamOptimizer(1e-4).minimize(pixor_loss)
-#     decode_train_step = tf.train.AdamOptimizer(1e-4).minimize(decode_pixor_loss)
+    decode_train_step = tf.train.AdamOptimizer(1e-4).minimize(decode_pixor_loss)
     
     mean = np.load('mean.npy')
     std = np.load('std.npy')
@@ -415,7 +418,7 @@ if __name__ == "__main__":
 #           tf.map_fn(lambda image: tf.image.per_image_standardization(image), batch_images)
 
           # train on the batch
-          if epoch <= 340: 
+          if epoch <= -1: 
               _, b_loss, c_loss, batch_train_loss= sess.run([train_step, box_loss, class_loss, pixor_loss], feed_dict =
                 {x: batch_images,
                 y_box: batch_boxes,
@@ -439,7 +442,7 @@ if __name__ == "__main__":
 
         # at each epoch, print training and validation loss
         val_images, val_boxes, val_classes = get_batch(0, VAL_LEN, val_batch_indices, val_base_path, mean, std, train_mean, train_std)
-        if epoch <= 340:
+        if epoch <= -1:
             val_loss, box_preds, unnorm_class_preds = sess.run([pixor_loss, output_box, output_class], feed_dict = {x: val_images,
               y_box: val_boxes, y_class: val_classes})
         else:

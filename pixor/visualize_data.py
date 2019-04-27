@@ -1,3 +1,4 @@
+import tensorflow as tf
 import numpy as np
 import matplotlib.pyplot as plt
 import os
@@ -35,6 +36,22 @@ def rotate_point(point, center_x, center_y, cos_angle, sin_angle):
     
     return qx, qy
 
+def tf_rotate_point(corners, center_x, center_y, cos_angle, sin_angle):
+
+#     ox, oy = center_x, center_y
+#     px, py = point_x, point_y
+#     angles = tf.acos(cos_angle)
+
+#     qx = ox + tf.cos(angle) * (px - ox) - tf.sin(angle) * (py - oy)
+#     qy = oy + tf.sin(angle) * (px - ox) + tf.cos(angle) * (py - oy)
+
+    qx = center_x + cos_angle * (corners[:, :, :, :, 0] - center_x) - sin_angle * (corners[:, :, :, :, 1] - center_y)
+    qy = center_y + sin_angle * (corners[:, :, :, :, 0] - center_x) + cos_angle * (corners[:, :, :, :, 1] - center_y)
+    
+    rotated_points = tf.stack([qx, qy], axis=4)
+    
+    return rotated_points
+
 #Converts pixor description of a box into four coordinates.
 def pixor_to_corners(box):
     center_x, center_y, sin_angle, cos_angle, width, length = box
@@ -44,6 +61,41 @@ def pixor_to_corners(box):
         (center_x-length//2, center_y+width//2)]
 
     rotated_corners = [rotate_point(corner, center_x, center_y, cos_angle, sin_angle) for corner in four_corners]
+    return rotated_corners
+
+#Converts pixor description of a box into four coordinates.
+def tf_pixor_to_corners(box):
+    center_x = box[:, :, :, 0:1]
+    center_y = box[:, :, :, 1:2]
+    sin_angle = box[:, :, :, 2:3]
+    cos_angle = box[:, :, :, 3:4]
+    width = box[:, :, :, 4:5]
+    length = box[:, :, :, 5:6]
+    
+    corner_1_x = tf.divide(tf.add(center_x, length), 2)
+    corner_1_y = tf.divide(tf.add(center_y, width), 2)
+    corner_1 = tf.concat([corner_1_x, corner_1_y], 3)
+    
+    corner_2_x = tf.divide(tf.add(center_x, length), 2)
+    corner_2_y = tf.divide(tf.subtract(center_y, width), 2)
+    corner_2 = tf.concat([corner_2_x, corner_2_y], 3)
+    
+    corner_3_x = tf.divide(tf.subtract(center_x, length), 2)
+    corner_3_y = tf.divide(tf.subtract(center_y, width), 2)
+    corner_3 = tf.concat([corner_3_x, corner_3_y], 3)
+    
+    corner_4_x = tf.divide(tf.subtract(center_x, length), 2)
+    corner_4_y = tf.divide(tf.add(center_y, width), 2)
+    corner_4 = tf.concat([corner_4_x, corner_4_y], 3)
+    
+    corners = tf.stack([corner_1, corner_2, corner_3, corner_4], axis=3)
+    
+#     four_corners = [(center_x+length//2, center_y+width//2),
+#         (center_x+length//2, center_y-width//2),
+#         (center_x-length//2, center_y-width//2),
+#         (center_x-length//2, center_y+width//2)]
+
+    rotated_corners = tf_rotate_point(corners, center_x, center_y, cos_angle, sin_angle)
     return rotated_corners
 
 def visualize_pixels(image_array, bboxes):
