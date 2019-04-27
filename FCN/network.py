@@ -1,13 +1,19 @@
 ## Network for FCN 
 
-import sys
-sys.path.append("../")
+import os, sys
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import numpy as np
 import tensorflow as tf
 from ImSeg_Dataset import ImSeg_Dataset as Data
 import os
 
+## Global variables
 IM_SIZE = [224,224,3]
+LABEL_SIZE = [224,224,1]
+
+learning_rate = 0.001
+num_epochs = 300
+batch_size = 32
 
 
 """
@@ -73,14 +79,14 @@ Requires:
   n_layers: the number of convolutional layers within the the block
 """
 def resnet_block_bottleneck(input_t, filter_shape, stride=[1,1,1,1], padding='SAME', n_layers=2):
-  identity = conv_layer(input_t, [1,1,filter_shape[2]/2, filter_shape[3]], [1,2,2,1], padding)
+  identity = conv_layer(input_t, [1,1,filter_shape[2]//2, filter_shape[3]], [1,2,2,1], padding)
   x = input_t
 
   # Downsampled
   x = batch_norm(x)
   x = tf.nn.relu(x)
   x = conv_layer(
-    x, [filter_shape[0], filter_shape[1], filter_shape[2]/2, filter_shape[3]], [1,2,2,1], padding)
+    x, [filter_shape[0], filter_shape[1], filter_shape[2]//2, filter_shape[3]], [1,2,2,1], padding)
 
   for _ in range(1, n_layers):
     x = batch_norm(x)
@@ -114,7 +120,7 @@ def deconv_layer(input_t, filter_shape, output_shape, stride=[1,2,2,1], padding=
 # Input and output image placeholders
 # Shape is [None, IM_SIZE] where None indicates variable batch size
 X = tf.placeholder(tf.float32, shape=[None] + IM_SIZE)
-y = tf.placeholder(tf.float32, shape=[None] + IM_SIZE) 
+y = tf.placeholder(tf.float32, shape=[None] + LABEL_SIZE) 
 
 # Downsampling /2
 block_1 = conv_layer(X, [7,7,3,64], stride=[1,2,2,1]) # 2 downsampled
@@ -150,21 +156,16 @@ block_17 = resnet_block(block_16, [3,3,512,512]) # 32 downsampled
 # At size 7x7 at this point.
 
 ## FCN-8
-upsampled_32 = deconv_layer(block_17, [3,3,256,512], [1,14,14,256], [1,2,2,1])
+upsampled_32 = deconv_layer(block_17, [3,3,256,512], [batch_size,14,14,256], [1,2,2,1])
 pool_4_and_5 = upsampled_32 + block_14
 
-upsampled_32_16 = deconv_layer(pool_4_and_5, [3,3,128,256], [1,28,28,128], [1,2,2,1]) 
+upsampled_32_16 = deconv_layer(pool_4_and_5, [3,3,128,256], [batch_size,28,28,128], [1,2,2,1]) 
 pool_3_and_4 = upsampled_32_16 + block_8
 
-fcn8 = deconv_layer(pool_3_and_4, [3,3,1,128], [1,224,224,1], [1,8,8,1])
+fcn8 = deconv_layer(pool_3_and_4, [3,3,1,128], [batch_size,224,224,1], [1,8,8,1])
 
 
 ## Building the model
-## Global variables
-
-learning_rate = 0.001
-num_epochs = 300
-batch_size = 32
 
 # Defining Loss
 loss = tf.nn.softmax_cross_entropy_with_logits(labels=y, logits=fcn8)
@@ -180,8 +181,8 @@ init = tf.global_variables_initializer()
 if __name__ == "__main__":
   
   ## Get the data
-  data = Data('./data_path_white_plains')
-  if not os.path.isdir('./data_path_white_plains/im_seg'):
+  data = Data('./data_path_white_plains_224')
+  if not os.path.isdir('./data_path_white_plains_224/im_seg'):
     data = Data.build_dataset()
 
   
@@ -214,7 +215,7 @@ if __name__ == "__main__":
       for batch in range(num_batches):
         
         # Get the batch
-        X_batch, y_batch = data.get_batch(indices[batch*batch_size : (batch+1)*batch_size], path="train")
+        X_batch, y_batch = data.get_batch(indices[batch*batch_size : (batch+1)*batch_size], "train")
 
         ## Resize images (unimplemented)
 
@@ -224,7 +225,7 @@ if __name__ == "__main__":
         epoch_loss += batch_loss
       
       ## TODO: Save weights at each epoch.
-      X_val_batch, y_val_batch = data.get_batch([i for i in range(num_val)], path="val")
+      X_val_batch, y_val_batch = data.get_batch([i for i in range(num_val)], "val")
       preds = sess.run([fcn8], feed_dict={X:X_val_batch, y:y_val_batch})
 
       print(f"Loss at epoch {epoch+1}: {epoch_loss}")

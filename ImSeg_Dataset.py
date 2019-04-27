@@ -64,15 +64,25 @@ class ImSeg_Dataset(Dataset):
       self.data_sizes.append(num_samples)
 
 
-  def get_batch(self, indices, path):
+  def get_batch(self, indices, train_val_test):
     """
     Returns the batch of images and labels associated with the images,
     based on the list of indicies to look up.
     Requires:
       indices: list of indices with which to make a batch
-    Format: (block of images, labels)
+    Format: (block of images, block of labels)
     """
-    batch = []
+
+    # Initialise path based on argument
+    path = self.train_path
+    if train_val_test == "val":
+      path = self.val_path
+    elif train_val_test == "test":
+      path = self.test_path
+
+    # Accumulators for images and annotations in batch
+    images = []
+    annotations = []
     for i in indices:
       image = Image.open(f'{path}/images/{i}.jpg')
       image = np.array(image)
@@ -80,9 +90,14 @@ class ImSeg_Dataset(Dataset):
       with open(f'{path}/annotations/{i}.json', 'r') as ann:
         annotation = np.array(json.load(ann)['annotation'])
         
-      batch.append((image, annotation))
+      # Reshape to the width/height dimensions of image, with depth=num_classes (here, it is 1)
+      annotation = np.reshape(annotation, (image.shape[0], image.shape[1], 1))
 
-    return batch
+      images.append(image)
+      annotations.append(annotation)
+
+    # Return tuple by stacking them into blocks
+    return (np.stack(images), np.stack(annotations))
 
   def build_dataset(self):
     """
