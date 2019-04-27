@@ -2,7 +2,7 @@
 
 import numpy as np
 import tensorflow as tf
-import ImSeg_Dataset.ImSeg_Dataset as Data
+from ImSeg_Dataset import ImSeg_Dataset as Data
 import os
 
 IM_SIZE = [224,224,3]
