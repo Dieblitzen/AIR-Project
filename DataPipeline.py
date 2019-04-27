@@ -19,7 +19,7 @@ from PIL import Image
 # White Plains: [41.009, -73.779, 41.03, -73.758] (returns image of approx 5280x5280)
 
 # DATA_PATH is the path to the directory where the processed and queried data will be saved
-DATA_PATH = './data_path_white_plains_224'
+DATA_PATH = './data_path'
 
 # RAW_DATA_PATH is the path to the directory where the raw queried image(s) will be saved
 RAW_DATA_PATH = f'{DATA_PATH}/raw_data'
@@ -50,7 +50,8 @@ def create_dataset(query_path, source="IBM"):
   """
 
   # Read the query file, exit if wrong format
-  with open(f'{query_path}.json', 'r') as query_file:
+  query_path = query_path if query_path.endswith('.json') else query_path + '.json'
+  with open(f'{query_path}', 'r') as query_file:
     try:
       query = json.load(query_file)
     except:
@@ -400,12 +401,23 @@ def tile_image(tile_size, building_coords, im_arr, im_size):
 
 if __name__ == "__main__":
   print("\nPipeline usage: ")
-  print(f"1) Make sure your data path is what you want it to be (it is currently: '{DATA_PATH}')")
-  print("2) Call the function: create_dataset(query_path)")
+  print(f"1) Make sure your data path is what you want it to be (it is currently: {DATA_PATH})")
+  print( "   Specify your data path directory name (to use default, just hit enter)")
+  data_path_input = input("Enter data path (no quotes): ").strip()
+  DATA_PATH = DATA_PATH if data_path_input == "" else data_path_input
+  print(f"   Using data path: {DATA_PATH}")
+
+  print(f"\n2) Make sure your tile size is correct (it is currently: {TILE_SIZE})")
+  print( "   Specify your tile size (to use default, just hit enter)")
+  tile_size_input = input("Enter tile size (must be int): ").strip()
+  TILE_SIZE = TILE_SIZE if tile_size_input == "" else int(tile_size_input)
+  print(f"   Using tile size: {TILE_SIZE}")
+
+  print("\n3) Call the function: create_dataset(query_path)")
   print("   query_path is the path to the json query that will be input when querying PAIRS")
   print("   Eg: query_path can be './PAIRS_Queries/Query_WhitePlains' (file extension not needed)\n")
   query_list = os.listdir("./PAIRS_Queries")
-  print(f"Available queries: {query_list}")
+  print(f"Available queries in directory 'PAIRS_Queries': {query_list}\n")
 
 
 
