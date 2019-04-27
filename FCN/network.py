@@ -197,18 +197,22 @@ if __name__ == "__main__":
     # . print testing accuracy for each epoch
     
     # Number of training samples and number of batches
-    num_samples = data.data_sizes[0]
-    num_batches = num_samples//batch_size
+    num_train = data.data_sizes[0]
+    num_batches = num_train//batch_size
+
+    # Validation size
+    num_val = data.data_sizes[1]
     
+    # Training
     for epoch in range(num_epochs):
-      indices = list(range(num_samples))
+      indices = list(range(num_train))
       np.random.shuffle(indices)
       # Track epoch loss
       epoch_loss = 0
       for batch in range(num_batches):
         
         # Get the batch
-        X_batch, y_batch = data.get_batch(indices[batch*batch_size : (batch+1)*batch_size])
+        X_batch, y_batch = data.get_batch(indices[batch*batch_size : (batch+1)*batch_size], path="train")
 
         ## Resize images (unimplemented)
 
@@ -216,8 +220,13 @@ if __name__ == "__main__":
         _, batch_loss = sess.run([optimizer, loss], feed_dict={X:X_batch, y:y_batch})
 
         epoch_loss += batch_loss
+      
+      ## TODO: Save weights at each epoch.
+      X_val_batch, y_val_batch = data.get_batch([i for i in range(num_val)], path="val")
+      preds = sess.run([fcn8], feed_dict={X:X_val_batch, y:y_val_batch})
 
       print(f"Loss at epoch {epoch+1}: {epoch_loss}")
+
 
 
 

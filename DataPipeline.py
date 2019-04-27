@@ -19,7 +19,7 @@ from PIL import Image
 # White Plains: [41.009, -73.779, 41.03, -73.758] (returns image of approx 5280x5280)
 
 # DATA_PATH is the path to the directory where the processed and queried data will be saved
-DATA_PATH = './data_path_dallas'
+DATA_PATH = './data_path_white_plains_224'
 
 # RAW_DATA_PATH is the path to the directory where the raw queried image(s) will be saved
 RAW_DATA_PATH = f'{DATA_PATH}/raw_data'
@@ -404,6 +404,8 @@ if __name__ == "__main__":
   print("2) Call the function: create_dataset(query_path)")
   print("   query_path is the path to the json query that will be input when querying PAIRS")
   print("   Eg: query_path can be './PAIRS_Queries/Query_WhitePlains' (file extension not needed)\n")
+  query_list = os.listdir("./PAIRS_Queries")
+  print(f"Available queries: {query_list}")
 
 
 
