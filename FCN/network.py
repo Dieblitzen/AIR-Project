@@ -1,5 +1,7 @@
 ## Network for FCN 
 
+import sys
+sys.path.append("../")
 import numpy as np
 import tensorflow as tf
 from ImSeg_Dataset import ImSeg_Dataset as Data
