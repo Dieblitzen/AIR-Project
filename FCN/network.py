@@ -116,8 +116,112 @@ def deconv_layer(input_t, filter_shape, output_shape, stride=[1,2,2,1], padding=
   biases = tf.Variable(tf.zeros([filter_shape[2]]))
   return tf.nn.conv2d_transpose(input_t, weights, output_shape, stride, padding) + biases
 
+## =============================================================================================
+## Define RefineNet
+## =============================================================================================
 
-## Define ResNet architecture
+"""
+Residual Convolution Unit
+Essentially a resnet block without the batch norm.
+Uses 3x3 convolutions (maintains dimensions of input.)
+Requires:
+  input_t: the input tensor
+  filter_shape: [filter_height, filter_width, depth_of_input, n_filters]
+  stride: [batch=1, horizontal_stride, vertical_stride, depth_of_convolution=1]
+  padding: string of 'SAME' (1/stride * input_size) or 'VALID' (no padding)
+  n_layers: the number of convolutional layers within the the block
+"""
+def rcu_block(input_t, n_layers=2):
+  identity = input_t
+  x = input_t
+  
+  for _ in range(n_layers):
+    x = tf.nn.relu(x)
+    x = conv_layer(x, [3, 3, x.get_shape()[2], x.get_shape()[3]])
+  
+  return x + identity
+
+"""
+Multi-resolution Fusion.
+Fuses inputs into high-res feature map. First applies convolutions to create feature maps
+of same dimension (smallest depth of channels among inputs).
+Upsamples the smaller feature maps to largest resolution of inputs, then sums them all.
+Requires:
+  input_tensors: a list of tensors (usually different dimensions) being inputted to the block.
+"""
+def mrf_block(input_tensors):
+  
+  # Convolve input tensors using 3x3 filters
+  convolved = []
+  smallest_depth = min(input_tensors, key=lambda t: int(t.get_shape()[3]) )
+  for t in input_tensors:
+    x = conv_layer(t, [3, 3, t.get_shape()[3], smallest_depth] )
+    convolved.append(x)
+  
+  # Upsample the convolutions to the largest input tensor resolution.
+  # Assuming width and height dimensions are the same for each tensor.
+  up_sampled = []
+  largest_res = max(input_tensors, key=lambda t: int(t.get_shape()[1]) )
+  for t in convolved:
+    old_res = int(t.get_shape()[1]) # The width/height of the old tensor.
+    x = deconv_layer(t, [3, 3, smallest_depth, smallest_depth], \
+                        [None, largest_res, largest_res, smallest_depth], \
+                        stride=[1, largest_res//old_res, largest_res//old_res, 1])
+    up_sampled.append(x)
+  
+  # Sum them all up
+  return sum(up_sampled)
+
+
+"""
+Chained Residual Pooling.
+Chain of multiple pooling blocks, each consisting of one max-pooling layer
+and one convolutional layer. Kernel size for pooling is 5.
+Output feature maps of pooling blocks are summed with identity mappings.
+Requires:
+  input_t is the output of the mrf_block. 
+"""
+def crp_block(input_t, n_pool_blocks=2):
+  result = input_t
+  x = tf.nn.relu(input_t)
+
+  for _ in range(n_pool_blocks):
+    x = tf.nn.max_pool(x, [1,5,5,1], [1,1,1,1], padding="SAME")
+    x = conv_layer(x, [3, 3, x.get_shape()[2], x.get_shape()[3]] )
+    result = result + x
+
+  return result
+
+
+"""
+RefineNet block.
+Applies Residual Convolution Units twice to each input tensor
+Fuses them together with Multi-Resolution Fusion.
+Applies Chained Residual Pooling
+Applies Residual Convolution Unit once one last time.
+Requires:
+  input_tensors: A list of tensors to pass through the refine net.
+"""
+def refine_net_block(input_tensors):
+  # Apply Residual Convolution Units twice to each input tensor
+  rcu = []
+  for t in input_tensors:
+    x = rcu_block(rcu_block(t))
+    rcu.append(x)
+  
+  # Apply Multi-Resolution Fusion
+  mrf = mrf_block(rcu)
+
+  # Apply Chained Residual Pooling
+  crp = crp_block(mrf)
+
+  # Apply Residual Convolution Unit one last time
+  return rcu_block(crp)
+
+
+## =============================================================================================
+## Define Res-Net architecture
+## =============================================================================================
 
 # Input and output image placeholders
 # Shape is [None, IM_SIZE] where None indicates variable batch size
@@ -157,20 +261,30 @@ block_17 = resnet_block(block_16, [3,3,512,512]) # 32 downsampled
 
 # At size 7x7 at this point.
 
-## FCN-8
-upsampled_32 = deconv_layer(block_17, [3,3,256,512], [batch_size,14,14,256], [1,2,2,1])
-pool_4_and_5 = upsampled_32 + block_14
+## =============================================================================================
+## Apply FCN-8
+## =============================================================================================
+# upsampled_32 = deconv_layer(block_17, [3,3,256,512], [batch_size,14,14,256], [1,2,2,1])
+# pool_4_and_5 = upsampled_32 + block_14
 
-upsampled_32_16 = deconv_layer(pool_4_and_5, [3,3,128,256], [batch_size,28,28,128], [1,2,2,1]) 
-pool_3_and_4 = upsampled_32_16 + block_8
+# upsampled_32_16 = deconv_layer(pool_4_and_5, [3,3,128,256], [batch_size,28,28,128], [1,2,2,1]) 
+# pool_3_and_4 = upsampled_32_16 + block_8
 
-fcn8 = deconv_layer(pool_3_and_4, [3,3,1,128], [batch_size,224,224,1], [1,8,8,1])
+# fcn8 = deconv_layer(pool_3_and_4, [3,3,1,128], [batch_size,224,224,1], [1,8,8,1])
+
+## =============================================================================================
+## Apply Refine-Net 
+## =============================================================================================
+upsampled = refine_net_block([block_17, block_14, block_8, block_4])
+result = deconv_layer(upsampled, [3,3,1,64], [batch_size,224,224,1], [1,4,4,1])
 
 
+## =============================================================================================
 ## Building the model
+## =============================================================================================
 
 # Defining Loss
-loss = tf.nn.sigmoid_cross_entropy_with_logits(labels=y, logits=fcn8)
+loss = tf.nn.sigmoid_cross_entropy_with_logits(labels=y, logits=result)
 loss = tf.reduce_mean(loss)
 
 # Use an Adam optimizer to train network
@@ -227,10 +341,11 @@ if __name__ == "__main__":
         epoch_loss += batch_loss
       
       ## TODO: Save weights at each epoch.
-      if (epoch+1)%10 == 0:
+      if (epoch+1)%100 == 0:
+
         X_val_batch, y_val_batch = data.get_batch([i for i in range(32)], "val")
-        preds = sess.run([fcn8], feed_dict={X:X_val_batch, y:y_val_batch})
-        print(preds[0].shape)
+        preds = sess.run([result], feed_dict={X:X_val_batch, y:y_val_batch})
+  
         i = 0
         for pred in preds[0]:
           pred = np.squeeze(pred) #Drop the last dimesnion, which is anyways 1
@@ -238,14 +353,7 @@ if __name__ == "__main__":
           img = Image.fromarray(pred, mode="L")
           img.save(f'epoch{epoch}_{i}.png')
           i += 1
-#           x,y,d = preds[i].shape
-#           arr = np.zeros((x,y,3))
-#           arr[
           
-#           scipy.misc.imsave(f'epoch{epoch}_{i}.jpg', preds[i])
-          
-        
-
       print(f"Loss at epoch {epoch+1}: {epoch_loss}")
 
 
