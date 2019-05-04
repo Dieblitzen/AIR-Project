@@ -187,7 +187,7 @@ def crp_block(input_t, n_pool_blocks=2):
 
   for _ in range(n_pool_blocks):
     x = tf.nn.max_pool(x, [1,5,5,1], [1,1,1,1], padding="SAME")
-    x = conv_layer(x, [3, 3, int(x.get_shape()[2]), int(x.get_shape()[3]) ] )
+    x = conv_layer(x, [3, 3, int(x.get_shape()[3]), int(x.get_shape()[3]) ] )
     result = result + x
 
   return result
