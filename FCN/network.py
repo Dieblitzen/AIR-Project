@@ -230,10 +230,14 @@ if __name__ == "__main__":
       if (epoch+1)%10 == 0:
         X_val_batch, y_val_batch = data.get_batch([i for i in range(32)], "val")
         preds = sess.run([fcn8], feed_dict={X:X_val_batch, y:y_val_batch})
-        for i in range(len(preds)):
-          preds[i] = preds[i].astype(np.uint8)
-          img = Image.fromarray(preds[i])
+        print(preds[0].shape)
+        i = 0
+        for pred in preds[0]:
+          pred = np.squeeze(pred) #Drop the last dimesnion, which is anyways 1
+          print(pred.shape)
+          img = Image.fromarray(pred, mode="L")
           img.save(f'epoch{epoch}_{i}.png')
+          i += 1
 #           x,y,d = preds[i].shape
 #           arr = np.zeros((x,y,3))
 #           arr[
