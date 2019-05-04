@@ -32,7 +32,9 @@ class Dataset:
   3) Getting a batch of images and assoicated building labels given a start index and batch size
   4) Removing a set of images and assoicated building labels given a set of indices.
   5) Visualizing a single image in images_path with its assoicated building labels
-  6) Visualizing the entire area with all bounding boxes (assuming such an image exists in the
+  6) Visualizing a sequence of tiles (images) in images_path with associated building labels, given
+     a start and end index.
+  7) Visualizing the entire area with all bounding boxes (assuming such an image exists in the
       raw_data directory of the data_path)
 
   """
@@ -135,7 +137,8 @@ class Dataset:
         # If not to be removed, then check if index of file is in line with new file_index
         if i != file_index:
           os.rename(f'{self.images_path}/img_{i}.jpg', f'{self.images_path}/img_{file_index}.jpg')
-          os.rename(f'{self.annotations_path}/annotation_{i}.json', f'{self.annotations_path}/annotation_{file_index}.json')
+          os.rename(f'{self.annotations_path}/annotation_{i}.json', \
+                    f'{self.annotations_path}/annotation_{file_index}.json')
         
         file_index += 1
 
@@ -174,14 +177,19 @@ class Dataset:
     
     
   def visualize_tiles(self, start_idx, end_idx):
+    """
+    Method 6)
+    Provides a visualization of a sequence of tiles with associated annotations/labels
+    between the start index and the end index (not including end index) of the tiles.
+    """
     for i in range(start_idx, end_idx):
-        print("Tile index: " + str(i))
-        self.visualize_tile(i)
+      print("Tile index: " + str(i))
+      self.visualize_tile(i)
     
 
   def visualize_dataset(self):
     """
-    Method 6)
+    Method 7)
     Provides visualization of entire dataset image area, 
     including annotations.
 
