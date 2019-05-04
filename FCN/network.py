@@ -137,7 +137,7 @@ def rcu_block(input_t, n_layers=2):
   
   for _ in range(n_layers):
     x = tf.nn.relu(x)
-    x = conv_layer(x, [3, 3, int(x.get_shape()[2]), int(x.get_shape()[3]) ]) 
+    x = conv_layer(x, [3, 3, int(x.get_shape()[3]), int(x.get_shape()[3]) ]) 
   
   return x + identity
 
@@ -154,6 +154,7 @@ def mrf_block(input_tensors):
   # Convolve input tensors using 3x3 filters
   convolved = []
   smallest_depth = min(input_tensors, key=lambda t: int(t.get_shape()[3]) )
+  smallest_depth = int(smallest_depth.get_shape()[3])
   for t in input_tensors:
     x = conv_layer(t, [3, 3, int(t.get_shape()[3]), smallest_depth] )
     convolved.append(x)
@@ -162,10 +163,11 @@ def mrf_block(input_tensors):
   # Assuming width and height dimensions are the same for each tensor.
   up_sampled = []
   largest_res = max(input_tensors, key=lambda t: int(t.get_shape()[1]) )
+  largest_res = int(largest_res.get_shape()[1])
   for t in convolved:
     old_res = int(t.get_shape()[1]) # The width/height of the old tensor.
     x = deconv_layer(t, [3, 3, smallest_depth, smallest_depth], \
-                        [None, largest_res, largest_res, smallest_depth], \
+                        [batch_size, largest_res, largest_res, smallest_depth], \
                         stride=[1, largest_res//old_res, largest_res//old_res, 1])
     up_sampled.append(x)
   
@@ -275,6 +277,8 @@ block_17 = resnet_block(block_16, [3,3,512,512]) # 32 downsampled
 ## =============================================================================================
 ## Apply Refine-Net 
 ## =============================================================================================
+# Refine Net returns result 1/4 the size of input. Still need to upsample 4 times.
+# Expect the depth of the refine net output to be 64, since that is depth of #4 downsampled.
 upsampled = refine_net_block([block_17, block_14, block_8, block_4])
 result = deconv_layer(upsampled, [3,3,1,64], [batch_size,224,224,1], [1,4,4,1])
 
