@@ -4,14 +4,16 @@ import os, sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import numpy as np
 import tensorflow as tf
+import scipy.misc
 from ImSeg_Dataset import ImSeg_Dataset as Data
 import os
+from PIL import Image
 
 ## Global variables
 IM_SIZE = [224,224,3]
 LABEL_SIZE = [224,224,1]
 
-learning_rate = 0.001
+learning_rate = 0.0001
 num_epochs = 300
 batch_size = 32
 
@@ -168,7 +170,7 @@ fcn8 = deconv_layer(pool_3_and_4, [3,3,1,128], [batch_size,224,224,1], [1,8,8,1]
 ## Building the model
 
 # Defining Loss
-loss = tf.nn.softmax_cross_entropy_with_logits(labels=y, logits=fcn8)
+loss = tf.nn.sigmoid_cross_entropy_with_logits(labels=y, logits=fcn8)
 loss = tf.reduce_mean(loss)
 
 # Use an Adam optimizer to train network
@@ -181,8 +183,8 @@ init = tf.global_variables_initializer()
 if __name__ == "__main__":
   
   ## Get the data
-  data = Data('./data_path_white_plains_224')
-  if not os.path.isdir('./data_path_white_plains_224/im_seg'):
+  data = Data('../data_path_white_plains_224')
+  if not os.path.isdir('../data_path_white_plains_224/im_seg'):
     data = Data.build_dataset()
 
   
@@ -221,12 +223,24 @@ if __name__ == "__main__":
 
         # Since it is a dictionary, X (defined above) gets the batch of images X_batch (same for y)
         _, batch_loss = sess.run([optimizer, loss], feed_dict={X:X_batch, y:y_batch})
-
+        
         epoch_loss += batch_loss
       
       ## TODO: Save weights at each epoch.
-      X_val_batch, y_val_batch = data.get_batch([i for i in range(num_val)], "val")
-      preds = sess.run([fcn8], feed_dict={X:X_val_batch, y:y_val_batch})
+      if (epoch+1)%10 == 0:
+        X_val_batch, y_val_batch = data.get_batch([i for i in range(32)], "val")
+        preds = sess.run([fcn8], feed_dict={X:X_val_batch, y:y_val_batch})
+        for i in range(len(preds)):
+          preds[i] = preds[i].astype(np.uint8)
+          img = Image.fromarray(preds[i])
+          img.save(f'epoch{epoch}_{i}.png')
+#           x,y,d = preds[i].shape
+#           arr = np.zeros((x,y,3))
+#           arr[
+          
+#           scipy.misc.imsave(f'epoch{epoch}_{i}.jpg', preds[i])
+          
+        
 
       print(f"Loss at epoch {epoch+1}: {epoch_loss}")
 

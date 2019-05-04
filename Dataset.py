@@ -151,7 +151,8 @@ class Dataset:
     """
     im = Image.open(f'{self.images_path}/{self.img_list[index]}')
     im_arr = np.array(im)
-
+    mng = plt.get_current_fig_manager()
+    mng.window.showMaximized()
     plt.imshow(im_arr)
 
     # Open the json file and parse into dictionary of index -> buildings pairs
@@ -170,6 +171,13 @@ class Dataset:
     # TODO: Visualize bounding boxes from json format.
 
     plt.show()
+    
+    
+  def visualize_tiles(self, start_idx, end_idx):
+    for i in range(start_idx, end_idx):
+        print("Tile index: " + str(i))
+        self.visualize_tile(i)
+    
 
   def visualize_dataset(self):
     """
