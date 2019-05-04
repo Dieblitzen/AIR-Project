@@ -137,7 +137,7 @@ def rcu_block(input_t, n_layers=2):
   
   for _ in range(n_layers):
     x = tf.nn.relu(x)
-    x = conv_layer(x, [3, 3, x.get_shape()[2], x.get_shape()[3]])
+    x = conv_layer(x, [3, 3, int(x.get_shape()[2]), int(x.get_shape()[3]) ]) 
   
   return x + identity
 
@@ -155,7 +155,7 @@ def mrf_block(input_tensors):
   convolved = []
   smallest_depth = min(input_tensors, key=lambda t: int(t.get_shape()[3]) )
   for t in input_tensors:
-    x = conv_layer(t, [3, 3, t.get_shape()[3], smallest_depth] )
+    x = conv_layer(t, [3, 3, int(t.get_shape()[3]), smallest_depth] )
     convolved.append(x)
   
   # Upsample the convolutions to the largest input tensor resolution.
@@ -187,7 +187,7 @@ def crp_block(input_t, n_pool_blocks=2):
 
   for _ in range(n_pool_blocks):
     x = tf.nn.max_pool(x, [1,5,5,1], [1,1,1,1], padding="SAME")
-    x = conv_layer(x, [3, 3, x.get_shape()[2], x.get_shape()[3]] )
+    x = conv_layer(x, [3, 3, int(x.get_shape()[2]), int(x.get_shape()[3]) ] )
     result = result + x
 
   return result
