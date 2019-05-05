@@ -318,7 +318,7 @@ init = tf.global_variables_initializer()
 if __name__ == "__main__":
 
   ## Set up the logger
-  logging.basicConfig(filename="ImSegEval.log")
+  logging.basicConfig(filename="ImSegEval.log", level=logging.INFO)
   
   ## Get the data
   data = Data('../data_path_white_plains_224')
@@ -344,6 +344,10 @@ if __name__ == "__main__":
     # Number of validation samples and number of batches
     num_val = data.data_sizes[1]
     num_val_batches = num_val//batch_size
+
+    # Moving average loss
+    ma_train_loss = np.zeros((10)).tolist()
+    ma_val_loss = np.zeros((10)).tolist()
     
     # Training
     for epoch in range(num_epochs):
@@ -391,11 +395,11 @@ if __name__ == "__main__":
         epoch_val_loss += val_loss
 
         # IoU tuning 
-        preds_t = [preds > i for i in thresholds]  
-        intersections = [np.logical_and(pred, y_batch) for pred in preds_t]
-        unions = [np.logical_or(pred, y_batch) for pred in preds_t]
-        iou_scores = [np.sum(intersections[i])/np.sum(unions[i]) for i in range(len(intersections))] 
-        print(iou_scores)
+        # preds_t = [preds > i for i in thresholds]  
+        # intersections = [np.logical_and(pred, y_batch) for pred in preds_t]
+        # unions = [np.logical_or(pred, y_batch) for pred in preds_t]
+        # iou_scores = [np.sum(intersections[i])/np.sum(unions[i]) for i in range(len(intersections))] 
+        # print(iou_scores)
 
         # Calculate IoU for entire batch.
         preds = preds > pred_threshold
@@ -412,10 +416,21 @@ if __name__ == "__main__":
       ## Average the loss, and display the result (multiply by 10 to make it readable)
       epoch_train_loss = epoch_train_loss/num_train_batches * 10
       epoch_val_loss = epoch_val_loss/num_val_batches * 10
+
+      # Update loss history for moving avg(drop 1st element, append loss to end)
+      ma_train_loss = ma_train_loss[1:].append(epoch_train_loss)
+      ma_val_loss = ma_val_loss[1:].append(epoch_val_loss)
+
+      # Moving average for epoch
+      epoch_ma_train_loss = sum(ma_train_loss)/(len(ma_train_loss) - ma_train_loss.count(0.0))
+      epoch_ma_val_loss = sum(ma_val_loss)/(len(ma_val_loss) - ma_val_loss.count(0.0))
+
       epoch_IoU = epoch_IoU / num_val_batches
 
       logging.info("Epoch: " + str(epoch+1) + ", Training Loss: " + str(epoch_train_loss))
+      logging.info("Epoch: " + str(epoch+1) + ", Moving Average Training Loss: " + str(epoch_ma_train_loss))
       logging.info("Epoch: " + str(epoch+1) + ", Validation Loss: " + str(epoch_val_loss))
+      logging.info("Epoch: " + str(epoch+1) + ", Moving Average Validation Loss: " + str(epoch_ma_val_loss))
       logging.info("Epoch: " + str(epoch+1) + ", Epoch IoU: " + str(epoch_IoU))
 
       print(f"Epoch {epoch+1}, Training Loss: {epoch_train_loss}")
@@ -423,19 +438,6 @@ if __name__ == "__main__":
       print(f"                 IoU score: {epoch_IoU}")
 
       ## TODO: Save weights with checkpoint files.
-
-      # # Save predictions
-      # if (epoch+1)%100 == 0:
-
-      #   i = 0
-      #   for pred in preds[0]:
-      #     pred = np.squeeze(pred) #Drop the last dimesnion, which is anyways 1
-      #     pred = np.array(pred > pred_threshold, dtype=np.int32)
-      #     # Pass in pred here
-      #     print(pred.shape)
-      #     img = Image.fromarray(pred, mode="L")
-      #     img.save(f'epoch{epoch}_{i}.png')
-      #     i += 1
 
 
 
