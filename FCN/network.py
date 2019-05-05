@@ -19,7 +19,7 @@ num_epochs = 300
 batch_size = 32
 pred_threshold = 0.5
 
-thresholds = [(i + 1) / 10.0 for i in list(range(10))]
+thresholds = [(i + 1) / 10.0 for i in range(10)]
 
 
 ## =============================================================================================
@@ -388,13 +388,6 @@ if __name__ == "__main__":
         # Record the validation loss
         epoch_val_loss += val_loss
 
-        # Calculate IoU for entire batch.
-        preds = preds > pred_threshold
-        intersection = np.logical_and(preds, y_batch)
-        union = np.logical_or(preds, y_batch)
-        iou_score = np.sum(intersection) / np.sum(union)
-        epoch_IoU += iou_score
-
         # IoU tuning 
         preds_t = [preds > i for i in thresholds]  
         intersections = [np.logical_and(pred, y_batch) for pred in preds_t]
@@ -402,6 +395,14 @@ if __name__ == "__main__":
         iou_scores = [np.sum(intersections[i])/np.sum(unions[i]) for i in range(len(intersections))] 
         print(iou_scores)
 
+        # Calculate IoU for entire batch.
+        preds = preds > pred_threshold
+        intersection = np.logical_and(preds, y_batch)
+        union = np.logical_or(preds, y_batch)
+        iou_score = np.sum(intersection) / np.sum(union)
+        epoch_IoU += iou_score
+
+        # Save predictions every few epochs
         if (epoch+1) % 25 == 0:
           data.save_preds(val_indices[batch*batch_size : (batch+1)*batch_size], preds, image_dir="val")
           
