@@ -41,7 +41,8 @@ class ImSeg_Dataset(Dataset):
     self.train_path = self.data_path + '/im_seg/train'
     self.val_path = self.data_path + '/im_seg/val'
     self.test_path = self.data_path + '/im_seg/test'
-    self.data_sizes = [] # [train_size, val_size, test_size]
+    self.out_path = self.data_path + '/im_seg/out'
+    self.data_sizes = [] # [train_size, val_size, test_size, out_size]
 
     if not os.path.isdir(self.data_path + '/im_seg'):
       print(f"Creating directory to store semantic segmentation formatted dataset.")
@@ -49,7 +50,7 @@ class ImSeg_Dataset(Dataset):
 
     # Create train, validation, test directories, each with an images and
     # annotations sub-directories
-    for directory in [self.train_path, self.val_path, self.test_path]:
+    for directory in [self.train_path, self.val_path, self.test_path, self.out_path]:
       if not os.path.isdir(directory):
         os.mkdir(directory)
 
@@ -79,6 +80,8 @@ class ImSeg_Dataset(Dataset):
       path = self.val_path
     elif train_val_test == "test":
       path = self.test_path
+    elif train_val_test == "out":
+      path = self.out_path
 
     # Accumulators for images and annotations in batch
     images = []
@@ -198,6 +201,39 @@ class ImSeg_Dataset(Dataset):
 
     return {"annotation": pixel_annotations.tolist()}
 
+  def save_preds(self, image_indices, preds, image_dir="val"):
+    """
+    Saves the images specified by image_indices and the model's predictions for each
+    image in the output directory.
+    Requires:
+      image_indices: A list of indices corresponding to images stored in directory
+                     image_dir/images
+      preds: A list of np arrays (usually size 224x224) corresponding to the model 
+             predictions for each image in image_indices.
+      image_dir: The directory that image_indices corresponds to. (Usually validation)
+    """
+    path_to_im = self.val_path
+    if image_dir == "train":
+      path_to_im = self.train_path
+    elif image_dir == "test":
+      path_to_im = self.test_path
+    
+    # First copy the images in image_indices
+    for i in image_indices:
+      copyfile(
+          f"{path_to_im}/images/{i}", f"{self.out_path}/images/{i}.jpg")
+
+    # Save prediction in json format and dump
+    for i in range(len(preds)): 
+      preds_json = {"img": str(image_indices[i]) + ".jpg"}
+      # take annotation
+      preds_json["annotation"] = preds[i].tolist()
+
+      # save annotation in file
+      with open(f"{self.out_path}/annotations/{image_indices[i]}.json", 'w') as dest:
+        json.dump(preds_json, dest)
+    
+
   def visualize_tile(self, index, directory="train"):
     """
     Provides a visualization of the tile and its corresponding annotation/ label in one
@@ -209,6 +245,8 @@ class ImSeg_Dataset(Dataset):
       path = self.test_path
     elif directory == "val":
       path = self.val_path
+    elif directory == "out":
+      path = self.out_path
 
     # Image visualization
     im = Image.open(f'{path}/images/{index}.jpg')

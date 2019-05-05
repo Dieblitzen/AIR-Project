@@ -17,6 +17,7 @@ LABEL_SIZE = [224,224,1]
 learning_rate = 0.0001
 num_epochs = 300
 batch_size = 32
+pred_threshold = 0.5
 
 
 ## =============================================================================================
@@ -368,7 +369,6 @@ if __name__ == "__main__":
         
         # Record the training loss
         epoch_train_loss += train_loss
-        logging.info("Epoch: " + str(epoch+1) + ", Training Loss: " + str(epoch_train_loss))
       
       ## Recording validation loss
       for batch in range(num_val_batches):
@@ -383,38 +383,45 @@ if __name__ == "__main__":
         
         # Record the validation loss
         epoch_val_loss += val_loss
-        logging.info("Epoch: " + str(epoch+1) + ", Validation Loss: " + str(epoch_val_loss))
 
         # Calculate IoU for entire image.
-        preds = preds > 0.5
+        preds = preds > pred_threshold
         intersection = np.logical_and(preds, y_batch)
         union = np.logical_or(preds, y_batch)
         iou_score = np.sum(intersection) / np.sum(union)
         epoch_IoU += iou_score
-      
+
+        if (epoch+1) % 100 == 0:
+          data.save_preds(val_indices[batch*batch_size : (batch+1)*batch_size], preds, image_dir="val")
+          
+
       ## Average the loss, and display the result (multiply by 10 to make it readable)
       epoch_train_loss = epoch_train_loss/num_train_batches * 10
       epoch_val_loss = epoch_val_loss/num_val_batches * 10
       epoch_IoU = epoch_IoU / num_val_batches
+
+      logging.info("Epoch: " + str(epoch+1) + ", Training Loss: " + str(epoch_train_loss))
+      logging.info("Epoch: " + str(epoch+1) + ", Validation Loss: " + str(epoch_val_loss))
+      logging.info("Epoch: " + str(epoch+1) + ", Epoch IoU: " + str(epoch_IoU))
+
       print(f"Epoch {epoch+1}, Training Loss: {epoch_train_loss}")
       print(f"                 Validation Loss: {epoch_val_loss}")
       print(f"                 IoU score: {epoch_IoU}")
-      
+
       ## TODO: Save weights with checkpoint files.
 
-      # Save predictions
-      if (epoch+1)%100 == 0:
+      # # Save predictions
+      # if (epoch+1)%100 == 0:
 
-        X_val_batch, y_val_batch = data.get_batch([i for i in range(32)], "val")
-        preds = sess.run([result], feed_dict={X:X_val_batch, y:y_val_batch})
-  
-        i = 0
-        for pred in preds[0]:
-          pred = np.squeeze(pred) #Drop the last dimesnion, which is anyways 1
-          print(pred.shape)
-          img = Image.fromarray(pred, mode="L")
-          img.save(f'epoch{epoch}_{i}.png')
-          i += 1
+      #   i = 0
+      #   for pred in preds[0]:
+      #     pred = np.squeeze(pred) #Drop the last dimesnion, which is anyways 1
+      #     pred = np.array(pred > pred_threshold, dtype=np.int32)
+      #     # Pass in pred here
+      #     print(pred.shape)
+      #     img = Image.fromarray(pred, mode="L")
+      #     img.save(f'epoch{epoch}_{i}.png')
+      #     i += 1
 
 
 
