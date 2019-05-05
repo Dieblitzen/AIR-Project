@@ -361,10 +361,12 @@ if __name__ == "__main__":
       val_indices = list(range(num_val))
       np.random.shuffle(val_indices)
 
-      # Track epoch loss and IoU
+      # Track epoch loss and IoU, precision and recall.
       epoch_train_loss = 0
       epoch_val_loss = 0
       epoch_IoU = 0
+      epoch_precision = 0
+      epoch_recall = 0
 
       epoch_IoUs = [0 for i in thresholds]
 
@@ -410,6 +412,12 @@ if __name__ == "__main__":
         iou_score = np.sum(intersection) / np.sum(union)
         epoch_IoU += iou_score
 
+        # Calculate precision and recall
+        precision = np.sum(intersection)/np.sum(preds)
+        epoch_precision += precision
+        recall = np.sum(intersection)/np.sum(y_batch)
+        epoch_recall += recall
+
         # Save predictions every few epochs
         if (epoch+1) % 100 == 0:
           data.save_preds(val_indices[batch*batch_size : (batch+1)*batch_size], preds, image_dir="val")
@@ -429,7 +437,10 @@ if __name__ == "__main__":
       epoch_ma_train_loss = sum(ma_train_loss)/(len(ma_train_loss) - ma_train_loss.count(0.0))
       epoch_ma_val_loss = sum(ma_val_loss)/(len(ma_val_loss) - ma_val_loss.count(0.0))
 
+      # IoU, Precision and Recall
       epoch_IoU = epoch_IoU / num_val_batches
+      epoch_precision = epoch_precision / num_val_batches
+      epoch_recall = epoch_recall / num_val_batches
 
       # Log all information
       logging.info("Epoch: " + str(epoch+1) + ", Training Loss: " + str(epoch_train_loss))
@@ -437,13 +448,18 @@ if __name__ == "__main__":
       logging.info("Epoch: " + str(epoch+1) + ", Validation Loss: " + str(epoch_val_loss))
       logging.info("Epoch: " + str(epoch+1) + ", Moving Average Validation Loss: " + str(epoch_ma_val_loss))
       logging.info("Epoch: " + str(epoch+1) + ", Epoch IoU: " + str(epoch_IoU))
+      logging.info("Epoch: " + str(epoch+1) + ", Epoch Precision: " + str(epoch_precision))
+      logging.info("Epoch: " + str(epoch+1) + ", Epoch Recall: " + str(epoch_recall))
 
       print(f"Epoch {epoch+1}")
       print(f"Training Loss: {epoch_train_loss}")
       print(f"Validation Loss: {epoch_val_loss}")
       print(f"Moving Average Training Loss: {epoch_ma_train_loss}")
       print(f"Moving Average Validation Loss: {epoch_ma_val_loss}")
-      print(f"IoU score: {epoch_IoU}\n")
+      print(f"IoU score: {epoch_IoU}")
+      print(f"Precision: {epoch_precision}")
+      print(f"Recall: {epoch_recall}")
+
 
       ## TODO: Save weights with checkpoint files.
 
