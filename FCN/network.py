@@ -295,7 +295,9 @@ block_17 = resnet_block(block_16, [3,3,512,512]) # 1/32 downsampled
 # Refine Net returns result 1/4 the size of input. Still need to upsample 4 times.
 # Expect the depth of the refine net output to be 64, since that is depth of #4 downsampled.
 upsampled = refine_net_block([block_17, block_14, block_8, block_4])
-result = deconv_layer(upsampled, [3,3,1,64], [batch_size,224,224,1], [1,4,4,1])
+# result = deconv_layer(upsampled, [3,3,1,64], [batch_size,224,224,1], [1,4,4,1])
+depth_reduced = conv_layer(upsampled, [3, 3, 64, 1])
+result = tf.image.resize_bilinear(depth_reduced, (IM_SIZE[0], IM_SIZE[1]) )
 
 
 ## =============================================================================================
@@ -403,7 +405,7 @@ if __name__ == "__main__":
         epoch_IoU += iou_score
 
         # Save predictions every few epochs
-        if (epoch+1) % 25 == 0:
+        if (epoch+1) % 100 == 0:
           data.save_preds(val_indices[batch*batch_size : (batch+1)*batch_size], preds, image_dir="val")
           
 
