@@ -386,14 +386,11 @@ if __name__ == "__main__":
         logging.info("Epoch: " + str(epoch+1) + ", Validation Loss: " + str(epoch_val_loss))
 
         # Calculate IoU for entire image.
-        print(preds.shape)
-        mean, variance = tf.nn.moments(preds, axes=[0])
-        print(mean)
-        print(variance)
+        
       
-      ## Average the loss, and display the result
-      epoch_train_loss = epoch_train_loss/num_train_batches
-      epoch_val_loss = epoch_val_loss/num_val_batches
+      ## Average the loss, and display the result (multiply by 10 to make it readable)
+      epoch_train_loss = epoch_train_loss/num_train_batches * 10
+      epoch_val_loss = epoch_val_loss/num_val_batches * 10
       print(f"Epoch {epoch+1}, Training Loss: {epoch_train_loss}")
       print(f"Epoch {epoch+1}, Validation Loss: {epoch_val_loss}")
       
