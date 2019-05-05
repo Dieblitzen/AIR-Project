@@ -396,7 +396,7 @@ if __name__ == "__main__":
         epoch_IoU += iou_score
 
         # IoU tuning 
-        preds_t = [preds_t > i for i in thresholds]  
+        preds_t = [preds > i for i in thresholds]  
         intersections = [np.logical_and(pred, y_batch) for pred in preds_t]
         unions = [np.logical_or(pred, y_batch) for pred in preds_t]
         iou_scores = [np.sum(intersections[i])/np.sum(unions[i]) for i in range(len(intersections))] 
