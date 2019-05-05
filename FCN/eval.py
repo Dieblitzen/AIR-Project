@@ -38,12 +38,16 @@ with open("./ImSegEval.log") as file_name:
   plt.plot(epoch_num, ma_training_loss, label="Moving average training loss")
   plt.plot(epoch_num, ma_val_loss, label="Moving average validation loss")
   plt.legend()
-  plt.ylim([0,100])
+  plt.xlabel("Epochs")
+  plt.ylabel("Loss")
+  plt.ylim([0,50])
   plt.show()
 
   # Iou scores graph
-  plt.title("IoU score vs Number of Epochs")
   plt.plot(epoch_num, iou_scores)
+  plt.title("IoU score vs Number of Epochs")
+  plt.xlabel("Epochs")
+  plt.ylabel("IoU")
 
   plt.show()
   
