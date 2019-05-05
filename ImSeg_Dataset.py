@@ -203,8 +203,8 @@ class ImSeg_Dataset(Dataset):
 
   def save_preds(self, image_indices, preds, image_dir="val"):
     """
-    Saves the images specified by image_indices and the model's predictions for each
-    image in the output directory.
+    Saves the images specified by image_indices (accessed from image_dir) 
+    and the model's predictions (as json files) in the output directory.
     Requires:
       image_indices: A list of indices corresponding to images stored in directory
                      image_dir/images
@@ -217,6 +217,9 @@ class ImSeg_Dataset(Dataset):
       path_to_im = self.train_path
     elif image_dir == "test":
       path_to_im = self.test_path
+    
+    if not os.path.isdir(self.out_path):
+      os.mkdir(self.out_path) 
     
     # First copy the images in image_indices
     for i in image_indices:

@@ -9,7 +9,11 @@ with open("./ImSegEval.log") as file_name:
   ma_val_loss = []
   iou_scores = []
 
+  # Iterate through each line, checking whether it records moving average loss 
+  # (training or validation) or IoU scores. Each line is assumed to only carry 
+  # information for one of the metrics.
   for line in file_name: 
+
     ma_train_idx = line.find(ma_train_token) 
     ma_val_idx = line.find(ma_val_token)
     iou_idx = line.find(iou_token)
@@ -29,6 +33,7 @@ with open("./ImSegEval.log") as file_name:
     
 
   epoch_num = list(range(1, len(ma_training_loss) + 1))
+
   # Training vs Validation Loss graph
   plt.plot(epoch_num, ma_training_loss)
   plt.plot(epoch_num, ma_val_loss)

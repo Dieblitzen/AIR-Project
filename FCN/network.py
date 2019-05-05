@@ -414,8 +414,8 @@ if __name__ == "__main__":
           
 
       ## Average the loss (optional: multiply by 10 to make it readable)
-      epoch_train_loss = epoch_train_loss/num_train_batches * 10
-      epoch_val_loss = epoch_val_loss/num_val_batches * 10
+      epoch_train_loss = epoch_train_loss/num_train_batches 
+      epoch_val_loss = epoch_val_loss/num_val_batches 
 
       # Update loss history for moving avg(drop 1st element, append loss to end)
       ma_train_loss = ma_train_loss[1:]
@@ -435,12 +435,12 @@ if __name__ == "__main__":
       logging.info("Epoch: " + str(epoch+1) + ", Validation Loss: " + str(epoch_val_loss))
       logging.info("Epoch: " + str(epoch+1) + ", Moving Average Validation Loss: " + str(epoch_ma_val_loss))
       logging.info("Epoch: " + str(epoch+1) + ", Epoch IoU: " + str(epoch_IoU))
-      
+
       print(f"Epoch {epoch+1}")
       print(f"Training Loss: {epoch_train_loss}")
       print(f"Validation Loss: {epoch_val_loss}")
       print(f"Moving Average Training Loss: {epoch_ma_train_loss}")
-      print(f"Moving Average Training Loss: {epoch_ma_val_loss}")
+      print(f"Moving Average Validation Loss: {epoch_ma_val_loss}")
       print(f"IoU score: {epoch_IoU}\n")
 
       ## TODO: Save weights with checkpoint files.
