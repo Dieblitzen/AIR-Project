@@ -118,30 +118,35 @@ class ImSeg_Dataset(Dataset):
     while i < len(shuffled_img):
       if i < math.floor(train*len(shuffled_img)):
         # Add to train folder
-        copyfile(
-          f"{self.images_path}/{shuffled_img[i]}", f"{self.train_path}/images/{i}.jpg")
-        self.format_json(
-          f"{self.annotations_path}/{shuffled_annotations[i]}", f"{self.train_path}/annotations/{i}.json", f"{i}.jpg")
+        copyfile(f"{self.images_path}/{shuffled_img[i]}", \
+                 f"{self.train_path}/images/{i}.jpg")
+
+        self.format_json(f"{self.annotations_path}/{shuffled_annotations[i]}",\
+                         f"{self.train_path}/annotations/{i}.json", f"{i}.jpg")
         
         self.data_sizes[0] += 1
 
       elif i < math.floor((train+val)*len(shuffled_img)):
         # Add to val folder
         ind = i - math.floor(train*len(shuffled_img))
-        copyfile(
-          f"{self.images_path}/{shuffled_img[i]}", f"{self.val_path}/images/{ind}.jpg")
-        self.format_json(
-          f"{self.annotations_path}/{shuffled_annotations[i]}", f"{self.val_path}/annotations/{ind}.json", f"{ind}.jpg")
+
+        copyfile(f"{self.images_path}/{shuffled_img[i]}",\
+                 f"{self.val_path}/images/{ind}.jpg")
+
+        self.format_json(f"{self.annotations_path}/{shuffled_annotations[i]}",\
+                         f"{self.val_path}/annotations/{ind}.json", f"{ind}.jpg")
         
         self.data_sizes[1] += 1
         
       else:
         # Add to test folder
         ind = i - math.floor((train+val)*len(shuffled_img))
-        copyfile(
-          f"{self.images_path}/{shuffled_img[i]}", f"{self.test_path}/images/{ind}.jpg")
-        self.format_json(
-          f"{self.annotations_path}/{shuffled_annotations[i]}", f"{self.test_path}/annotations/{ind}.json", f"{ind}.jpg")
+
+        copyfile(f"{self.images_path}/{shuffled_img[i]}",\
+                 f"{self.test_path}/images/{ind}.jpg")
+
+        self.format_json(f"{self.annotations_path}/{shuffled_annotations[i]}",\
+                         f"{self.test_path}/annotations/{ind}.json", f"{ind}.jpg")
         
         self.data_sizes[2] += 1
       # increment index counter
@@ -212,14 +217,18 @@ class ImSeg_Dataset(Dataset):
              predictions for each image in image_indices.
       image_dir: The directory that image_indices corresponds to. (Usually validation)
     """
+    # Path from where images will be copied
     path_to_im = self.val_path
     if image_dir == "train":
       path_to_im = self.train_path
     elif image_dir == "test":
       path_to_im = self.test_path
     
+    # Output directory
     if not os.path.isdir(self.out_path):
       os.mkdir(self.out_path) 
+      os.mkdir(self.out_path + '/images')
+      os.mkdir(self.out_path + '/annotations')
     
     # First copy the images in image_indices
     for i in image_indices:
