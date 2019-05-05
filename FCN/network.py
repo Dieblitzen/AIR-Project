@@ -413,7 +413,7 @@ if __name__ == "__main__":
           data.save_preds(val_indices[batch*batch_size : (batch+1)*batch_size], preds, image_dir="val")
           
 
-      ## Average the loss, and display the result (multiply by 10 to make it readable)
+      ## Average the loss (optional: multiply by 10 to make it readable)
       epoch_train_loss = epoch_train_loss/num_train_batches * 10
       epoch_val_loss = epoch_val_loss/num_val_batches * 10
 
@@ -429,15 +429,19 @@ if __name__ == "__main__":
 
       epoch_IoU = epoch_IoU / num_val_batches
 
+      # Log all information
       logging.info("Epoch: " + str(epoch+1) + ", Training Loss: " + str(epoch_train_loss))
       logging.info("Epoch: " + str(epoch+1) + ", Moving Average Training Loss: " + str(epoch_ma_train_loss))
       logging.info("Epoch: " + str(epoch+1) + ", Validation Loss: " + str(epoch_val_loss))
       logging.info("Epoch: " + str(epoch+1) + ", Moving Average Validation Loss: " + str(epoch_ma_val_loss))
       logging.info("Epoch: " + str(epoch+1) + ", Epoch IoU: " + str(epoch_IoU))
-
-      print(f"Epoch {epoch+1}, Training Loss: {epoch_train_loss}")
-      print(f"                 Validation Loss: {epoch_val_loss}")
-      print(f"                 IoU score: {epoch_IoU}")
+      
+      print(f"Epoch {epoch+1}")
+      print(f"Training Loss: {epoch_train_loss}")
+      print(f"Validation Loss: {epoch_val_loss}")
+      print(f"Moving Average Training Loss: {epoch_ma_train_loss}")
+      print(f"Moving Average Training Loss: {epoch_ma_val_loss}")
+      print(f"IoU score: {epoch_IoU}\n")
 
       ## TODO: Save weights with checkpoint files.
 
