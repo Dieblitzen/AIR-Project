@@ -380,7 +380,7 @@ if __name__ == "__main__":
 
         ## Resize images to 224x224
         X_batch = tf.image.resize_bilinear(X_batch, (IM_SIZE[0], IM_SIZE[1]) )
-        y_batch = tf.image.resize_bilinear(y_batch, (LABEL_SIZE[0], LABEL_SIZE[1]) )
+        y_batch = tf.image.resize_bilinear(np.array(y_batch, dtype=np.int8), (LABEL_SIZE[0], LABEL_SIZE[1]) )
 
         # Since it is a dictionary, X (defined above) gets the batch of images X_batch (same for y)
         _, train_loss = sess.run([optimizer, loss], feed_dict={X:X_batch, y:y_batch})
@@ -396,7 +396,7 @@ if __name__ == "__main__":
         
         ## Resize images 224x224
         X_batch = tf.image.resize_bilinear(X_batch, (IM_SIZE[0], IM_SIZE[1]) )
-        y_batch = tf.image.resize_bilinear(y_batch, (LABEL_SIZE[0], LABEL_SIZE[1]) )
+        y_batch = tf.image.resize_bilinear(np.array(y_batch, dtype=np.int8), (LABEL_SIZE[0], LABEL_SIZE[1]) )
 
         # Get the predictions
         preds, val_loss = sess.run([result, loss], feed_dict={X:X_batch, y:y_batch})
