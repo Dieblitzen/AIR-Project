@@ -323,8 +323,10 @@ if __name__ == "__main__":
   logging.basicConfig(filename="ImSegEval.log", level=logging.INFO)
   
   ## Get the data
-  data = Data('../data_path_white_plains_224')
-  if not os.path.isdir('../data_path_white_plains_224/im_seg'):
+  data_path = input("Input the data_path directory (eg: data_path_white_plains): ")
+  data_path = '../' + data_path.strip()
+  data = Data(data_path)
+  if not os.path.isdir(data_path):
     data = Data.build_dataset()
 
   # Begin session
@@ -376,7 +378,9 @@ if __name__ == "__main__":
         # Get the batch
         X_batch, y_batch = data.get_batch(train_indices[batch*batch_size : (batch+1)*batch_size], "train")
 
-        ## TODO: Resize images (unimplemented)
+        ## Resize images to 224x224
+        X_batch = tf.image.resize_bilinear(X_batch, (IM_SIZE[0], IM_SIZE[1]) )
+        y_batch = tf.image.resize_bilinear(y_batch, (LABEL_SIZE[0], LABEL_SIZE[1]) )
 
         # Since it is a dictionary, X (defined above) gets the batch of images X_batch (same for y)
         _, train_loss = sess.run([optimizer, loss], feed_dict={X:X_batch, y:y_batch})
@@ -390,7 +394,9 @@ if __name__ == "__main__":
         # Get the batch
         X_batch, y_batch = data.get_batch(val_indices[batch*batch_size : (batch+1)*batch_size], "val")
         
-        ## TODO: Resize images (unimplemented)
+        ## Resize images 224x224
+        X_batch = tf.image.resize_bilinear(X_batch, (IM_SIZE[0], IM_SIZE[1]) )
+        y_batch = tf.image.resize_bilinear(y_batch, (LABEL_SIZE[0], LABEL_SIZE[1]) )
 
         # Get the predictions
         preds, val_loss = sess.run([result, loss], feed_dict={X:X_batch, y:y_batch})
@@ -458,7 +464,7 @@ if __name__ == "__main__":
       print(f"Moving Average Validation Loss: {epoch_ma_val_loss}")
       print(f"IoU score: {epoch_IoU}")
       print(f"Precision: {epoch_precision}")
-      print(f"Recall: {epoch_recall}")
+      print(f"Recall: {epoch_recall}\n")
 
 
       ## TODO: Save weights with checkpoint files.
