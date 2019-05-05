@@ -386,13 +386,19 @@ if __name__ == "__main__":
         logging.info("Epoch: " + str(epoch+1) + ", Validation Loss: " + str(epoch_val_loss))
 
         # Calculate IoU for entire image.
-        
+        preds = preds > 0.5
+        intersection = np.logical_and(preds, y_batch)
+        union = np.logical_or(preds, y_batch)
+        iou_score = np.sum(intersection) / np.sum(union)
+        epoch_IoU += iou_score
       
       ## Average the loss, and display the result (multiply by 10 to make it readable)
       epoch_train_loss = epoch_train_loss/num_train_batches * 10
       epoch_val_loss = epoch_val_loss/num_val_batches * 10
+      epoch_IoU = epoch_IoU / num_val_batches
       print(f"Epoch {epoch+1}, Training Loss: {epoch_train_loss}")
-      print(f"Epoch {epoch+1}, Validation Loss: {epoch_val_loss}")
+      print(f"                 Validation Loss: {epoch_val_loss}")
+      print(f"                 IoU score: {epoch_IoU}")
       
       ## TODO: Save weights with checkpoint files.
 
