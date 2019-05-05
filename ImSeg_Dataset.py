@@ -221,7 +221,7 @@ class ImSeg_Dataset(Dataset):
     # First copy the images in image_indices
     for i in image_indices:
       copyfile(
-          f"{path_to_im}/images/{i}", f"{self.out_path}/images/{i}.jpg")
+          f"{path_to_im}/images/{i}.jpg", f"{self.out_path}/images/{i}.jpg")
 
     # Save prediction in json format and dump
     for i in range(len(preds)): 
