@@ -369,7 +369,6 @@ if __name__ == "__main__":
         # Record the training loss
         epoch_train_loss += train_loss
         logging.info("Epoch: " + str(epoch+1) + ", Training Loss: " + str(epoch_train_loss))
-
       
       ## Recording validation loss
       for batch in range(num_val_batches):
@@ -387,8 +386,16 @@ if __name__ == "__main__":
         logging.info("Epoch: " + str(epoch+1) + ", Validation Loss: " + str(epoch_val_loss))
 
         # Calculate IoU for entire image.
-        print(preds)
-       
+        print(preds.shape)
+        mean, variance = tf.nn.moments(preds, axes=[0])
+        print(mean)
+        print(variance)
+      
+      ## Average the loss, and display the result
+      epoch_train_loss = epoch_train_loss/num_train_batches
+      epoch_val_loss = epoch_val_loss/num_val_batches
+      print(f"Epoch {epoch+1}, Training Loss: {epoch_train_loss}")
+      print(f"Epoch {epoch+1}, Validation Loss: {epoch_val_loss}")
       
       ## TODO: Save weights with checkpoint files.
 
@@ -405,9 +412,7 @@ if __name__ == "__main__":
           img = Image.fromarray(pred, mode="L")
           img.save(f'epoch{epoch}_{i}.png')
           i += 1
-          
-      print(f"Epoch {epoch+1}, Training Loss: {epoch_train_loss}")
-      print(f"Epoch {epoch+1}, Validation Loss: {epoch_val_loss}")
+
 
 
 
