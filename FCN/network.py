@@ -346,8 +346,8 @@ if __name__ == "__main__":
     num_val_batches = num_val//batch_size
 
     # Moving average loss
-    ma_train_loss = np.zeros((10)).tolist()
-    ma_val_loss = np.zeros((10)).tolist()
+    ma_train_loss = [0.0] * 10
+    ma_val_loss = [0.0] * 10
     
     # Training
     for epoch in range(num_epochs):
@@ -418,8 +418,10 @@ if __name__ == "__main__":
       epoch_val_loss = epoch_val_loss/num_val_batches * 10
 
       # Update loss history for moving avg(drop 1st element, append loss to end)
-      ma_train_loss = ma_train_loss[1:].append(epoch_train_loss)
-      ma_val_loss = ma_val_loss[1:].append(epoch_val_loss)
+      ma_train_loss = ma_train_loss[1:]
+      ma_train_loss.append(epoch_train_loss)
+      ma_val_loss = ma_val_loss[1:]
+      ma_val_loss.append(epoch_val_loss)
 
       # Moving average for epoch
       epoch_ma_train_loss = sum(ma_train_loss)/(len(ma_train_loss) - ma_train_loss.count(0.0))
