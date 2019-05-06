@@ -111,7 +111,7 @@ def resnet_block_bottleneck(input_t, filter_shape, stride=[1,1,1,1], padding='SA
   return x + identity
 
 ## =============================================================================================
-## Define RefineNet Operations
+## Define FCN Operations
 ## =============================================================================================
 
 ## Define Upsampling
@@ -132,6 +132,47 @@ def deconv_layer(input_t, filter_shape, output_shape, stride=[1,2,2,1], padding=
   weights = tf.Variable(tf.truncated_normal(filter_shape, stddev=0.05))
   biases = tf.Variable(tf.zeros([filter_shape[2]]))
   return tf.nn.conv2d_transpose(input_t, weights, output_shape, stride, padding) + biases
+
+"""
+Fully Convolutional Net
+fcn(input_tensors) combines and upsamples the input tensors using fully convolutional nets.
+- Uses 3x3 kernel deconvolutional layers.
+- Upsamples to the largest resolution and the smallest depth (# channels) of the inputs
+- Upsampling is carried out in sets of 2 at a time.
+Requires:
+  input_tensors: a list of tensors being inputted to the block (must contain at least 1)
+"""
+def fcn(input_tensors):
+  # Sort in order of increasing resolution
+  sorted_resolution = sorted(input_tensors, key=lambda t: int(t.get_shape()[1]) )
+
+  # Result of upsampling and adding.
+  upsampled = sorted_resolution[0]
+  for i in range(len(sorted_resolution) - 1):
+
+    t_next = sorted_resolution[i+1]
+
+    old_dim = tuple(upsampled.get_shape())
+    new_dim = tuple(t_next.get_shape())
+
+    # Calculate stride based on multiple required to get from old res to new res.
+    x = deconv_layer(upsampled, \
+                    [3, 3, int(new_dim[3]), int(old_dim[3])],\
+                    [batch_size, int(new_dim[1]), int(new_dim[2]), int(new_dim[3])],\
+                    stride=[1, int(new_dim[1])//int(old_dim[1]), int(new_dim[2])//int(old_dim[2]), 1])
+    
+    # Sum the upsampled with the larger tensor.
+    upsampled = x + t_next
+  
+  return upsampled
+    
+
+
+
+
+## =============================================================================================
+## Define RefineNet Operations
+## =============================================================================================
 
 """
 Residual Convolution Unit
@@ -174,7 +215,7 @@ def mrf_block(input_tensors):
     convolved.append(x)
   
   # Upsample the convolutions to the largest input tensor resolution.
-  # Assuming width and height dimensions are the same for each tensor.
+  # Assuming each tensor is a square.
   up_sampled = []
   largest_res = max(input_tensors, key=lambda t: int(t.get_shape()[1]) )
   largest_res = int(largest_res.get_shape()[1])
@@ -192,7 +233,7 @@ def mrf_block(input_tensors):
 """
 Chained Residual Pooling.
 - Chain of multiple pooling blocks, each consisting of one max-pooling layer
-  and one convolutional layer. Kernel size for pooling is 5.
+  and one convolutional layer. Kernel sizes: for pooling is 5, convolution 3.
 - Output feature maps of pooling blocks are summed with identity mappings.
 - Maintains the dimensions of the input.
 Requires:
@@ -281,14 +322,15 @@ block_17 = resnet_block(block_16, [3,3,512,512]) # 1/32 downsampled
 ## =============================================================================================
 ## Apply FCN-8
 ## =============================================================================================
-upsampled_32 = deconv_layer(block_17, [3,3,256,512], [batch_size,14,14,256], [1,2,2,1])
-pool_4_and_5 = upsampled_32 + block_14
+# upsampled_32 = deconv_layer(block_17, [3,3,256,512], [batch_size,14,14,256], [1,2,2,1])
+# pool_4_and_5 = upsampled_32 + block_14
 
-upsampled_32_16 = deconv_layer(pool_4_and_5, [3,3,128,256], [batch_size,28,28,128], [1,2,2,1]) 
-pool_3_and_4 = upsampled_32_16 + block_8
-# result = deconv_layer(pool_3_and_4, [3,3,1,128], [batch_size,224,224,1], [1,8,8,1])
+# upsampled_32_16 = deconv_layer(pool_4_and_5, [3,3,128,256], [batch_size,28,28,128], [1,2,2,1]) 
+# pool_3_and_4 = upsampled_32_16 + block_8
+fcn8 = fcn([block_17, block_14, block_8])
+# result = deconv_layer(fcn8, [3,3,1,128], [batch_size,224,224,1], [1,8,8,1])
 
-resized_bilinear = tf.image.resize_bilinear(pool_3_and_4, (LABEL_SIZE[0], LABEL_SIZE[1]) )
+resized_bilinear = tf.image.resize_bilinear(fcn8, (LABEL_SIZE[0], LABEL_SIZE[1]) )
 result = conv_layer(resized_bilinear, [1, 1, 128, 1])
 
 
