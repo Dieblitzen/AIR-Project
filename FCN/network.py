@@ -354,7 +354,7 @@ if __name__ == "__main__":
     num_val_batches = num_val//batch_size
 
     # Mean of training data
-    mean = preprocess.mean_of_data(data.get_batch(list(range(num_train))), "train")
+    mean = preprocess.mean_of_data(data.get_batch(list(range(num_train)), "train"))
 
     # Moving average loss
     ma_train_loss = [0.0] * 10
