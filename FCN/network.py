@@ -353,8 +353,9 @@ if __name__ == "__main__":
     num_val = data.data_sizes[1]
     num_val_batches = num_val//batch_size
 
-    # Mean of training data
-    mean = preprocess.mean_of_data(data.get_batch(list(range(num_train)), "train"))
+    # Mean and std-dev of training data
+    mean = preprocess.mean_of_data(data.get_batch(list(range(num_train)), "train") )
+    std_dev = preprocess.std_of_data(data.get_batch(list(range(num_train)), "train") )
 
     # Moving average loss
     ma_train_loss = [0.0] * 10
@@ -387,7 +388,7 @@ if __name__ == "__main__":
         
         # Get the batch
         X_batch, y_batch = data.get_batch(train_indices[batch*batch_size : (batch+1)*batch_size], "train")
-        X_batch = (X_batch - mean)
+        X_batch = (X_batch - mean) / std_dev
 
         ## Resize images to 224x224 (Removed)
 
@@ -402,7 +403,7 @@ if __name__ == "__main__":
 
         # Get the batch
         X_batch, y_batch = data.get_batch(val_indices[batch*batch_size : (batch+1)*batch_size], "val")
-        X_batch = (X_batch - mean)
+        X_batch = (X_batch - mean) / std_dev
         
         ## Resize images 224x224 (Removed)
 
