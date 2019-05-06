@@ -1,6 +1,6 @@
 ## Network for FCN 
 
-import FCN.preprocess as preprocess
+import preprocess
 import os, sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import numpy as np
