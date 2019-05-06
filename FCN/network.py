@@ -387,7 +387,7 @@ if __name__ == "__main__":
         
         # Get the batch
         X_batch, y_batch = data.get_batch(train_indices[batch*batch_size : (batch+1)*batch_size], "train")
-        X_batch = (X_batch - mean)/255.0
+        X_batch = (X_batch - mean)
 
         ## Resize images to 224x224 (Removed)
 
@@ -402,7 +402,7 @@ if __name__ == "__main__":
 
         # Get the batch
         X_batch, y_batch = data.get_batch(val_indices[batch*batch_size : (batch+1)*batch_size], "val")
-        X_batch = (X_batch - mean)/255.0
+        X_batch = (X_batch - mean)
         
         ## Resize images 224x224 (Removed)
 

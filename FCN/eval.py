@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 
-with open("./ImSegEval.log") as file_name:
+with open("./ImSegEval_NY.log") as file_name:
   ma_train_token = "Moving Average Training Loss: "
   ma_val_token = "Moving Average Validation Loss: "
   iou_token = "Epoch IoU: "
