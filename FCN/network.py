@@ -1,12 +1,12 @@
 ## Network for FCN 
 
-import preprocess
 import os, sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import numpy as np
 import tensorflow as tf
 import scipy.misc
 from ImSeg_Dataset import ImSeg_Dataset as Data
+import FCN.preprocess
 import os
 from PIL import Image
 import logging
@@ -362,6 +362,9 @@ if __name__ == "__main__":
     
     # Training
     for epoch in range(num_epochs):
+
+      # Decrease learning rate
+      learning_rate = learning_rate / 10.0 if (epoch + 1) % 150 == 0 else learning_rate
 
       # Shuffle indices of training image to randomise batch selection
       train_indices = list(range(num_train))
