@@ -1,5 +1,6 @@
 ## Network for FCN 
 
+import FCN.preprocess as preprocess
 import os, sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import numpy as np
@@ -9,6 +10,7 @@ from ImSeg_Dataset import ImSeg_Dataset as Data
 import os
 from PIL import Image
 import logging
+
 
 ## Global variables
 IM_SIZE = [224,224,3]
@@ -351,6 +353,9 @@ if __name__ == "__main__":
     num_val = data.data_sizes[1]
     num_val_batches = num_val//batch_size
 
+    # Mean of training data
+    mean = preprocess.mean_of_data(data.get_batch(list(range(num_train))), "train")
+
     # Moving average loss
     ma_train_loss = [0.0] * 10
     ma_val_loss = [0.0] * 10
@@ -379,6 +384,7 @@ if __name__ == "__main__":
         
         # Get the batch
         X_batch, y_batch = data.get_batch(train_indices[batch*batch_size : (batch+1)*batch_size], "train")
+        X_batch = (X_batch - mean)/255.0
 
         ## Resize images to 224x224 (Removed)
 
@@ -393,6 +399,7 @@ if __name__ == "__main__":
 
         # Get the batch
         X_batch, y_batch = data.get_batch(val_indices[batch*batch_size : (batch+1)*batch_size], "val")
+        X_batch = (X_batch - mean)/255.0
         
         ## Resize images 224x224 (Removed)
 
@@ -456,7 +463,6 @@ if __name__ == "__main__":
       print(f"IoU score: {epoch_IoU}")
       print(f"Precision: {epoch_precision}")
       print(f"Recall: {epoch_recall}\n")
-
 
       ## TODO: Save weights with checkpoint files.
 
