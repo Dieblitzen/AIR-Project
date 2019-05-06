@@ -286,8 +286,11 @@ pool_4_and_5 = upsampled_32 + block_14
 
 upsampled_32_16 = deconv_layer(pool_4_and_5, [3,3,128,256], [batch_size,28,28,128], [1,2,2,1]) 
 pool_3_and_4 = upsampled_32_16 + block_8
+# result = deconv_layer(pool_3_and_4, [3,3,1,128], [batch_size,224,224,1], [1,8,8,1])
 
-result = deconv_layer(pool_3_and_4, [3,3,1,128], [batch_size,224,224,1], [1,8,8,1])
+resized_bilinear = tf.image.resize_bilinear(pool_3_and_4, (LABEL_SIZE[0], LABEL_SIZE[1]) )
+result = conv_layer(resized_bilinear, [1, 1, 64, 1])
+
 
 
 ## =============================================================================================
@@ -302,7 +305,7 @@ result = deconv_layer(pool_3_and_4, [3,3,1,128], [batch_size,224,224,1], [1,8,8,
 # # result = deconv_layer(upsampled, [3,3,1,64], [batch_size,224,224,1], [1,4,4,1])
 
 # # Alternative: convolve and then resize.
-# resized = tf.image.resize_bilinear(refine_net1, (IM_SIZE[0], IM_SIZE[1]) )
+# resized = tf.image.resize_bilinear(refine_net1, (LABEL_SIZE[0], LABEL_SIZE[1]) )
 # result = conv_layer(resized, [1, 1, 64, 1])
 
 
