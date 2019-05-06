@@ -300,10 +300,10 @@ refine_net2 = refine_net_block([block_17, block_14]) # 1/16 downsampled
 refine_net1 = refine_net_block([refine_net2, block_8, block_4]) # 1/4 downsampled.
 
 # result = deconv_layer(upsampled, [3,3,1,64], [batch_size,224,224,1], [1,4,4,1])
+
+# Alternative: convolve and then resize.
 resized = tf.image.resize_bilinear(refine_net1, (IM_SIZE[0], IM_SIZE[1]) )
 result = conv_layer(resized, [1, 1, 64, 1])
-# depth_reduced = conv_layer(refine_net1, [3, 3, 64, 1])
-# result = tf.image.resize_bilinear(depth_reduced, (IM_SIZE[0], IM_SIZE[1]) )
 
 
 ## =============================================================================================
@@ -356,7 +356,6 @@ if __name__ == "__main__":
     # Mean and std-dev of training data
     data_x, _ = data.get_batch(list(range(num_train)), "train")
     mean = preprocess.mean_of_data(data_x)
-    std_dev = preprocess.std_of_data(data_x)
 
     # Moving average loss
     ma_train_loss = [0.0] * 10
@@ -389,7 +388,7 @@ if __name__ == "__main__":
         
         # Get the batch
         X_batch, y_batch = data.get_batch(train_indices[batch*batch_size : (batch+1)*batch_size], "train")
-        X_batch = (X_batch - mean) / std_dev
+        X_batch = (X_batch - mean)
 
         ## Resize images to 224x224 (Removed)
 
@@ -404,7 +403,7 @@ if __name__ == "__main__":
 
         # Get the batch
         X_batch, y_batch = data.get_batch(val_indices[batch*batch_size : (batch+1)*batch_size], "val")
-        X_batch = (X_batch - mean) / std_dev
+        X_batch = (X_batch - mean)
         
         ## Resize images 224x224 (Removed)
 
