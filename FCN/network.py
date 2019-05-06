@@ -294,12 +294,14 @@ block_17 = resnet_block(block_16, [3,3,512,512]) # 1/32 downsampled
 
 # Refine Net returns result 1/4 the size of input. Still need to upsample 4 times.
 # Expect the depth of the refine net output to be 64, since that is depth of #4 downsampled.
-refine_net2 = refine_net_block([block_17, block_14])
+refine_net2 = refine_net_block([block_17, block_14]) # 1/16 downsampled
 refine_net1 = refine_net_block([refine_net2, block_8, block_4]) # 1/4 downsampled.
 
 # result = deconv_layer(upsampled, [3,3,1,64], [batch_size,224,224,1], [1,4,4,1])
-depth_reduced = conv_layer(refine_net1, [3, 3, 64, 1])
-result = tf.image.resize_bilinear(depth_reduced, (IM_SIZE[0], IM_SIZE[1]) )
+resized = tf.image.resize_bilinear(refine_net1, (IM_SIZE[0], IM_SIZE[1]) )
+result = conv_layer(resized, [1, 1, 64, 1])
+# depth_reduced = conv_layer(refine_net1, [3, 3, 64, 1])
+# result = tf.image.resize_bilinear(depth_reduced, (IM_SIZE[0], IM_SIZE[1]) )
 
 
 ## =============================================================================================
@@ -378,10 +380,7 @@ if __name__ == "__main__":
         # Get the batch
         X_batch, y_batch = data.get_batch(train_indices[batch*batch_size : (batch+1)*batch_size], "train")
 
-        ## Resize images to 224x224
-        # X_batch = tf.image.resize_bilinear(X_batch, (IM_SIZE[0], IM_SIZE[1]) ).eval()
-        # y_batch = tf.image.resize_bilinear(np.array(y_batch, dtype=np.int8),\
-        #                                   (LABEL_SIZE[0], LABEL_SIZE[1])).eval()
+        ## Resize images to 224x224 (Removed)
 
         # Since it is a dictionary, X (defined above) gets the batch of images X_batch (same for y)
         _, train_loss = sess.run([optimizer, loss], feed_dict={X:X_batch, y:y_batch})
@@ -395,10 +394,7 @@ if __name__ == "__main__":
         # Get the batch
         X_batch, y_batch = data.get_batch(val_indices[batch*batch_size : (batch+1)*batch_size], "val")
         
-        ## Resize images 224x224
-        # X_batch = tf.image.resize_bilinear(X_batch, (IM_SIZE[0], IM_SIZE[1]) ).eval()
-        # y_batch = tf.image.resize_bilinear(np.array(y_batch, dtype=np.int8),\
-        #                                   (LABEL_SIZE[0], LABEL_SIZE[1])).eval()
+        ## Resize images 224x224 (Removed)
 
         # Get the predictions
         preds, val_loss = sess.run([result, loss], feed_dict={X:X_batch, y:y_batch})
@@ -420,7 +416,7 @@ if __name__ == "__main__":
         epoch_recall += recall
 
         # Save predictions every few epochs
-        if (epoch+1) % 100 == 0:
+        if (epoch+1) % 100 == 0 or (epoch+1) % 175 == 0:
           data.save_preds(val_indices[batch*batch_size : (batch+1)*batch_size], preds, image_dir="val")
           
 
@@ -428,7 +424,7 @@ if __name__ == "__main__":
       epoch_train_loss = epoch_train_loss/num_train_batches 
       epoch_val_loss = epoch_val_loss/num_val_batches 
 
-      # Update loss history for moving avg(drop 1st element, append loss to end)
+      # Update loss history for moving avg (drop 1st element, append loss to end)
       ma_train_loss = ma_train_loss[1:]
       ma_train_loss.append(epoch_train_loss)
       ma_val_loss = ma_val_loss[1:]
@@ -464,6 +460,10 @@ if __name__ == "__main__":
 
       ## TODO: Save weights with checkpoint files.
 
+      # Resize tensors code:
+      # X_batch = tf.image.resize_bilinear(X_batch, (IM_SIZE[0], IM_SIZE[1]) ).eval()
+      # y_batch = tf.image.resize_bilinear(np.array(y_batch, dtype=np.int8),\
+      #                                   (LABEL_SIZE[0], LABEL_SIZE[1])).eval()
 
 
 

@@ -1,0 +1,2100 @@
+INFO:root:Epoch: 1, Training Loss: 6254.435316297743
+INFO:root:Epoch: 1, Moving Average Training Loss: 6254.435316297743
+INFO:root:Epoch: 1, Validation Loss: 1083.2509765625
+INFO:root:Epoch: 1, Moving Average Validation Loss: 1083.2509765625
+INFO:root:Epoch: 1, Epoch IoU: 0.09037589421921828
+INFO:root:Epoch: 1, Epoch Precision: 0.13266417512012812
+INFO:root:Epoch: 1, Epoch Recall: 0.22089355109090447
+INFO:root:Epoch: 2, Training Loss: 728.4056566026476
+INFO:root:Epoch: 2, Moving Average Training Loss: 3491.4204864501953
+INFO:root:Epoch: 2, Validation Loss: 389.5760498046875
+INFO:root:Epoch: 2, Moving Average Validation Loss: 736.4135131835938
+INFO:root:Epoch: 2, Epoch IoU: 0.11691447353048842
+INFO:root:Epoch: 2, Epoch Precision: 0.17267966375147747
+INFO:root:Epoch: 2, Epoch Recall: 0.26580255603217395
+INFO:root:Epoch: 3, Training Loss: 280.61727227105035
+INFO:root:Epoch: 3, Moving Average Training Loss: 2421.1527483904806
+INFO:root:Epoch: 3, Validation Loss: 175.1756591796875
+INFO:root:Epoch: 3, Moving Average Validation Loss: 549.334228515625
+INFO:root:Epoch: 3, Epoch IoU: 0.09571959872095737
+INFO:root:Epoch: 3, Epoch Precision: 0.18128606331548577
+INFO:root:Epoch: 3, Epoch Recall: 0.1686045668370085
+INFO:root:Epoch: 4, Training Loss: 145.8127178615994
+INFO:root:Epoch: 4, Moving Average Training Loss: 1852.3177407582602
+INFO:root:Epoch: 4, Validation Loss: 123.59322357177734
+INFO:root:Epoch: 4, Moving Average Validation Loss: 442.8989772796631
+INFO:root:Epoch: 4, Epoch IoU: 0.09572164478482859
+INFO:root:Epoch: 4, Epoch Precision: 0.18423000784167493
+INFO:root:Epoch: 4, Epoch Recall: 0.16614164272326706
+INFO:root:Epoch: 5, Training Loss: 101.34039730495877
+INFO:root:Epoch: 5, Moving Average Training Loss: 1502.1222720676
+INFO:root:Epoch: 5, Validation Loss: 94.04087829589844
+INFO:root:Epoch: 5, Moving Average Validation Loss: 373.12735748291016
+INFO:root:Epoch: 5, Epoch IoU: 0.12267991030852929
+INFO:root:Epoch: 5, Epoch Precision: 0.22141534354230707
+INFO:root:Epoch: 5, Epoch Recall: 0.21575461673750548
+INFO:root:Epoch: 6, Training Loss: 77.89400397406683
+INFO:root:Epoch: 6, Moving Average Training Loss: 1264.750894052011
+INFO:root:Epoch: 6, Validation Loss: 80.00762176513672
+INFO:root:Epoch: 6, Moving Average Validation Loss: 324.27406819661456
+INFO:root:Epoch: 6, Epoch IoU: 0.14843544084283958
+INFO:root:Epoch: 6, Epoch Precision: 0.2538332575106573
+INFO:root:Epoch: 6, Epoch Recall: 0.26334213194420164
+INFO:root:Epoch: 7, Training Loss: 63.83087031046549
+INFO:root:Epoch: 7, Moving Average Training Loss: 1093.1908906603617
+INFO:root:Epoch: 7, Validation Loss: 62.185237884521484
+INFO:root:Epoch: 7, Moving Average Validation Loss: 286.8328067234584
+INFO:root:Epoch: 7, Epoch IoU: 0.15101495809758353
+INFO:root:Epoch: 7, Epoch Precision: 0.24026352443263305
+INFO:root:Epoch: 7, Epoch Recall: 0.2890370569253641
+INFO:root:Epoch: 8, Training Loss: 54.951590643988716
+INFO:root:Epoch: 8, Moving Average Training Loss: 963.4109781583151
+INFO:root:Epoch: 8, Validation Loss: 56.131561279296875
+INFO:root:Epoch: 8, Moving Average Validation Loss: 257.99515104293823
+INFO:root:Epoch: 8, Epoch IoU: 0.16463036519349053
+INFO:root:Epoch: 8, Epoch Precision: 0.29090101428888726
+INFO:root:Epoch: 8, Epoch Recall: 0.2749807544264819
+INFO:root:Epoch: 9, Training Loss: 46.726959228515625
+INFO:root:Epoch: 9, Moving Average Training Loss: 861.5571982772262
+INFO:root:Epoch: 9, Validation Loss: 50.75090026855469
+INFO:root:Epoch: 9, Moving Average Validation Loss: 234.96801206800671
+INFO:root:Epoch: 9, Epoch IoU: 0.16830263313592797
+INFO:root:Epoch: 9, Epoch Precision: 0.30423423239895697
+INFO:root:Epoch: 9, Epoch Recall: 0.27361752998996897
+INFO:root:Epoch: 10, Training Loss: 41.39361911349826
+INFO:root:Epoch: 10, Moving Average Training Loss: 779.5408403608534
+INFO:root:Epoch: 10, Validation Loss: 43.840702056884766
+INFO:root:Epoch: 10, Moving Average Validation Loss: 215.85528106689452
+INFO:root:Epoch: 10, Epoch IoU: 0.18370408139066094
+INFO:root:Epoch: 10, Epoch Precision: 0.3265635210050378
+INFO:root:Epoch: 10, Epoch Recall: 0.2957402334615495
+INFO:root:Epoch: 11, Training Loss: 36.89702394273546
+INFO:root:Epoch: 11, Moving Average Training Loss: 157.78701112535265
+INFO:root:Epoch: 11, Validation Loss: 41.610897064208984
+INFO:root:Epoch: 11, Moving Average Validation Loss: 111.69127311706544
+INFO:root:Epoch: 11, Epoch IoU: 0.20474731075437788
+INFO:root:Epoch: 11, Epoch Precision: 0.3588077777439674
+INFO:root:Epoch: 11, Epoch Recall: 0.3228867165037378
+INFO:root:Epoch: 12, Training Loss: 33.29473410712348
+INFO:root:Epoch: 12, Moving Average Training Loss: 88.27591887580024
+INFO:root:Epoch: 12, Validation Loss: 35.44098663330078
+INFO:root:Epoch: 12, Moving Average Validation Loss: 76.27776679992675
+INFO:root:Epoch: 12, Epoch IoU: 0.21219223765530618
+INFO:root:Epoch: 12, Epoch Precision: 0.37065555054031807
+INFO:root:Epoch: 12, Epoch Recall: 0.331698600973236
+INFO:root:Epoch: 13, Training Loss: 30.69306543138292
+INFO:root:Epoch: 13, Moving Average Training Loss: 63.28349819183351
+INFO:root:Epoch: 13, Validation Loss: 35.5042839050293
+INFO:root:Epoch: 13, Moving Average Validation Loss: 62.310629272460936
+INFO:root:Epoch: 13, Epoch IoU: 0.23499007102535208
+INFO:root:Epoch: 13, Epoch Precision: 0.3564210260378014
+INFO:root:Epoch: 13, Epoch Recall: 0.4081918669047673
+INFO:root:Epoch: 14, Training Loss: 28.63852967156304
+INFO:root:Epoch: 14, Moving Average Training Loss: 51.56607937282986
+INFO:root:Epoch: 14, Validation Loss: 31.674617767333984
+INFO:root:Epoch: 14, Moving Average Validation Loss: 53.1187686920166
+INFO:root:Epoch: 14, Epoch IoU: 0.23741464937758114
+INFO:root:Epoch: 14, Epoch Precision: 0.4015604448164534
+INFO:root:Epoch: 14, Epoch Recall: 0.36741001422267605
+INFO:root:Epoch: 15, Training Loss: 26.688934750027126
+INFO:root:Epoch: 15, Moving Average Training Loss: 44.100933117336695
+INFO:root:Epoch: 15, Validation Loss: 29.16031837463379
+INFO:root:Epoch: 15, Moving Average Validation Loss: 46.63071269989014
+INFO:root:Epoch: 15, Epoch IoU: 0.2393819543620655
+INFO:root:Epoch: 15, Epoch Precision: 0.3704963417045679
+INFO:root:Epoch: 15, Epoch Recall: 0.4034955061879648
+INFO:root:Epoch: 16, Training Loss: 24.36216163635254
+INFO:root:Epoch: 16, Moving Average Training Loss: 38.747748883565265
+INFO:root:Epoch: 16, Validation Loss: 28.663238525390625
+INFO:root:Epoch: 16, Moving Average Validation Loss: 41.496274375915526
+INFO:root:Epoch: 16, Epoch IoU: 0.236959597595597
+INFO:root:Epoch: 16, Epoch Precision: 0.4109525878973533
+INFO:root:Epoch: 16, Epoch Recall: 0.358839917070823
+INFO:root:Epoch: 17, Training Loss: 23.40020540025499
+INFO:root:Epoch: 17, Moving Average Training Loss: 34.704682392544214
+INFO:root:Epoch: 17, Validation Loss: 26.458763122558594
+INFO:root:Epoch: 17, Moving Average Validation Loss: 37.92362689971924
+INFO:root:Epoch: 17, Epoch IoU: 0.25935999249711056
+INFO:root:Epoch: 17, Epoch Precision: 0.3990552544574079
+INFO:root:Epoch: 17, Epoch Recall: 0.4255815111368605
+INFO:root:Epoch: 18, Training Loss: 22.027440812852646
+INFO:root:Epoch: 18, Moving Average Training Loss: 31.412267409430616
+INFO:root:Epoch: 18, Validation Loss: 24.838821411132812
+INFO:root:Epoch: 18, Moving Average Validation Loss: 34.79435291290283
+INFO:root:Epoch: 18, Epoch IoU: 0.27570822413577933
+INFO:root:Epoch: 18, Epoch Precision: 0.4294221330847694
+INFO:root:Epoch: 18, Epoch Recall: 0.4351019640842927
+INFO:root:Epoch: 19, Training Loss: 20.664891560872395
+INFO:root:Epoch: 19, Moving Average Training Loss: 28.806060642666285
+INFO:root:Epoch: 19, Validation Loss: 22.335468292236328
+INFO:root:Epoch: 19, Moving Average Validation Loss: 31.952809715270995
+INFO:root:Epoch: 19, Epoch IoU: 0.27226494556820086
+INFO:root:Epoch: 19, Epoch Precision: 0.4182592537333677
+INFO:root:Epoch: 19, Epoch Recall: 0.438206079208765
+INFO:root:Epoch: 20, Training Loss: 19.19037119547526
+INFO:root:Epoch: 20, Moving Average Training Loss: 26.58573585086399
+INFO:root:Epoch: 20, Validation Loss: 22.045839309692383
+INFO:root:Epoch: 20, Moving Average Validation Loss: 29.773323440551756
+INFO:root:Epoch: 20, Epoch IoU: 0.25536051780763214
+INFO:root:Epoch: 20, Epoch Precision: 0.43628297309701247
+INFO:root:Epoch: 20, Epoch Recall: 0.38110601497659014
+INFO:root:Epoch: 21, Training Loss: 18.22820472717285
+INFO:root:Epoch: 21, Moving Average Training Loss: 24.718853929307727
+INFO:root:Epoch: 21, Validation Loss: 22.00283432006836
+INFO:root:Epoch: 21, Moving Average Validation Loss: 27.812517166137695
+INFO:root:Epoch: 21, Epoch IoU: 0.28858685745534085
+INFO:root:Epoch: 21, Epoch Precision: 0.47121524273695864
+INFO:root:Epoch: 21, Epoch Recall: 0.4268052788320184
+INFO:root:Epoch: 22, Training Loss: 17.278811772664387
+INFO:root:Epoch: 22, Moving Average Training Loss: 23.11726169586182
+INFO:root:Epoch: 22, Validation Loss: 18.635255813598633
+INFO:root:Epoch: 22, Moving Average Validation Loss: 26.13194408416748
+INFO:root:Epoch: 22, Epoch IoU: 0.26037684811469164
+INFO:root:Epoch: 22, Epoch Precision: 0.4645769299159194
+INFO:root:Epoch: 22, Epoch Recall: 0.37201118738876177
+INFO:root:Epoch: 23, Training Loss: 16.230053477817112
+INFO:root:Epoch: 23, Moving Average Training Loss: 21.670960500505235
+INFO:root:Epoch: 23, Validation Loss: 18.037574768066406
+INFO:root:Epoch: 23, Moving Average Validation Loss: 24.38527317047119
+INFO:root:Epoch: 23, Epoch IoU: 0.27508201737238436
+INFO:root:Epoch: 23, Epoch Precision: 0.4717687392135827
+INFO:root:Epoch: 23, Epoch Recall: 0.39751998309972636
+INFO:root:Epoch: 24, Training Loss: 15.462848345438639
+INFO:root:Epoch: 24, Moving Average Training Loss: 20.353392367892795
+INFO:root:Epoch: 24, Validation Loss: 17.533376693725586
+INFO:root:Epoch: 24, Moving Average Validation Loss: 22.971149063110353
+INFO:root:Epoch: 24, Epoch IoU: 0.2760975609756098
+INFO:root:Epoch: 24, Epoch Precision: 0.47358624811452316
+INFO:root:Epoch: 24, Epoch Recall: 0.39834918871817954
+INFO:root:Epoch: 25, Training Loss: 15.658988210890028
+INFO:root:Epoch: 25, Moving Average Training Loss: 19.250397713979083
+INFO:root:Epoch: 25, Validation Loss: 19.653095245361328
+INFO:root:Epoch: 25, Moving Average Validation Loss: 22.020426750183105
+INFO:root:Epoch: 25, Epoch IoU: 0.2448178286159167
+INFO:root:Epoch: 25, Epoch Precision: 0.5650663925149675
+INFO:root:Epoch: 25, Epoch Recall: 0.3016621929508998
+INFO:root:Epoch: 26, Training Loss: 14.64769098493788
+INFO:root:Epoch: 26, Moving Average Training Loss: 18.278950648837615
+INFO:root:Epoch: 26, Validation Loss: 16.2243595123291
+INFO:root:Epoch: 26, Moving Average Validation Loss: 20.776538848876953
+INFO:root:Epoch: 26, Epoch IoU: 0.2792995456750915
+INFO:root:Epoch: 26, Epoch Precision: 0.4727679981621342
+INFO:root:Epoch: 26, Epoch Recall: 0.4056494056888293
+INFO:root:Epoch: 27, Training Loss: 13.748411284552681
+INFO:root:Epoch: 27, Moving Average Training Loss: 17.31377123726738
+INFO:root:Epoch: 27, Validation Loss: 15.317605972290039
+INFO:root:Epoch: 27, Moving Average Validation Loss: 19.662423133850098
+INFO:root:Epoch: 27, Epoch IoU: 0.292077828944639
+INFO:root:Epoch: 27, Epoch Precision: 0.42817983170643764
+INFO:root:Epoch: 27, Epoch Recall: 0.47886352263286514
+INFO:root:Epoch: 28, Training Loss: 13.186300489637587
+INFO:root:Epoch: 28, Moving Average Training Loss: 16.42965720494588
+INFO:root:Epoch: 28, Validation Loss: 15.231216430664062
+INFO:root:Epoch: 28, Moving Average Validation Loss: 18.701662635803224
+INFO:root:Epoch: 28, Epoch IoU: 0.31221318461738196
+INFO:root:Epoch: 28, Epoch Precision: 0.44545560705326187
+INFO:root:Epoch: 28, Epoch Recall: 0.5107129501816654
+INFO:root:Epoch: 29, Training Loss: 12.824509938557943
+INFO:root:Epoch: 29, Moving Average Training Loss: 15.645619042714438
+INFO:root:Epoch: 29, Validation Loss: 14.211457252502441
+INFO:root:Epoch: 29, Moving Average Validation Loss: 17.889261531829835
+INFO:root:Epoch: 29, Epoch IoU: 0.3087972565931236
+INFO:root:Epoch: 29, Epoch Precision: 0.4273939548384785
+INFO:root:Epoch: 29, Epoch Recall: 0.5267013754287481
+INFO:root:Epoch: 30, Training Loss: 12.233287069532606
+INFO:root:Epoch: 30, Moving Average Training Loss: 14.949910630120169
+INFO:root:Epoch: 30, Validation Loss: 13.399917602539062
+INFO:root:Epoch: 30, Moving Average Validation Loss: 17.0246693611145
+INFO:root:Epoch: 30, Epoch IoU: 0.31315904268054695
+INFO:root:Epoch: 30, Epoch Precision: 0.5096670189710577
+INFO:root:Epoch: 30, Epoch Recall: 0.4481892646748187
+INFO:root:Epoch: 31, Training Loss: 12.006396611531576
+INFO:root:Epoch: 31, Moving Average Training Loss: 14.327729818556042
+INFO:root:Epoch: 31, Validation Loss: 13.750149726867676
+INFO:root:Epoch: 31, Moving Average Validation Loss: 16.199400901794434
+INFO:root:Epoch: 31, Epoch IoU: 0.28101004594657736
+INFO:root:Epoch: 31, Epoch Precision: 0.56900806572422
+INFO:root:Epoch: 31, Epoch Recall: 0.35699657690100717
+INFO:root:Epoch: 32, Training Loss: 11.978456709120008
+INFO:root:Epoch: 32, Moving Average Training Loss: 13.797694312201605
+INFO:root:Epoch: 32, Validation Loss: 14.499499320983887
+INFO:root:Epoch: 32, Moving Average Validation Loss: 15.785825252532959
+INFO:root:Epoch: 32, Epoch IoU: 0.2986595462769285
+INFO:root:Epoch: 32, Epoch Precision: 0.563022226730401
+INFO:root:Epoch: 32, Epoch Recall: 0.3887775024733621
+INFO:root:Epoch: 33, Training Loss: 10.933837996588814
+INFO:root:Epoch: 33, Moving Average Training Loss: 13.268072764078775
+INFO:root:Epoch: 33, Validation Loss: 12.64534854888916
+INFO:root:Epoch: 33, Moving Average Validation Loss: 15.246602630615234
+INFO:root:Epoch: 33, Epoch IoU: 0.30807984463881966
+INFO:root:Epoch: 33, Epoch Precision: 0.4822146189126615
+INFO:root:Epoch: 33, Epoch Recall: 0.46037413138058497
+INFO:root:Epoch: 34, Training Loss: 10.364186816745335
+INFO:root:Epoch: 34, Moving Average Training Loss: 12.758206611209445
+INFO:root:Epoch: 34, Validation Loss: 11.963733673095703
+INFO:root:Epoch: 34, Moving Average Validation Loss: 14.689638328552245
+INFO:root:Epoch: 34, Epoch IoU: 0.3329662109468256
+INFO:root:Epoch: 34, Epoch Precision: 0.5172476882757256
+INFO:root:Epoch: 34, Epoch Recall: 0.48309225596689576
+INFO:root:Epoch: 35, Training Loss: 10.189345253838432
+INFO:root:Epoch: 35, Moving Average Training Loss: 12.211242315504288
+INFO:root:Epoch: 35, Validation Loss: 10.740198135375977
+INFO:root:Epoch: 35, Moving Average Validation Loss: 13.79834861755371
+INFO:root:Epoch: 35, Epoch IoU: 0.34061036359206215
+INFO:root:Epoch: 35, Epoch Precision: 0.5332058359203653
+INFO:root:Epoch: 35, Epoch Recall: 0.4853290771181823
+INFO:root:Epoch: 36, Training Loss: 9.609488487243652
+INFO:root:Epoch: 36, Moving Average Training Loss: 11.707422065734864
+INFO:root:Epoch: 36, Validation Loss: 11.394670486450195
+INFO:root:Epoch: 36, Moving Average Validation Loss: 13.31537971496582
+INFO:root:Epoch: 36, Epoch IoU: 0.32912599720749125
+INFO:root:Epoch: 36, Epoch Precision: 0.528543908036297
+INFO:root:Epoch: 36, Epoch Recall: 0.4659051366160784
+INFO:root:Epoch: 37, Training Loss: 9.411421775817871
+INFO:root:Epoch: 37, Moving Average Training Loss: 11.273723114861383
+INFO:root:Epoch: 37, Validation Loss: 10.231303215026855
+INFO:root:Epoch: 37, Moving Average Validation Loss: 12.806749439239502
+INFO:root:Epoch: 37, Epoch IoU: 0.3334728982954963
+INFO:root:Epoch: 37, Epoch Precision: 0.4819504173460762
+INFO:root:Epoch: 37, Epoch Recall: 0.5197931508623695
+INFO:root:Epoch: 38, Training Loss: 9.271752993265787
+INFO:root:Epoch: 38, Moving Average Training Loss: 10.882268365224203
+INFO:root:Epoch: 38, Validation Loss: 11.037833213806152
+INFO:root:Epoch: 38, Moving Average Validation Loss: 12.387411117553711
+INFO:root:Epoch: 38, Epoch IoU: 0.33640076360691973
+INFO:root:Epoch: 38, Epoch Precision: 0.48665748950468973
+INFO:root:Epoch: 38, Epoch Recall: 0.5214276553253082
+INFO:root:Epoch: 39, Training Loss: 8.964618047078451
+INFO:root:Epoch: 39, Moving Average Training Loss: 10.496279176076253
+INFO:root:Epoch: 39, Validation Loss: 10.779017448425293
+INFO:root:Epoch: 39, Moving Average Validation Loss: 12.044167137145996
+INFO:root:Epoch: 39, Epoch IoU: 0.33162629615264483
+INFO:root:Epoch: 39, Epoch Precision: 0.5575355034536883
+INFO:root:Epoch: 39, Epoch Recall: 0.4500784936669353
+INFO:root:Epoch: 40, Training Loss: 8.84468126296997
+INFO:root:Epoch: 40, Moving Average Training Loss: 10.157418595419989
+INFO:root:Epoch: 40, Validation Loss: 9.683344841003418
+INFO:root:Epoch: 40, Moving Average Validation Loss: 11.672509860992431
+INFO:root:Epoch: 40, Epoch IoU: 0.34016608921903013
+INFO:root:Epoch: 40, Epoch Precision: 0.5291662734488869
+INFO:root:Epoch: 40, Epoch Recall: 0.4878107721455361
+INFO:root:Epoch: 41, Training Loss: 8.657580163743761
+INFO:root:Epoch: 41, Moving Average Training Loss: 9.822536950641208
+INFO:root:Epoch: 41, Validation Loss: 9.883803367614746
+INFO:root:Epoch: 41, Moving Average Validation Loss: 11.285875225067139
+INFO:root:Epoch: 41, Epoch IoU: 0.34616840289626677
+INFO:root:Epoch: 41, Epoch Precision: 0.5121160942118114
+INFO:root:Epoch: 41, Epoch Recall: 0.5165062025550824
+INFO:root:Epoch: 42, Training Loss: 8.446951707204184
+INFO:root:Epoch: 42, Moving Average Training Loss: 9.469386450449624
+INFO:root:Epoch: 42, Validation Loss: 8.981980323791504
+INFO:root:Epoch: 42, Moving Average Validation Loss: 10.7341233253479
+INFO:root:Epoch: 42, Epoch IoU: 0.352663912538633
+INFO:root:Epoch: 42, Epoch Precision: 0.5344354055493479
+INFO:root:Epoch: 42, Epoch Recall: 0.50905419586506
+INFO:root:Epoch: 43, Training Loss: 8.000757376352945
+INFO:root:Epoch: 43, Moving Average Training Loss: 9.176078388426038
+INFO:root:Epoch: 43, Validation Loss: 10.243202209472656
+INFO:root:Epoch: 43, Moving Average Validation Loss: 10.49390869140625
+INFO:root:Epoch: 43, Epoch IoU: 0.32872520627288127
+INFO:root:Epoch: 43, Epoch Precision: 0.6192400859140722
+INFO:root:Epoch: 43, Epoch Recall: 0.4120021184506091
+INFO:root:Epoch: 44, Training Loss: 7.969107892778185
+INFO:root:Epoch: 44, Moving Average Training Loss: 8.936570496029324
+INFO:root:Epoch: 44, Validation Loss: 10.838388442993164
+INFO:root:Epoch: 44, Moving Average Validation Loss: 10.381374168395997
+INFO:root:Epoch: 44, Epoch IoU: 0.3053709037413439
+INFO:root:Epoch: 44, Epoch Precision: 0.6155164928958773
+INFO:root:Epoch: 44, Epoch Recall: 0.3773507454270699
+INFO:root:Epoch: 45, Training Loss: 8.24859227074517
+INFO:root:Epoch: 45, Moving Average Training Loss: 8.742495197719999
+INFO:root:Epoch: 45, Validation Loss: 9.590727806091309
+INFO:root:Epoch: 45, Moving Average Validation Loss: 10.266427135467529
+INFO:root:Epoch: 45, Epoch IoU: 0.33759836022859524
+INFO:root:Epoch: 45, Epoch Precision: 0.5798713465646669
+INFO:root:Epoch: 45, Epoch Recall: 0.44691154760645513
+INFO:root:Epoch: 46, Training Loss: 7.773189120822483
+INFO:root:Epoch: 46, Moving Average Training Loss: 8.55886526107788
+INFO:root:Epoch: 46, Validation Loss: 9.482368469238281
+INFO:root:Epoch: 46, Moving Average Validation Loss: 10.075196933746337
+INFO:root:Epoch: 46, Epoch IoU: 0.3659408020032995
+INFO:root:Epoch: 46, Epoch Precision: 0.572107888614186
+INFO:root:Epoch: 46, Epoch Recall: 0.503839161586996
+INFO:root:Epoch: 47, Training Loss: 7.538102944691976
+INFO:root:Epoch: 47, Moving Average Training Loss: 8.37153337796529
+INFO:root:Epoch: 47, Validation Loss: 8.825812339782715
+INFO:root:Epoch: 47, Moving Average Validation Loss: 9.934647846221925
+INFO:root:Epoch: 47, Epoch IoU: 0.33979453945743304
+INFO:root:Epoch: 47, Epoch Precision: 0.5872898275927019
+INFO:root:Epoch: 47, Epoch Recall: 0.4463851109520401
+INFO:root:Epoch: 48, Training Loss: 7.451337549421522
+INFO:root:Epoch: 48, Moving Average Training Loss: 8.189491833580863
+INFO:root:Epoch: 48, Validation Loss: 9.129862785339355
+INFO:root:Epoch: 48, Moving Average Validation Loss: 9.743850803375244
+INFO:root:Epoch: 48, Epoch IoU: 0.35134841272268263
+INFO:root:Epoch: 48, Epoch Precision: 0.5836847126028031
+INFO:root:Epoch: 48, Epoch Recall: 0.468839971889098
+INFO:root:Epoch: 49, Training Loss: 7.0695677863226996
+INFO:root:Epoch: 49, Moving Average Training Loss: 7.999986807505289
+INFO:root:Epoch: 49, Validation Loss: 9.080608367919922
+INFO:root:Epoch: 49, Moving Average Validation Loss: 9.574009895324707
+INFO:root:Epoch: 49, Epoch IoU: 0.3556692860582931
+INFO:root:Epoch: 49, Epoch Precision: 0.5456760447454077
+INFO:root:Epoch: 49, Epoch Recall: 0.5053027711255559
+INFO:root:Epoch: 50, Training Loss: 6.910936408572727
+INFO:root:Epoch: 50, Moving Average Training Loss: 7.806612322065564
+INFO:root:Epoch: 50, Validation Loss: 8.155449867248535
+INFO:root:Epoch: 50, Moving Average Validation Loss: 9.421220397949218
+INFO:root:Epoch: 50, Epoch IoU: 0.34599481002870214
+INFO:root:Epoch: 50, Epoch Precision: 0.5357336729051144
+INFO:root:Epoch: 50, Epoch Recall: 0.4941644984370028
+INFO:root:Epoch: 51, Training Loss: 6.8698248863220215
+INFO:root:Epoch: 51, Moving Average Training Loss: 7.627836794323391
+INFO:root:Epoch: 51, Validation Loss: 8.48501205444336
+INFO:root:Epoch: 51, Moving Average Validation Loss: 9.28134126663208
+INFO:root:Epoch: 51, Epoch IoU: 0.3427264329710211
+INFO:root:Epoch: 51, Epoch Precision: 0.5944349103620348
+INFO:root:Epoch: 51, Epoch Recall: 0.44732540684791156
+INFO:root:Epoch: 52, Training Loss: 6.799842463599311
+INFO:root:Epoch: 52, Moving Average Training Loss: 7.463125869962904
+INFO:root:Epoch: 52, Validation Loss: 8.263630867004395
+INFO:root:Epoch: 52, Moving Average Validation Loss: 9.20950632095337
+INFO:root:Epoch: 52, Epoch IoU: 0.37424146622682913
+INFO:root:Epoch: 52, Epoch Precision: 0.5139866322452877
+INFO:root:Epoch: 52, Epoch Recall: 0.5792079207920792
+INFO:root:Epoch: 53, Training Loss: 7.01840172873603
+INFO:root:Epoch: 53, Moving Average Training Loss: 7.364890305201212
+INFO:root:Epoch: 53, Validation Loss: 8.882362365722656
+INFO:root:Epoch: 53, Moving Average Validation Loss: 9.07342233657837
+INFO:root:Epoch: 53, Epoch IoU: 0.349121194351554
+INFO:root:Epoch: 53, Epoch Precision: 0.42879249935115493
+INFO:root:Epoch: 53, Epoch Recall: 0.6526543974954694
+INFO:root:Epoch: 54, Training Loss: 6.8035035663180885
+INFO:root:Epoch: 54, Moving Average Training Loss: 7.248329872555203
+INFO:root:Epoch: 54, Validation Loss: 8.42101764678955
+INFO:root:Epoch: 54, Moving Average Validation Loss: 8.831685256958007
+INFO:root:Epoch: 54, Epoch IoU: 0.3742693181051732
+INFO:root:Epoch: 54, Epoch Precision: 0.5072791126415066
+INFO:root:Epoch: 54, Epoch Recall: 0.5880376373759808
+INFO:root:Epoch: 55, Training Loss: 6.351551002926296
+INFO:root:Epoch: 55, Moving Average Training Loss: 7.058625745773315
+INFO:root:Epoch: 55, Validation Loss: 7.797531604766846
+INFO:root:Epoch: 55, Moving Average Validation Loss: 8.65236563682556
+INFO:root:Epoch: 55, Epoch IoU: 0.37665129318706625
+INFO:root:Epoch: 55, Epoch Precision: 0.5623726944854521
+INFO:root:Epoch: 55, Epoch Recall: 0.5328231300044706
+INFO:root:Epoch: 56, Training Loss: 6.451213836669922
+INFO:root:Epoch: 56, Moving Average Training Loss: 6.92642821735806
+INFO:root:Epoch: 56, Validation Loss: 7.537529945373535
+INFO:root:Epoch: 56, Moving Average Validation Loss: 8.457881784439087
+INFO:root:Epoch: 56, Epoch IoU: 0.3613494469773863
+INFO:root:Epoch: 56, Epoch Precision: 0.5427184941914612
+INFO:root:Epoch: 56, Epoch Recall: 0.5195268326787633
+INFO:root:Epoch: 57, Training Loss: 6.425160037146674
+INFO:root:Epoch: 57, Moving Average Training Loss: 6.815133926603529
+INFO:root:Epoch: 57, Validation Loss: 7.441605091094971
+INFO:root:Epoch: 57, Moving Average Validation Loss: 8.319461059570312
+INFO:root:Epoch: 57, Epoch IoU: 0.36618827669635984
+INFO:root:Epoch: 57, Epoch Precision: 0.5792349132658886
+INFO:root:Epoch: 57, Epoch Recall: 0.49889734285379844
+INFO:root:Epoch: 58, Training Loss: 6.125954786936442
+INFO:root:Epoch: 58, Moving Average Training Loss: 6.6825956503550215
+INFO:root:Epoch: 58, Validation Loss: 7.451444149017334
+INFO:root:Epoch: 58, Moving Average Validation Loss: 8.15161919593811
+INFO:root:Epoch: 58, Epoch IoU: 0.3786016922033204
+INFO:root:Epoch: 58, Epoch Precision: 0.5512097168708098
+INFO:root:Epoch: 58, Epoch Recall: 0.5473133948604075
+INFO:root:Epoch: 59, Training Loss: 5.851035330030653
+INFO:root:Epoch: 59, Moving Average Training Loss: 6.560742404725817
+INFO:root:Epoch: 59, Validation Loss: 7.7454023361206055
+INFO:root:Epoch: 59, Moving Average Validation Loss: 8.018098592758179
+INFO:root:Epoch: 59, Epoch IoU: 0.35295292368151715
+INFO:root:Epoch: 59, Epoch Precision: 0.6022807487281844
+INFO:root:Epoch: 59, Epoch Recall: 0.46021789369428856
+INFO:root:Epoch: 60, Training Loss: 5.972844123840332
+INFO:root:Epoch: 60, Moving Average Training Loss: 6.466933176252577
+INFO:root:Epoch: 60, Validation Loss: 7.905257701873779
+INFO:root:Epoch: 60, Moving Average Validation Loss: 7.993079376220703
+INFO:root:Epoch: 60, Epoch IoU: 0.3531144156305997
+INFO:root:Epoch: 60, Epoch Precision: 0.5973134764199153
+INFO:root:Epoch: 60, Epoch Recall: 0.4634391695025081
+INFO:root:Epoch: 61, Training Loss: 5.691152784559462
+INFO:root:Epoch: 61, Moving Average Training Loss: 6.349065966076322
+INFO:root:Epoch: 61, Validation Loss: 7.241642475128174
+INFO:root:Epoch: 61, Moving Average Validation Loss: 7.868742418289185
+INFO:root:Epoch: 61, Epoch IoU: 0.3602904840684958
+INFO:root:Epoch: 61, Epoch Precision: 0.6079065186787426
+INFO:root:Epoch: 61, Epoch Recall: 0.4693627165135774
+INFO:root:Epoch: 62, Training Loss: 5.598768923017714
+INFO:root:Epoch: 62, Moving Average Training Loss: 6.228958612018162
+INFO:root:Epoch: 62, Validation Loss: 6.775732040405273
+INFO:root:Epoch: 62, Moving Average Validation Loss: 7.719952535629273
+INFO:root:Epoch: 62, Epoch IoU: 0.3785416714999221
+INFO:root:Epoch: 62, Epoch Precision: 0.557732874973143
+INFO:root:Epoch: 62, Epoch Recall: 0.54090775627729
+INFO:root:Epoch: 63, Training Loss: 5.625265757242839
+INFO:root:Epoch: 63, Moving Average Training Loss: 6.089645014868842
+INFO:root:Epoch: 63, Validation Loss: 7.245279312133789
+INFO:root:Epoch: 63, Moving Average Validation Loss: 7.556244230270385
+INFO:root:Epoch: 63, Epoch IoU: 0.38010342908142164
+INFO:root:Epoch: 63, Epoch Precision: 0.559868267367775
+INFO:root:Epoch: 63, Epoch Recall: 0.5420852126324379
+INFO:root:Epoch: 64, Training Loss: 5.482208198971218
+INFO:root:Epoch: 64, Moving Average Training Loss: 5.957515478134155
+INFO:root:Epoch: 64, Validation Loss: 7.259373188018799
+INFO:root:Epoch: 64, Moving Average Validation Loss: 7.44007978439331
+INFO:root:Epoch: 64, Epoch IoU: 0.3801182135206352
+INFO:root:Epoch: 64, Epoch Precision: 0.5112899515337256
+INFO:root:Epoch: 64, Epoch Recall: 0.5970423118776493
+INFO:root:Epoch: 65, Training Loss: 5.5026469230651855
+INFO:root:Epoch: 65, Moving Average Training Loss: 5.872625070148044
+INFO:root:Epoch: 65, Validation Loss: 6.908036231994629
+INFO:root:Epoch: 65, Moving Average Validation Loss: 7.351130247116089
+INFO:root:Epoch: 65, Epoch IoU: 0.37194313662750833
+INFO:root:Epoch: 65, Epoch Precision: 0.5184960195750249
+INFO:root:Epoch: 65, Epoch Recall: 0.5682050947823172
+INFO:root:Epoch: 66, Training Loss: 5.434849951002333
+INFO:root:Epoch: 66, Moving Average Training Loss: 5.770988681581285
+INFO:root:Epoch: 66, Validation Loss: 6.959409236907959
+INFO:root:Epoch: 66, Moving Average Validation Loss: 7.293318176269532
+INFO:root:Epoch: 66, Epoch IoU: 0.3825706574569957
+INFO:root:Epoch: 66, Epoch Precision: 0.5284171461929781
+INFO:root:Epoch: 66, Epoch Recall: 0.5809049694936076
+INFO:root:Epoch: 67, Training Loss: 5.344767994350857
+INFO:root:Epoch: 67, Moving Average Training Loss: 5.662949477301704
+INFO:root:Epoch: 67, Validation Loss: 6.61794376373291
+INFO:root:Epoch: 67, Moving Average Validation Loss: 7.210952043533325
+INFO:root:Epoch: 67, Epoch IoU: 0.375033117743318
+INFO:root:Epoch: 67, Epoch Precision: 0.5198486079187046
+INFO:root:Epoch: 67, Epoch Recall: 0.573791209053235
+INFO:root:Epoch: 68, Training Loss: 5.259846210479736
+INFO:root:Epoch: 68, Moving Average Training Loss: 5.576338619656033
+INFO:root:Epoch: 68, Validation Loss: 6.795867443084717
+INFO:root:Epoch: 68, Moving Average Validation Loss: 7.145394372940063
+INFO:root:Epoch: 68, Epoch IoU: 0.37550211773636555
+INFO:root:Epoch: 68, Epoch Precision: 0.4921313847707625
+INFO:root:Epoch: 68, Epoch Recall: 0.6130745035444345
+INFO:root:Epoch: 69, Training Loss: 5.052224742041694
+INFO:root:Epoch: 69, Moving Average Training Loss: 5.496457560857137
+INFO:root:Epoch: 69, Validation Loss: 6.422127723693848
+INFO:root:Epoch: 69, Moving Average Validation Loss: 7.013066911697388
+INFO:root:Epoch: 69, Epoch IoU: 0.37459834102551903
+INFO:root:Epoch: 69, Epoch Precision: 0.5219439754616412
+INFO:root:Epoch: 69, Epoch Recall: 0.570251725087039
+INFO:root:Epoch: 70, Training Loss: 4.996427059173584
+INFO:root:Epoch: 70, Moving Average Training Loss: 5.398815854390462
+INFO:root:Epoch: 70, Validation Loss: 6.328763484954834
+INFO:root:Epoch: 70, Moving Average Validation Loss: 6.855417490005493
+INFO:root:Epoch: 70, Epoch IoU: 0.37667048311144335
+INFO:root:Epoch: 70, Epoch Precision: 0.5427183407105787
+INFO:root:Epoch: 70, Epoch Recall: 0.5517959949359135
+INFO:root:Epoch: 71, Training Loss: 4.9441346062554254
+INFO:root:Epoch: 71, Moving Average Training Loss: 5.324114036560059
+INFO:root:Epoch: 71, Validation Loss: 6.737295150756836
+INFO:root:Epoch: 71, Moving Average Validation Loss: 6.804982757568359
+INFO:root:Epoch: 71, Epoch IoU: 0.3845163336504916
+INFO:root:Epoch: 71, Epoch Precision: 0.5862515836403903
+INFO:root:Epoch: 71, Epoch Recall: 0.5277274784970575
+INFO:root:Epoch: 72, Training Loss: 4.831572691599528
+INFO:root:Epoch: 72, Moving Average Training Loss: 5.24739441341824
+INFO:root:Epoch: 72, Validation Loss: 6.200252532958984
+INFO:root:Epoch: 72, Moving Average Validation Loss: 6.747434806823731
+INFO:root:Epoch: 72, Epoch IoU: 0.37574561374013976
+INFO:root:Epoch: 72, Epoch Precision: 0.5540878912738434
+INFO:root:Epoch: 72, Epoch Recall: 0.5386168869352305
+INFO:root:Epoch: 73, Training Loss: 4.727649158901638
+INFO:root:Epoch: 73, Moving Average Training Loss: 5.157632753584119
+INFO:root:Epoch: 73, Validation Loss: 5.671108722686768
+INFO:root:Epoch: 73, Moving Average Validation Loss: 6.5900177478790285
+INFO:root:Epoch: 73, Epoch IoU: 0.3905892338160027
+INFO:root:Epoch: 73, Epoch Precision: 0.544375092415437
+INFO:root:Epoch: 73, Epoch Recall: 0.5802935571232739
+INFO:root:Epoch: 74, Training Loss: 4.78881295522054
+INFO:root:Epoch: 74, Moving Average Training Loss: 5.088293229209052
+INFO:root:Epoch: 74, Validation Loss: 6.136238098144531
+INFO:root:Epoch: 74, Moving Average Validation Loss: 6.477704238891602
+INFO:root:Epoch: 74, Epoch IoU: 0.38193182191016767
+INFO:root:Epoch: 74, Epoch Precision: 0.5528936806858391
+INFO:root:Epoch: 74, Epoch Recall: 0.5526075934945456
+INFO:root:Epoch: 75, Training Loss: 4.574991014268663
+INFO:root:Epoch: 75, Moving Average Training Loss: 4.9955276383294
+INFO:root:Epoch: 75, Validation Loss: 5.9811201095581055
+INFO:root:Epoch: 75, Moving Average Validation Loss: 6.385012626647949
+INFO:root:Epoch: 75, Epoch IoU: 0.38154396531545537
+INFO:root:Epoch: 75, Epoch Precision: 0.5846435511587197
+INFO:root:Epoch: 75, Epoch Recall: 0.5234270158352824
+INFO:root:Epoch: 76, Training Loss: 4.6045098304748535
+INFO:root:Epoch: 76, Moving Average Training Loss: 4.912493626276651
+INFO:root:Epoch: 76, Validation Loss: 5.930205821990967
+INFO:root:Epoch: 76, Moving Average Validation Loss: 6.28209228515625
+INFO:root:Epoch: 76, Epoch IoU: 0.3892480493869502
+INFO:root:Epoch: 76, Epoch Precision: 0.5770188924816464
+INFO:root:Epoch: 76, Epoch Recall: 0.5446592250621467
+INFO:root:Epoch: 77, Training Loss: 4.808538013034397
+INFO:root:Epoch: 77, Moving Average Training Loss: 4.858870628145006
+INFO:root:Epoch: 77, Validation Loss: 6.195062637329102
+INFO:root:Epoch: 77, Moving Average Validation Loss: 6.2398041725158695
+INFO:root:Epoch: 77, Epoch IoU: 0.40670668240507424
+INFO:root:Epoch: 77, Epoch Precision: 0.5102864665392237
+INFO:root:Epoch: 77, Epoch Recall: 0.6670709604188788
+INFO:root:Epoch: 78, Training Loss: 4.60159969329834
+INFO:root:Epoch: 78, Moving Average Training Loss: 4.793045976426866
+INFO:root:Epoch: 78, Validation Loss: 6.294875621795654
+INFO:root:Epoch: 78, Moving Average Validation Loss: 6.1897049903869625
+INFO:root:Epoch: 78, Epoch IoU: 0.36282470010072954
+INFO:root:Epoch: 78, Epoch Precision: 0.4995020317943244
+INFO:root:Epoch: 78, Epoch Recall: 0.57007404991655
+INFO:root:Epoch: 79, Training Loss: 4.388518280453152
+INFO:root:Epoch: 79, Moving Average Training Loss: 4.726675330268013
+INFO:root:Epoch: 79, Validation Loss: 5.963590145111084
+INFO:root:Epoch: 79, Moving Average Validation Loss: 6.143851232528687
+INFO:root:Epoch: 79, Epoch IoU: 0.3951153842419849
+INFO:root:Epoch: 79, Epoch Precision: 0.5791570808528805
+INFO:root:Epoch: 79, Epoch Recall: 0.5542441588625954
+INFO:root:Epoch: 80, Training Loss: 4.268081214692858
+INFO:root:Epoch: 80, Moving Average Training Loss: 4.65384074581994
+INFO:root:Epoch: 80, Validation Loss: 5.975761413574219
+INFO:root:Epoch: 80, Moving Average Validation Loss: 6.108551025390625
+INFO:root:Epoch: 80, Epoch IoU: 0.36967339061180327
+INFO:root:Epoch: 80, Epoch Precision: 0.5744449832388101
+INFO:root:Epoch: 80, Epoch Recall: 0.5090924378383681
+INFO:root:Epoch: 81, Training Loss: 4.2515432304806176
+INFO:root:Epoch: 81, Moving Average Training Loss: 4.584581608242459
+INFO:root:Epoch: 81, Validation Loss: 5.785294532775879
+INFO:root:Epoch: 81, Moving Average Validation Loss: 6.013350963592529
+INFO:root:Epoch: 81, Epoch IoU: 0.3853337991829714
+INFO:root:Epoch: 81, Epoch Precision: 0.576277658313069
+INFO:root:Epoch: 81, Epoch Recall: 0.5376696917422935
+INFO:root:Epoch: 82, Training Loss: 4.2387647363874645
+INFO:root:Epoch: 82, Moving Average Training Loss: 4.525300812721253
+INFO:root:Epoch: 82, Validation Loss: 5.797580718994141
+INFO:root:Epoch: 82, Moving Average Validation Loss: 5.973083782196045
+INFO:root:Epoch: 82, Epoch IoU: 0.3950105077621856
+INFO:root:Epoch: 82, Epoch Precision: 0.6171476989885082
+INFO:root:Epoch: 82, Epoch Recall: 0.52322584700484
+INFO:root:Epoch: 83, Training Loss: 4.2111278374989825
+INFO:root:Epoch: 83, Moving Average Training Loss: 4.473648680580987
+INFO:root:Epoch: 83, Validation Loss: 5.360123634338379
+INFO:root:Epoch: 83, Moving Average Validation Loss: 5.941985273361206
+INFO:root:Epoch: 83, Epoch IoU: 0.4089623592031297
+INFO:root:Epoch: 83, Epoch Precision: 0.6240688803236187
+INFO:root:Epoch: 83, Epoch Recall: 0.542644950419281
+INFO:root:Epoch: 84, Training Loss: 4.12825952635871
+INFO:root:Epoch: 84, Moving Average Training Loss: 4.407593337694804
+INFO:root:Epoch: 84, Validation Loss: 5.407392978668213
+INFO:root:Epoch: 84, Moving Average Validation Loss: 5.869100761413574
+INFO:root:Epoch: 84, Epoch IoU: 0.387237986315146
+INFO:root:Epoch: 84, Epoch Precision: 0.5522626608235102
+INFO:root:Epoch: 84, Epoch Recall: 0.5644428050644069
+INFO:root:Epoch: 85, Training Loss: 4.216024822658962
+INFO:root:Epoch: 85, Moving Average Training Loss: 4.371696718533833
+INFO:root:Epoch: 85, Validation Loss: 5.407957553863525
+INFO:root:Epoch: 85, Moving Average Validation Loss: 5.811784505844116
+INFO:root:Epoch: 85, Epoch IoU: 0.38191176329636833
+INFO:root:Epoch: 85, Epoch Precision: 0.5220957555534202
+INFO:root:Epoch: 85, Epoch Recall: 0.5871823714626754
+INFO:root:Epoch: 86, Training Loss: 4.1122350162929955
+INFO:root:Epoch: 86, Moving Average Training Loss: 4.322469237115648
+INFO:root:Epoch: 86, Validation Loss: 5.709566116333008
+INFO:root:Epoch: 86, Moving Average Validation Loss: 5.78972053527832
+INFO:root:Epoch: 86, Epoch IoU: 0.3815734324354532
+INFO:root:Epoch: 86, Epoch Precision: 0.5901074385968703
+INFO:root:Epoch: 86, Epoch Recall: 0.5191782189040067
+INFO:root:Epoch: 87, Training Loss: 4.0226230886247425
+INFO:root:Epoch: 87, Moving Average Training Loss: 4.243877744674682
+INFO:root:Epoch: 87, Validation Loss: 5.186588287353516
+INFO:root:Epoch: 87, Moving Average Validation Loss: 5.6888731002807615
+INFO:root:Epoch: 87, Epoch IoU: 0.39747225147857085
+INFO:root:Epoch: 87, Epoch Precision: 0.5623298596849837
+INFO:root:Epoch: 87, Epoch Recall: 0.575511999608974
+INFO:root:Epoch: 88, Training Loss: 3.924715624915229
+INFO:root:Epoch: 88, Moving Average Training Loss: 4.176189337836371
+INFO:root:Epoch: 88, Validation Loss: 5.609387397766113
+INFO:root:Epoch: 88, Moving Average Validation Loss: 5.620324277877808
+INFO:root:Epoch: 88, Epoch IoU: 0.39901954096960457
+INFO:root:Epoch: 88, Epoch Precision: 0.5345748273642554
+INFO:root:Epoch: 88, Epoch Recall: 0.6114347778666472
+INFO:root:Epoch: 89, Training Loss: 3.998901261223687
+INFO:root:Epoch: 89, Moving Average Training Loss: 4.137227635913424
+INFO:root:Epoch: 89, Validation Loss: 5.530810356140137
+INFO:root:Epoch: 89, Moving Average Validation Loss: 5.577046298980713
+INFO:root:Epoch: 89, Epoch IoU: 0.39392697059145076
+INFO:root:Epoch: 89, Epoch Precision: 0.6133321985574162
+INFO:root:Epoch: 89, Epoch Recall: 0.5240805046997437
+INFO:root:Epoch: 90, Training Loss: 3.8587652577294245
+INFO:root:Epoch: 90, Moving Average Training Loss: 4.096296040217082
+INFO:root:Epoch: 90, Validation Loss: 6.093719005584717
+INFO:root:Epoch: 90, Moving Average Validation Loss: 5.588842058181763
+INFO:root:Epoch: 90, Epoch IoU: 0.3847315614777591
+INFO:root:Epoch: 90, Epoch Precision: 0.6445815697460434
+INFO:root:Epoch: 90, Epoch Recall: 0.48832396636605235
+INFO:root:Epoch: 91, Training Loss: 3.8627713786231146
+INFO:root:Epoch: 91, Moving Average Training Loss: 4.057418855031331
+INFO:root:Epoch: 91, Validation Loss: 5.801616668701172
+INFO:root:Epoch: 91, Moving Average Validation Loss: 5.590474271774292
+INFO:root:Epoch: 91, Epoch IoU: 0.3926536853781892
+INFO:root:Epoch: 91, Epoch Precision: 0.5780463614346673
+INFO:root:Epoch: 91, Epoch Recall: 0.5504157570380002
+INFO:root:Epoch: 92, Training Loss: 3.7885306676228843
+INFO:root:Epoch: 92, Moving Average Training Loss: 4.012395448154874
+INFO:root:Epoch: 92, Validation Loss: 5.3539509773254395
+INFO:root:Epoch: 92, Moving Average Validation Loss: 5.546111297607422
+INFO:root:Epoch: 92, Epoch IoU: 0.3968874645968698
+INFO:root:Epoch: 92, Epoch Precision: 0.5769658172423946
+INFO:root:Epoch: 92, Epoch Recall: 0.559784737164631
+INFO:root:Epoch: 93, Training Loss: 3.7560618188646107
+INFO:root:Epoch: 93, Moving Average Training Loss: 3.966888846291436
+INFO:root:Epoch: 93, Validation Loss: 5.684870719909668
+INFO:root:Epoch: 93, Moving Average Validation Loss: 5.578586006164551
+INFO:root:Epoch: 93, Epoch IoU: 0.3536420818302297
+INFO:root:Epoch: 93, Epoch Precision: 0.6761643751722448
+INFO:root:Epoch: 93, Epoch Recall: 0.42575159429092013
+INFO:root:Epoch: 94, Training Loss: 3.8951156669192843
+INFO:root:Epoch: 94, Moving Average Training Loss: 3.943574460347493
+INFO:root:Epoch: 94, Validation Loss: 5.1349196434021
+INFO:root:Epoch: 94, Moving Average Validation Loss: 5.5513386726379395
+INFO:root:Epoch: 94, Epoch IoU: 0.39137730825875156
+INFO:root:Epoch: 94, Epoch Precision: 0.6098536461580047
+INFO:root:Epoch: 94, Epoch Recall: 0.5221001128737467
+INFO:root:Epoch: 95, Training Loss: 3.7309666209750705
+INFO:root:Epoch: 95, Moving Average Training Loss: 3.8950686401791033
+INFO:root:Epoch: 95, Validation Loss: 5.286977767944336
+INFO:root:Epoch: 95, Moving Average Validation Loss: 5.53924069404602
+INFO:root:Epoch: 95, Epoch IoU: 0.38313229840914964
+INFO:root:Epoch: 95, Epoch Precision: 0.5021899765247121
+INFO:root:Epoch: 95, Epoch Recall: 0.6177468118919338
+INFO:root:Epoch: 96, Training Loss: 3.658531427383423
+INFO:root:Epoch: 96, Moving Average Training Loss: 3.849698281288147
+INFO:root:Epoch: 96, Validation Loss: 5.36692476272583
+INFO:root:Epoch: 96, Moving Average Validation Loss: 5.504976558685303
+INFO:root:Epoch: 96, Epoch IoU: 0.3803459091316426
+INFO:root:Epoch: 96, Epoch Precision: 0.6169764913158002
+INFO:root:Epoch: 96, Epoch Recall: 0.4979141541883502
+INFO:root:Epoch: 97, Training Loss: 3.6071733633677163
+INFO:root:Epoch: 97, Moving Average Training Loss: 3.8081533087624444
+INFO:root:Epoch: 97, Validation Loss: 5.364542484283447
+INFO:root:Epoch: 97, Moving Average Validation Loss: 5.522771978378296
+INFO:root:Epoch: 97, Epoch IoU: 0.3964025692921797
+INFO:root:Epoch: 97, Epoch Precision: 0.647464961719028
+INFO:root:Epoch: 97, Epoch Recall: 0.505509327095852
+INFO:root:Epoch: 98, Training Loss: 3.582110537423028
+INFO:root:Epoch: 98, Moving Average Training Loss: 3.773892800013224
+INFO:root:Epoch: 98, Validation Loss: 5.266526222229004
+INFO:root:Epoch: 98, Moving Average Validation Loss: 5.488485860824585
+INFO:root:Epoch: 98, Epoch IoU: 0.3869817518374765
+INFO:root:Epoch: 98, Epoch Precision: 0.6224642370952264
+INFO:root:Epoch: 98, Epoch Recall: 0.5056677317741972
+INFO:root:Epoch: 99, Training Loss: 3.4887258211771646
+INFO:root:Epoch: 99, Moving Average Training Loss: 3.7228752560085723
+INFO:root:Epoch: 99, Validation Loss: 4.999887466430664
+INFO:root:Epoch: 99, Moving Average Validation Loss: 5.435393571853638
+INFO:root:Epoch: 99, Epoch IoU: 0.40419921620045773
+INFO:root:Epoch: 99, Epoch Precision: 0.511268153431815
+INFO:root:Epoch: 99, Epoch Recall: 0.6587151886466887
+INFO:root:Epoch: 100, Training Loss: 3.563913583755493
+INFO:root:Epoch: 100, Moving Average Training Loss: 3.693390088611179
+INFO:root:Epoch: 100, Validation Loss: 5.187555313110352
+INFO:root:Epoch: 100, Moving Average Validation Loss: 5.344777202606201
+INFO:root:Epoch: 100, Epoch IoU: 0.3715248808104887
+INFO:root:Epoch: 100, Epoch Precision: 0.6346157516685011
+INFO:root:Epoch: 100, Epoch Recall: 0.4726226012793177
+INFO:root:Epoch: 101, Training Loss: 3.478475915061103
+INFO:root:Epoch: 101, Moving Average Training Loss: 3.6549605422549782
+INFO:root:Epoch: 101, Validation Loss: 5.178666114807129
+INFO:root:Epoch: 101, Moving Average Validation Loss: 5.282482147216797
+INFO:root:Epoch: 101, Epoch IoU: 0.3806340554789249
+INFO:root:Epoch: 101, Epoch Precision: 0.6352844812072999
+INFO:root:Epoch: 101, Epoch Recall: 0.4870689655172414
+INFO:root:Epoch: 102, Training Loss: 3.3980847199757895
+INFO:root:Epoch: 102, Moving Average Training Loss: 3.6159159474902687
+INFO:root:Epoch: 102, Validation Loss: 4.841005802154541
+INFO:root:Epoch: 102, Moving Average Validation Loss: 5.231187629699707
+INFO:root:Epoch: 102, Epoch IoU: 0.3867271191043785
+INFO:root:Epoch: 102, Epoch Precision: 0.6130874429674279
+INFO:root:Epoch: 102, Epoch Recall: 0.5115838111062876
+INFO:root:Epoch: 103, Training Loss: 3.3431617154015436
+INFO:root:Epoch: 103, Moving Average Training Loss: 3.574625937143962
+INFO:root:Epoch: 103, Validation Loss: 5.061873912811279
+INFO:root:Epoch: 103, Moving Average Validation Loss: 5.168887948989868
+INFO:root:Epoch: 103, Epoch IoU: 0.400138245100431
+INFO:root:Epoch: 103, Epoch Precision: 0.617116340320128
+INFO:root:Epoch: 103, Epoch Recall: 0.5322840182277934
+INFO:root:Epoch: 104, Training Loss: 3.3487006028493247
+INFO:root:Epoch: 104, Moving Average Training Loss: 3.519984430736966
+INFO:root:Epoch: 104, Validation Loss: 4.815391540527344
+INFO:root:Epoch: 104, Moving Average Validation Loss: 5.136935138702393
+INFO:root:Epoch: 104, Epoch IoU: 0.39250624312587545
+INFO:root:Epoch: 104, Epoch Precision: 0.5800287519575538
+INFO:root:Epoch: 104, Epoch Recall: 0.5483425027321384
+INFO:root:Epoch: 105, Training Loss: 3.3379179901546903
+INFO:root:Epoch: 105, Moving Average Training Loss: 3.480679567654928
+INFO:root:Epoch: 105, Validation Loss: 4.802521228790283
+INFO:root:Epoch: 105, Moving Average Validation Loss: 5.0884894847869875
+INFO:root:Epoch: 105, Epoch IoU: 0.389835095315751
+INFO:root:Epoch: 105, Epoch Precision: 0.5982202087209773
+INFO:root:Epoch: 105, Epoch Recall: 0.5281052411061171
+INFO:root:Epoch: 106, Training Loss: 3.5755254692501492
+INFO:root:Epoch: 106, Moving Average Training Loss: 3.4723789718416
+INFO:root:Epoch: 106, Validation Loss: 4.501974105834961
+INFO:root:Epoch: 106, Moving Average Validation Loss: 5.0019944190979
+INFO:root:Epoch: 106, Epoch IoU: 0.401541509161918
+INFO:root:Epoch: 106, Epoch Precision: 0.5207051287262322
+INFO:root:Epoch: 106, Epoch Recall: 0.6369711464356923
+INFO:root:Epoch: 107, Training Loss: 3.5799321598476834
+INFO:root:Epoch: 107, Moving Average Training Loss: 3.4696548514895964
+INFO:root:Epoch: 107, Validation Loss: 5.025003433227539
+INFO:root:Epoch: 107, Moving Average Validation Loss: 4.968040513992309
+INFO:root:Epoch: 107, Epoch IoU: 0.38036720064369833
+INFO:root:Epoch: 107, Epoch Precision: 0.6526880441819599
+INFO:root:Epoch: 107, Epoch Recall: 0.47689151683359476
+INFO:root:Epoch: 108, Training Loss: 3.381647639804416
+INFO:root:Epoch: 108, Moving Average Training Loss: 3.449608561727735
+INFO:root:Epoch: 108, Validation Loss: 5.3849992752075195
+INFO:root:Epoch: 108, Moving Average Validation Loss: 4.979887819290161
+INFO:root:Epoch: 108, Epoch IoU: 0.37260562220125504
+INFO:root:Epoch: 108, Epoch Precision: 0.6746229197030811
+INFO:root:Epoch: 108, Epoch Recall: 0.45423714888217415
+INFO:root:Epoch: 109, Training Loss: 3.3649891217549643
+INFO:root:Epoch: 109, Moving Average Training Loss: 3.4372348917855158
+INFO:root:Epoch: 109, Validation Loss: 4.956058025360107
+INFO:root:Epoch: 109, Moving Average Validation Loss: 4.9755048751831055
+INFO:root:Epoch: 109, Epoch IoU: 0.4019715666589311
+INFO:root:Epoch: 109, Epoch Precision: 0.6173653869994628
+INFO:root:Epoch: 109, Epoch Recall: 0.5353457079891781
+INFO:root:Epoch: 110, Training Loss: 3.238699436187744
+INFO:root:Epoch: 110, Moving Average Training Loss: 3.4047134770287406
+INFO:root:Epoch: 110, Validation Loss: 4.766417026519775
+INFO:root:Epoch: 110, Moving Average Validation Loss: 4.933391046524048
+INFO:root:Epoch: 110, Epoch IoU: 0.39878314648173424
+INFO:root:Epoch: 110, Epoch Precision: 0.5714716134534802
+INFO:root:Epoch: 110, Epoch Recall: 0.5689057676423221
+INFO:root:Epoch: 111, Training Loss: 3.3458886411454944
+INFO:root:Epoch: 111, Moving Average Training Loss: 3.3914547496371794
+INFO:root:Epoch: 111, Validation Loss: 4.648659706115723
+INFO:root:Epoch: 111, Moving Average Validation Loss: 4.880390405654907
+INFO:root:Epoch: 111, Epoch IoU: 0.40254012380977516
+INFO:root:Epoch: 111, Epoch Precision: 0.5026824329025572
+INFO:root:Epoch: 111, Epoch Recall: 0.6689424618548462
+INFO:root:Epoch: 112, Training Loss: 3.3057345814175076
+INFO:root:Epoch: 112, Moving Average Training Loss: 3.3822197357813524
+INFO:root:Epoch: 112, Validation Loss: 4.826487064361572
+INFO:root:Epoch: 112, Moving Average Validation Loss: 4.87893853187561
+INFO:root:Epoch: 112, Epoch IoU: 0.38436460060441435
+INFO:root:Epoch: 112, Epoch Precision: 0.4950625137257575
+INFO:root:Epoch: 112, Epoch Recall: 0.6322113641089121
+INFO:root:Epoch: 113, Training Loss: 3.2738907867007785
+INFO:root:Epoch: 113, Moving Average Training Loss: 3.375292642911275
+INFO:root:Epoch: 113, Validation Loss: 4.349593639373779
+INFO:root:Epoch: 113, Moving Average Validation Loss: 4.80771050453186
+INFO:root:Epoch: 113, Epoch IoU: 0.40587780355761793
+INFO:root:Epoch: 113, Epoch Precision: 0.5457640212403805
+INFO:root:Epoch: 113, Epoch Recall: 0.6129321358427244
+INFO:root:Epoch: 114, Training Loss: 3.1030558480156794
+INFO:root:Epoch: 114, Moving Average Training Loss: 3.350728167427911
+INFO:root:Epoch: 114, Validation Loss: 4.58298397064209
+INFO:root:Epoch: 114, Moving Average Validation Loss: 4.784469747543335
+INFO:root:Epoch: 114, Epoch IoU: 0.41309317952348346
+INFO:root:Epoch: 114, Epoch Precision: 0.5434102254858556
+INFO:root:Epoch: 114, Epoch Recall: 0.6326987681970885
+INFO:root:Epoch: 115, Training Loss: 3.0456299781799316
+INFO:root:Epoch: 115, Moving Average Training Loss: 3.3214993662304346
+INFO:root:Epoch: 115, Validation Loss: 4.75894021987915
+INFO:root:Epoch: 115, Moving Average Validation Loss: 4.780111646652221
+INFO:root:Epoch: 115, Epoch IoU: 0.4089730420403868
+INFO:root:Epoch: 115, Epoch Precision: 0.5787024727466099
+INFO:root:Epoch: 115, Epoch Recall: 0.5823619125765913
+INFO:root:Epoch: 116, Training Loss: 2.9595347245534263
+INFO:root:Epoch: 116, Moving Average Training Loss: 3.2599002917607627
+INFO:root:Epoch: 116, Validation Loss: 5.036231994628906
+INFO:root:Epoch: 116, Moving Average Validation Loss: 4.833537435531616
+INFO:root:Epoch: 116, Epoch IoU: 0.4085676697911528
+INFO:root:Epoch: 116, Epoch Precision: 0.5399248082174911
+INFO:root:Epoch: 116, Epoch Recall: 0.6267764341815368
+INFO:root:Epoch: 117, Training Loss: 3.037279658847385
+INFO:root:Epoch: 117, Moving Average Training Loss: 3.205635041660732
+INFO:root:Epoch: 117, Validation Loss: 4.264179706573486
+INFO:root:Epoch: 117, Moving Average Validation Loss: 4.757455062866211
+INFO:root:Epoch: 117, Epoch IoU: 0.398054912429777
+INFO:root:Epoch: 117, Epoch Precision: 0.5696681157779168
+INFO:root:Epoch: 117, Epoch Recall: 0.5692141188045751
+INFO:root:Epoch: 118, Training Loss: 2.959665616353353
+INFO:root:Epoch: 118, Moving Average Training Loss: 3.1634368393156262
+INFO:root:Epoch: 118, Validation Loss: 4.414840221405029
+INFO:root:Epoch: 118, Moving Average Validation Loss: 4.660439157485962
+INFO:root:Epoch: 118, Epoch IoU: 0.3926347662170685
+INFO:root:Epoch: 118, Epoch Precision: 0.5899583780529305
+INFO:root:Epoch: 118, Epoch Recall: 0.5399972205849232
+INFO:root:Epoch: 119, Training Loss: 2.9019679493374295
+INFO:root:Epoch: 119, Moving Average Training Loss: 3.1171347220738728
+INFO:root:Epoch: 119, Validation Loss: 4.197478771209717
+INFO:root:Epoch: 119, Moving Average Validation Loss: 4.5845812320709225
+INFO:root:Epoch: 119, Epoch IoU: 0.39182587296502314
+INFO:root:Epoch: 119, Epoch Precision: 0.5890565397518621
+INFO:root:Epoch: 119, Epoch Recall: 0.5392218748747545
+INFO:root:Epoch: 120, Training Loss: 2.8747350109948053
+INFO:root:Epoch: 120, Moving Average Training Loss: 3.080738279554579
+INFO:root:Epoch: 120, Validation Loss: 4.305527687072754
+INFO:root:Epoch: 120, Moving Average Validation Loss: 4.53849229812622
+INFO:root:Epoch: 120, Epoch IoU: 0.41331091449280094
+INFO:root:Epoch: 120, Epoch Precision: 0.5741309326742103
+INFO:root:Epoch: 120, Epoch Recall: 0.5960459159651205
+INFO:root:Epoch: 121, Training Loss: 2.8188786771562366
+INFO:root:Epoch: 121, Moving Average Training Loss: 3.0280372831556526
+INFO:root:Epoch: 121, Validation Loss: 4.6418561935424805
+INFO:root:Epoch: 121, Moving Average Validation Loss: 4.537811946868897
+INFO:root:Epoch: 121, Epoch IoU: 0.4123813900993094
+INFO:root:Epoch: 121, Epoch Precision: 0.5462412823180365
+INFO:root:Epoch: 121, Epoch Recall: 0.6272554311756117
+INFO:root:Epoch: 122, Training Loss: 2.8980732758839927
+INFO:root:Epoch: 122, Moving Average Training Loss: 2.9872711526023012
+INFO:root:Epoch: 122, Validation Loss: 4.196056842803955
+INFO:root:Epoch: 122, Moving Average Validation Loss: 4.474768924713135
+INFO:root:Epoch: 122, Epoch IoU: 0.4039801833378269
+INFO:root:Epoch: 122, Epoch Precision: 0.5826803422127164
+INFO:root:Epoch: 122, Epoch Recall: 0.568452451522035
+INFO:root:Epoch: 123, Training Loss: 2.7798775566948786
+INFO:root:Epoch: 123, Moving Average Training Loss: 2.937869829601712
+INFO:root:Epoch: 123, Validation Loss: 4.296363353729248
+INFO:root:Epoch: 123, Moving Average Validation Loss: 4.469445896148682
+INFO:root:Epoch: 123, Epoch IoU: 0.40465540622093477
+INFO:root:Epoch: 123, Epoch Precision: 0.6220612953220842
+INFO:root:Epoch: 123, Epoch Recall: 0.5365728515009014
+INFO:root:Epoch: 124, Training Loss: 2.7561366293165417
+INFO:root:Epoch: 124, Moving Average Training Loss: 2.9031779077317976
+INFO:root:Epoch: 124, Validation Loss: 4.255990982055664
+INFO:root:Epoch: 124, Moving Average Validation Loss: 4.436746597290039
+INFO:root:Epoch: 124, Epoch IoU: 0.3943772378429077
+INFO:root:Epoch: 124, Epoch Precision: 0.5756836840238047
+INFO:root:Epoch: 124, Epoch Recall: 0.5559947108331403
+INFO:root:Epoch: 125, Training Loss: 2.706398116217719
+INFO:root:Epoch: 125, Moving Average Training Loss: 2.869254721535577
+INFO:root:Epoch: 125, Validation Loss: 4.11281156539917
+INFO:root:Epoch: 125, Moving Average Validation Loss: 4.372133731842041
+INFO:root:Epoch: 125, Epoch IoU: 0.42455067398901647
+INFO:root:Epoch: 125, Epoch Precision: 0.5912675540917616
+INFO:root:Epoch: 125, Epoch Recall: 0.600907472234232
+INFO:root:Epoch: 126, Training Loss: 2.7161418067084417
+INFO:root:Epoch: 126, Moving Average Training Loss: 2.8449154297510786
+INFO:root:Epoch: 126, Validation Loss: 4.669663429260254
+INFO:root:Epoch: 126, Moving Average Validation Loss: 4.335476875305176
+INFO:root:Epoch: 126, Epoch IoU: 0.403148321600145
+INFO:root:Epoch: 126, Epoch Precision: 0.6408194411833764
+INFO:root:Epoch: 126, Epoch Recall: 0.5208402005516907
+INFO:root:Epoch: 127, Training Loss: 2.664238929748535
+INFO:root:Epoch: 127, Moving Average Training Loss: 2.8076113568411936
+INFO:root:Epoch: 127, Validation Loss: 3.9739134311676025
+INFO:root:Epoch: 127, Moving Average Validation Loss: 4.306450247764587
+INFO:root:Epoch: 127, Epoch IoU: 0.40894424021252046
+INFO:root:Epoch: 127, Epoch Precision: 0.5759874901380904
+INFO:root:Epoch: 127, Epoch Recall: 0.5850785089066339
+INFO:root:Epoch: 128, Training Loss: 2.6032639609442816
+INFO:root:Epoch: 128, Moving Average Training Loss: 2.771971191300287
+INFO:root:Epoch: 128, Validation Loss: 4.27174186706543
+INFO:root:Epoch: 128, Moving Average Validation Loss: 4.292140412330627
+INFO:root:Epoch: 128, Epoch IoU: 0.39566943466879323
+INFO:root:Epoch: 128, Epoch Precision: 0.5986025944324089
+INFO:root:Epoch: 128, Epoch Recall: 0.538559556002322
+INFO:root:Epoch: 129, Training Loss: 2.648677852418688
+INFO:root:Epoch: 129, Moving Average Training Loss: 2.7466421816084123
+INFO:root:Epoch: 129, Validation Loss: 4.095623016357422
+INFO:root:Epoch: 129, Moving Average Validation Loss: 4.281954836845398
+INFO:root:Epoch: 129, Epoch IoU: 0.3897091062730686
+INFO:root:Epoch: 129, Epoch Precision: 0.6653532590203204
+INFO:root:Epoch: 129, Epoch Recall: 0.4847179324465685
+INFO:root:Epoch: 130, Training Loss: 2.670880079269409
+INFO:root:Epoch: 130, Moving Average Training Loss: 2.7262566884358725
+INFO:root:Epoch: 130, Validation Loss: 4.266195297241211
+INFO:root:Epoch: 130, Moving Average Validation Loss: 4.278021597862244
+INFO:root:Epoch: 130, Epoch IoU: 0.42180873504007815
+INFO:root:Epoch: 130, Epoch Precision: 0.6036624948362818
+INFO:root:Epoch: 130, Epoch Recall: 0.5833666007168207
+INFO:root:Epoch: 131, Training Loss: 2.603632476594713
+INFO:root:Epoch: 131, Moving Average Training Loss: 2.7047320683797205
+INFO:root:Epoch: 131, Validation Loss: 4.150728702545166
+INFO:root:Epoch: 131, Moving Average Validation Loss: 4.228908848762512
+INFO:root:Epoch: 131, Epoch IoU: 0.3932572587143563
+INFO:root:Epoch: 131, Epoch Precision: 0.6408614773889417
+INFO:root:Epoch: 131, Epoch Recall: 0.5044225026077762
+INFO:root:Epoch: 132, Training Loss: 2.6120278305477567
+INFO:root:Epoch: 132, Moving Average Training Loss: 2.6761275238460964
+INFO:root:Epoch: 132, Validation Loss: 3.7814128398895264
+INFO:root:Epoch: 132, Moving Average Validation Loss: 4.187444448471069
+INFO:root:Epoch: 132, Epoch IoU: 0.41871149008232944
+INFO:root:Epoch: 132, Epoch Precision: 0.5957949974110806
+INFO:root:Epoch: 132, Epoch Recall: 0.5848467373030457
+INFO:root:Epoch: 133, Training Loss: 2.5679475201500788
+INFO:root:Epoch: 133, Moving Average Training Loss: 2.6549345201916164
+INFO:root:Epoch: 133, Validation Loss: 4.180669784545898
+INFO:root:Epoch: 133, Moving Average Validation Loss: 4.175875091552735
+INFO:root:Epoch: 133, Epoch IoU: 0.4114288363836284
+INFO:root:Epoch: 133, Epoch Precision: 0.6019868191509983
+INFO:root:Epoch: 133, Epoch Recall: 0.5651671489144875
+INFO:root:Epoch: 134, Training Loss: 2.5280311902364097
+INFO:root:Epoch: 134, Moving Average Training Loss: 2.632123976283603
+INFO:root:Epoch: 134, Validation Loss: 4.136383533477783
+INFO:root:Epoch: 134, Moving Average Validation Loss: 4.163914346694947
+INFO:root:Epoch: 134, Epoch IoU: 0.40874006209329883
+INFO:root:Epoch: 134, Epoch Precision: 0.6003043059782027
+INFO:root:Epoch: 134, Epoch Recall: 0.5615703287358517
+INFO:root:Epoch: 135, Training Loss: 2.572353627946642
+INFO:root:Epoch: 135, Moving Average Training Loss: 2.618719527456496
+INFO:root:Epoch: 135, Validation Loss: 4.254662990570068
+INFO:root:Epoch: 135, Moving Average Validation Loss: 4.178099489212036
+INFO:root:Epoch: 135, Epoch IoU: 0.4137019516791387
+INFO:root:Epoch: 135, Epoch Precision: 0.5823958422932578
+INFO:root:Epoch: 135, Epoch Recall: 0.5881820426302362
+INFO:root:Epoch: 136, Training Loss: 2.5307727919684515
+INFO:root:Epoch: 136, Moving Average Training Loss: 2.6001826259824967
+INFO:root:Epoch: 136, Validation Loss: 3.9748125076293945
+INFO:root:Epoch: 136, Moving Average Validation Loss: 4.10861439704895
+INFO:root:Epoch: 136, Epoch IoU: 0.4120762256692304
+INFO:root:Epoch: 136, Epoch Precision: 0.6365879157654842
+INFO:root:Epoch: 136, Epoch Recall: 0.5388335877290732
+INFO:root:Epoch: 137, Training Loss: 2.450009160571628
+INFO:root:Epoch: 137, Moving Average Training Loss: 2.578759649064806
+INFO:root:Epoch: 137, Validation Loss: 3.959559917449951
+INFO:root:Epoch: 137, Moving Average Validation Loss: 4.107179045677185
+INFO:root:Epoch: 137, Epoch IoU: 0.42896046723946024
+INFO:root:Epoch: 137, Epoch Precision: 0.5722168465657896
+INFO:root:Epoch: 137, Epoch Recall: 0.6314614602175184
+INFO:root:Epoch: 138, Training Loss: 2.4261403613620334
+INFO:root:Epoch: 138, Moving Average Training Loss: 2.561047289106581
+INFO:root:Epoch: 138, Validation Loss: 4.155892372131348
+INFO:root:Epoch: 138, Moving Average Validation Loss: 4.095594096183777
+INFO:root:Epoch: 138, Epoch IoU: 0.3913384347474222
+INFO:root:Epoch: 138, Epoch Precision: 0.6162007486545835
+INFO:root:Epoch: 138, Epoch Recall: 0.5174683858762379
+INFO:root:Epoch: 139, Training Loss: 2.4542948140038385
+INFO:root:Epoch: 139, Moving Average Training Loss: 2.5416089852650963
+INFO:root:Epoch: 139, Validation Loss: 4.0214972496032715
+INFO:root:Epoch: 139, Moving Average Validation Loss: 4.088181519508362
+INFO:root:Epoch: 139, Epoch IoU: 0.41414794549034645
+INFO:root:Epoch: 139, Epoch Precision: 0.5763932854584592
+INFO:root:Epoch: 139, Epoch Recall: 0.5953552027427845
+INFO:root:Epoch: 140, Training Loss: 2.367025454839071
+INFO:root:Epoch: 140, Moving Average Training Loss: 2.511223522822062
+INFO:root:Epoch: 140, Validation Loss: 3.660301685333252
+INFO:root:Epoch: 140, Moving Average Validation Loss: 4.027592158317566
+INFO:root:Epoch: 140, Epoch IoU: 0.40413712816820374
+INFO:root:Epoch: 140, Epoch Precision: 0.5554866994709386
+INFO:root:Epoch: 140, Epoch Recall: 0.5973057242171532
+INFO:root:Epoch: 141, Training Loss: 2.3814769321017795
+INFO:root:Epoch: 141, Moving Average Training Loss: 2.4890079683727686
+INFO:root:Epoch: 141, Validation Loss: 4.182733058929443
+INFO:root:Epoch: 141, Moving Average Validation Loss: 4.030792593955994
+INFO:root:Epoch: 141, Epoch IoU: 0.40152393278482185
+INFO:root:Epoch: 141, Epoch Precision: 0.6354780984108405
+INFO:root:Epoch: 141, Epoch Recall: 0.521677468829255
+INFO:root:Epoch: 142, Training Loss: 2.331120941374037
+INFO:root:Epoch: 142, Moving Average Training Loss: 2.460917279455397
+INFO:root:Epoch: 142, Validation Loss: 4.008933067321777
+INFO:root:Epoch: 142, Moving Average Validation Loss: 4.053544616699218
+INFO:root:Epoch: 142, Epoch IoU: 0.4062796903817135
+INFO:root:Epoch: 142, Epoch Precision: 0.6344599238514995
+INFO:root:Epoch: 142, Epoch Recall: 0.5304435070117433
+INFO:root:Epoch: 143, Training Loss: 2.342838552263048
+INFO:root:Epoch: 143, Moving Average Training Loss: 2.438406382666694
+INFO:root:Epoch: 143, Validation Loss: 3.8833072185516357
+INFO:root:Epoch: 143, Moving Average Validation Loss: 4.0238083600997925
+INFO:root:Epoch: 143, Epoch IoU: 0.4115246212765378
+INFO:root:Epoch: 143, Epoch Precision: 0.6164451260208786
+INFO:root:Epoch: 143, Epoch Recall: 0.5531634747703801
+INFO:root:Epoch: 144, Training Loss: 2.2736217180887857
+INFO:root:Epoch: 144, Moving Average Training Loss: 2.412965435451931
+INFO:root:Epoch: 144, Validation Loss: 3.719316244125366
+INFO:root:Epoch: 144, Moving Average Validation Loss: 3.982101631164551
+INFO:root:Epoch: 144, Epoch IoU: 0.41760033068540553
+INFO:root:Epoch: 144, Epoch Precision: 0.5690683528893371
+INFO:root:Epoch: 144, Epoch Recall: 0.6107332816560143
+INFO:root:Epoch: 145, Training Loss: 2.2805587185753717
+INFO:root:Epoch: 145, Moving Average Training Loss: 2.3837859445148046
+INFO:root:Epoch: 145, Validation Loss: 3.6374013423919678
+INFO:root:Epoch: 145, Moving Average Validation Loss: 3.9203754663467407
+INFO:root:Epoch: 145, Epoch IoU: 0.41911545857369786
+INFO:root:Epoch: 145, Epoch Precision: 0.5892813481539995
+INFO:root:Epoch: 145, Epoch Recall: 0.5920680288177631
+INFO:root:Epoch: 146, Training Loss: 2.3946089214748807
+INFO:root:Epoch: 146, Moving Average Training Loss: 2.3701695574654473
+INFO:root:Epoch: 146, Validation Loss: 4.043478965759277
+INFO:root:Epoch: 146, Moving Average Validation Loss: 3.927242112159729
+INFO:root:Epoch: 146, Epoch IoU: 0.39913360528500774
+INFO:root:Epoch: 146, Epoch Precision: 0.6529961374455168
+INFO:root:Epoch: 146, Epoch Recall: 0.5065794296605821
+INFO:root:Epoch: 147, Training Loss: 2.2892915142907038
+INFO:root:Epoch: 147, Moving Average Training Loss: 2.3540977928373548
+INFO:root:Epoch: 147, Validation Loss: 3.7227749824523926
+INFO:root:Epoch: 147, Moving Average Validation Loss: 3.903563618659973
+INFO:root:Epoch: 147, Epoch IoU: 0.4218069708102684
+INFO:root:Epoch: 147, Epoch Precision: 0.5877217996007837
+INFO:root:Epoch: 147, Epoch Recall: 0.5990652058750451
+INFO:root:Epoch: 148, Training Loss: 2.338268836339315
+INFO:root:Epoch: 148, Moving Average Training Loss: 2.3453106403350827
+INFO:root:Epoch: 148, Validation Loss: 3.679501533508301
+INFO:root:Epoch: 148, Moving Average Validation Loss: 3.8559245347976683
+INFO:root:Epoch: 148, Epoch IoU: 0.4158832995318996
+INFO:root:Epoch: 148, Epoch Precision: 0.5979052914726193
+INFO:root:Epoch: 148, Epoch Recall: 0.5773622028165192
+INFO:root:Epoch: 149, Training Loss: 2.288995451397366
+INFO:root:Epoch: 149, Moving Average Training Loss: 2.3287807040744353
+INFO:root:Epoch: 149, Validation Loss: 3.8744773864746094
+INFO:root:Epoch: 149, Moving Average Validation Loss: 3.841222548484802
+INFO:root:Epoch: 149, Epoch IoU: 0.4132076260265671
+INFO:root:Epoch: 149, Epoch Precision: 0.6476567404536397
+INFO:root:Epoch: 149, Epoch Recall: 0.5330311171813926
+INFO:root:Epoch: 150, Training Loss: 2.2132154835595026
+INFO:root:Epoch: 150, Moving Average Training Loss: 2.3133997069464787
+INFO:root:Epoch: 150, Validation Loss: 3.829404354095459
+INFO:root:Epoch: 150, Moving Average Validation Loss: 3.858132815361023
+INFO:root:Epoch: 150, Epoch IoU: 0.4257051449675393
+INFO:root:Epoch: 150, Epoch Precision: 0.5969245254833438
+INFO:root:Epoch: 150, Epoch Recall: 0.5974464923249787
+INFO:root:Epoch: 151, Training Loss: 2.2197892003589206
+INFO:root:Epoch: 151, Moving Average Training Loss: 2.297230933772193
+INFO:root:Epoch: 151, Validation Loss: 3.9211418628692627
+INFO:root:Epoch: 151, Moving Average Validation Loss: 3.831973695755005
+INFO:root:Epoch: 151, Epoch IoU: 0.40562048782289184
+INFO:root:Epoch: 151, Epoch Precision: 0.6596561188149732
+INFO:root:Epoch: 151, Epoch Recall: 0.5129737908875232
+INFO:root:Epoch: 152, Training Loss: 2.2085787190331354
+INFO:root:Epoch: 152, Moving Average Training Loss: 2.284976711538103
+INFO:root:Epoch: 152, Validation Loss: 3.797542095184326
+INFO:root:Epoch: 152, Moving Average Validation Loss: 3.81083459854126
+INFO:root:Epoch: 152, Epoch IoU: 0.42643414410279945
+INFO:root:Epoch: 152, Epoch Precision: 0.5955383466157471
+INFO:root:Epoch: 152, Epoch Recall: 0.6002851414568946
+INFO:root:Epoch: 153, Training Loss: 2.177563773261176
+INFO:root:Epoch: 153, Moving Average Training Loss: 2.2684492336379156
+INFO:root:Epoch: 153, Validation Loss: 3.400407075881958
+INFO:root:Epoch: 153, Moving Average Validation Loss: 3.762544584274292
+INFO:root:Epoch: 153, Epoch IoU: 0.42115388059968834
+INFO:root:Epoch: 153, Epoch Precision: 0.6083026326682672
+INFO:root:Epoch: 153, Epoch Recall: 0.5778641788403689
+INFO:root:Epoch: 154, Training Loss: 2.107315606541104
+INFO:root:Epoch: 154, Moving Average Training Loss: 2.2518186224831473
+INFO:root:Epoch: 154, Validation Loss: 4.002802848815918
+INFO:root:Epoch: 154, Moving Average Validation Loss: 3.790893244743347
+INFO:root:Epoch: 154, Epoch IoU: 0.37761061772640453
+INFO:root:Epoch: 154, Epoch Precision: 0.7009101209839541
+INFO:root:Epoch: 154, Epoch Recall: 0.4501434265566828
+INFO:root:Epoch: 155, Training Loss: 2.1455569002363415
+INFO:root:Epoch: 155, Moving Average Training Loss: 2.2383184406492447
+INFO:root:Epoch: 155, Validation Loss: 3.8675248622894287
+INFO:root:Epoch: 155, Moving Average Validation Loss: 3.8139055967330933
+INFO:root:Epoch: 155, Epoch IoU: 0.4298078555444093
+INFO:root:Epoch: 155, Epoch Precision: 0.5895650038528956
+INFO:root:Epoch: 155, Epoch Recall: 0.61332563998661
+INFO:root:Epoch: 156, Training Loss: 2.129084097014533
+INFO:root:Epoch: 156, Moving Average Training Loss: 2.21176595820321
+INFO:root:Epoch: 156, Validation Loss: 3.7770557403564453
+INFO:root:Epoch: 156, Moving Average Validation Loss: 3.78726327419281
+INFO:root:Epoch: 156, Epoch IoU: 0.4123004438087626
+INFO:root:Epoch: 156, Epoch Precision: 0.635458877686647
+INFO:root:Epoch: 156, Epoch Recall: 0.5400297537054383
+INFO:root:Epoch: 157, Training Loss: 2.12940153810713
+INFO:root:Epoch: 157, Moving Average Training Loss: 2.1957769605848525
+INFO:root:Epoch: 157, Validation Loss: 3.462113380432129
+INFO:root:Epoch: 157, Moving Average Validation Loss: 3.7611971139907836
+INFO:root:Epoch: 157, Epoch IoU: 0.42950132978723404
+INFO:root:Epoch: 157, Epoch Precision: 0.6183750149575207
+INFO:root:Epoch: 157, Epoch Recall: 0.5844057737629428
+INFO:root:Epoch: 158, Training Loss: 2.0977619091669717
+INFO:root:Epoch: 158, Moving Average Training Loss: 2.1717262678676184
+INFO:root:Epoch: 158, Validation Loss: 3.600083351135254
+INFO:root:Epoch: 158, Moving Average Validation Loss: 3.753255295753479
+INFO:root:Epoch: 158, Epoch IoU: 0.4192766174223128
+INFO:root:Epoch: 158, Epoch Precision: 0.5976154631839327
+INFO:root:Epoch: 158, Epoch Recall: 0.5841996924168934
+INFO:root:Epoch: 159, Training Loss: 2.158106962839762
+INFO:root:Epoch: 159, Moving Average Training Loss: 2.158637419011858
+INFO:root:Epoch: 159, Validation Loss: 3.78200364112854
+INFO:root:Epoch: 159, Moving Average Validation Loss: 3.744007921218872
+INFO:root:Epoch: 159, Epoch IoU: 0.40186688221811295
+INFO:root:Epoch: 159, Epoch Precision: 0.6611469377345429
+INFO:root:Epoch: 159, Epoch Recall: 0.5061079347371357
+INFO:root:Epoch: 160, Training Loss: 2.129775537384881
+INFO:root:Epoch: 160, Moving Average Training Loss: 2.1502934243943956
+INFO:root:Epoch: 160, Validation Loss: 3.643876075744629
+INFO:root:Epoch: 160, Moving Average Validation Loss: 3.725455093383789
+INFO:root:Epoch: 160, Epoch IoU: 0.4211029754356083
+INFO:root:Epoch: 160, Epoch Precision: 0.5562126318964147
+INFO:root:Epoch: 160, Epoch Recall: 0.6341787563081441
+INFO:root:Epoch: 161, Training Loss: 2.0495234462949963
+INFO:root:Epoch: 161, Moving Average Training Loss: 2.133266848988003
+INFO:root:Epoch: 161, Validation Loss: 3.5272634029388428
+INFO:root:Epoch: 161, Moving Average Validation Loss: 3.686067247390747
+INFO:root:Epoch: 161, Epoch IoU: 0.424772203028943
+INFO:root:Epoch: 161, Epoch Precision: 0.6295200136122469
+INFO:root:Epoch: 161, Epoch Recall: 0.5663504580772353
+INFO:root:Epoch: 162, Training Loss: 2.009213262134128
+INFO:root:Epoch: 162, Moving Average Training Loss: 2.113330303298102
+INFO:root:Epoch: 162, Validation Loss: 3.4204230308532715
+INFO:root:Epoch: 162, Moving Average Validation Loss: 3.6483553409576417
+INFO:root:Epoch: 162, Epoch IoU: 0.40616661618565475
+INFO:root:Epoch: 162, Epoch Precision: 0.6049732807003411
+INFO:root:Epoch: 162, Epoch Recall: 0.5527676906467759
+INFO:root:Epoch: 163, Training Loss: 1.9915535979800754
+INFO:root:Epoch: 163, Moving Average Training Loss: 2.094729285769992
+INFO:root:Epoch: 163, Validation Loss: 3.456967353820801
+INFO:root:Epoch: 163, Moving Average Validation Loss: 3.654011368751526
+INFO:root:Epoch: 163, Epoch IoU: 0.40438586683065914
+INFO:root:Epoch: 163, Epoch Precision: 0.5820240992939189
+INFO:root:Epoch: 163, Epoch Recall: 0.5698837896395509
+INFO:root:Epoch: 164, Training Loss: 2.0006475845972695
+INFO:root:Epoch: 164, Moving Average Training Loss: 2.0840624835756087
+INFO:root:Epoch: 164, Validation Loss: 3.786177396774292
+INFO:root:Epoch: 164, Moving Average Validation Loss: 3.632348823547363
+INFO:root:Epoch: 164, Epoch IoU: 0.4220157115195699
+INFO:root:Epoch: 164, Epoch Precision: 0.6195104308190245
+INFO:root:Epoch: 164, Epoch Recall: 0.5696700166718545
+INFO:root:Epoch: 165, Training Loss: 1.9931483533647325
+INFO:root:Epoch: 165, Moving Average Training Loss: 2.068821628888448
+INFO:root:Epoch: 165, Validation Loss: 3.539503812789917
+INFO:root:Epoch: 165, Moving Average Validation Loss: 3.599546718597412
+INFO:root:Epoch: 165, Epoch IoU: 0.4274911806115831
+INFO:root:Epoch: 165, Epoch Precision: 0.575248742980488
+INFO:root:Epoch: 165, Epoch Recall: 0.6246677053523132
+INFO:root:Epoch: 166, Training Loss: 2.073805954721239
+INFO:root:Epoch: 166, Moving Average Training Loss: 2.0632938146591187
+INFO:root:Epoch: 166, Validation Loss: 3.7112550735473633
+INFO:root:Epoch: 166, Moving Average Validation Loss: 3.592966651916504
+INFO:root:Epoch: 166, Epoch IoU: 0.4040036128366297
+INFO:root:Epoch: 166, Epoch Precision: 0.6576963702707893
+INFO:root:Epoch: 166, Epoch Recall: 0.5115699354399003
+INFO:root:Epoch: 167, Training Loss: 1.9797165791193645
+INFO:root:Epoch: 167, Moving Average Training Loss: 2.048325318760342
+INFO:root:Epoch: 167, Validation Loss: 3.564817190170288
+INFO:root:Epoch: 167, Moving Average Validation Loss: 3.60323703289032
+INFO:root:Epoch: 167, Epoch IoU: 0.4246230262030339
+INFO:root:Epoch: 167, Epoch Precision: 0.600570796095901
+INFO:root:Epoch: 167, Epoch Recall: 0.5917343752112372
+INFO:root:Epoch: 168, Training Loss: 2.0138290325800576
+INFO:root:Epoch: 168, Moving Average Training Loss: 2.039932031101651
+INFO:root:Epoch: 168, Validation Loss: 3.913667917251587
+INFO:root:Epoch: 168, Moving Average Validation Loss: 3.634595489501953
+INFO:root:Epoch: 168, Epoch IoU: 0.3825721950693042
+INFO:root:Epoch: 168, Epoch Precision: 0.6797685090062324
+INFO:root:Epoch: 168, Epoch Recall: 0.46667983204735775
+INFO:root:Epoch: 169, Training Loss: 2.065903822580973
+INFO:root:Epoch: 169, Moving Average Training Loss: 2.0307117170757722
+INFO:root:Epoch: 169, Validation Loss: 3.9319918155670166
+INFO:root:Epoch: 169, Moving Average Validation Loss: 3.649594306945801
+INFO:root:Epoch: 169, Epoch IoU: 0.4277570024428876
+INFO:root:Epoch: 169, Epoch Precision: 0.5415026059252334
+INFO:root:Epoch: 169, Epoch Recall: 0.670662612104498
+INFO:root:Epoch: 170, Training Loss: 2.090035147137112
+INFO:root:Epoch: 170, Moving Average Training Loss: 2.0267376780509947
+INFO:root:Epoch: 170, Validation Loss: 3.613677978515625
+INFO:root:Epoch: 170, Moving Average Validation Loss: 3.6465744972229004
+INFO:root:Epoch: 170, Epoch IoU: 0.41717995280564724
+INFO:root:Epoch: 170, Epoch Precision: 0.6356378626079129
+INFO:root:Epoch: 170, Epoch Recall: 0.5482984374034958
+INFO:root:Epoch: 171, Training Loss: 1.9060348404778376
+INFO:root:Epoch: 171, Moving Average Training Loss: 2.0123888174692786
+INFO:root:Epoch: 171, Validation Loss: 3.595553398132324
+INFO:root:Epoch: 171, Moving Average Validation Loss: 3.6534034967422486
+INFO:root:Epoch: 171, Epoch IoU: 0.39665206762335947
+INFO:root:Epoch: 171, Epoch Precision: 0.6316473487053732
+INFO:root:Epoch: 171, Epoch Recall: 0.5160120294394589
+INFO:root:Epoch: 172, Training Loss: 1.8924962944454617
+INFO:root:Epoch: 172, Moving Average Training Loss: 2.000717120700412
+INFO:root:Epoch: 172, Validation Loss: 3.3972067832946777
+INFO:root:Epoch: 172, Moving Average Validation Loss: 3.6510818719863893
+INFO:root:Epoch: 172, Epoch IoU: 0.4187751355272322
+INFO:root:Epoch: 172, Epoch Precision: 0.5647980606900134
+INFO:root:Epoch: 172, Epoch Recall: 0.618286932827864
+INFO:root:Epoch: 173, Training Loss: 2.0194658173455133
+INFO:root:Epoch: 173, Moving Average Training Loss: 2.0035083426369558
+INFO:root:Epoch: 173, Validation Loss: 3.6880311965942383
+INFO:root:Epoch: 173, Moving Average Validation Loss: 3.674188256263733
+INFO:root:Epoch: 173, Epoch IoU: 0.3954923160233787
+INFO:root:Epoch: 173, Epoch Precision: 0.6633987132825078
+INFO:root:Epoch: 173, Epoch Recall: 0.4947788425149393
+INFO:root:Epoch: 174, Training Loss: 1.9427320427364774
+INFO:root:Epoch: 174, Moving Average Training Loss: 1.9977167884508766
+INFO:root:Epoch: 174, Validation Loss: 3.4087679386138916
+INFO:root:Epoch: 174, Moving Average Validation Loss: 3.636447310447693
+INFO:root:Epoch: 174, Epoch IoU: 0.4212819733716369
+INFO:root:Epoch: 174, Epoch Precision: 0.634167385677308
+INFO:root:Epoch: 174, Epoch Recall: 0.5565337177054445
+INFO:root:Epoch: 175, Training Loss: 1.8460823562410142
+INFO:root:Epoch: 175, Moving Average Training Loss: 1.9830101887385048
+INFO:root:Epoch: 175, Validation Loss: 3.3295187950134277
+INFO:root:Epoch: 175, Moving Average Validation Loss: 3.615448808670044
+INFO:root:Epoch: 175, Epoch IoU: 0.4266332087195507
+INFO:root:Epoch: 175, Epoch Precision: 0.6220592774011131
+INFO:root:Epoch: 175, Epoch Recall: 0.5759141311260841
+INFO:root:Epoch: 176, Training Loss: 1.8382781214184232
+INFO:root:Epoch: 176, Moving Average Training Loss: 1.959457405408223
+INFO:root:Epoch: 176, Validation Loss: 3.340357542037964
+INFO:root:Epoch: 176, Moving Average Validation Loss: 3.578359055519104
+INFO:root:Epoch: 176, Epoch IoU: 0.4079456527993555
+INFO:root:Epoch: 176, Epoch Precision: 0.6389012486834472
+INFO:root:Epoch: 176, Epoch Recall: 0.5301890143583607
+INFO:root:Epoch: 177, Training Loss: 1.8206528557671442
+INFO:root:Epoch: 177, Moving Average Training Loss: 1.9435510330730015
+INFO:root:Epoch: 177, Validation Loss: 3.232229232788086
+INFO:root:Epoch: 177, Moving Average Validation Loss: 3.5451002597808836
+INFO:root:Epoch: 177, Epoch IoU: 0.4052243973513755
+INFO:root:Epoch: 177, Epoch Precision: 0.5933085855198889
+INFO:root:Epoch: 177, Epoch Recall: 0.561071218128614
+INFO:root:Epoch: 178, Training Loss: 1.8122353553771973
+INFO:root:Epoch: 178, Moving Average Training Loss: 1.9233916653527152
+INFO:root:Epoch: 178, Validation Loss: 3.5212395191192627
+INFO:root:Epoch: 178, Moving Average Validation Loss: 3.5058574199676515
+INFO:root:Epoch: 178, Epoch IoU: 0.42032264662269264
+INFO:root:Epoch: 178, Epoch Precision: 0.577041872872135
+INFO:root:Epoch: 178, Epoch Recall: 0.60747870748425
+INFO:root:Epoch: 179, Training Loss: 1.829245262675815
+INFO:root:Epoch: 179, Moving Average Training Loss: 1.8997258093621998
+INFO:root:Epoch: 179, Validation Loss: 3.48051381111145
+INFO:root:Epoch: 179, Moving Average Validation Loss: 3.4607096195220945
+INFO:root:Epoch: 179, Epoch IoU: 0.40915216073438987
+INFO:root:Epoch: 179, Epoch Precision: 0.6225037815502511
+INFO:root:Epoch: 179, Epoch Recall: 0.5441695461875145
+INFO:root:Epoch: 180, Training Loss: 1.7989390161302354
+INFO:root:Epoch: 180, Moving Average Training Loss: 1.8706161962615115
+INFO:root:Epoch: 180, Validation Loss: 3.4356656074523926
+INFO:root:Epoch: 180, Moving Average Validation Loss: 3.4429083824157716
+INFO:root:Epoch: 180, Epoch IoU: 0.4007881678255185
+INFO:root:Epoch: 180, Epoch Precision: 0.6393423196563472
+INFO:root:Epoch: 180, Epoch Recall: 0.5178727407108782
+INFO:root:Epoch: 181, Training Loss: 1.8352113564809163
+INFO:root:Epoch: 181, Moving Average Training Loss: 1.8635338478618195
+INFO:root:Epoch: 181, Validation Loss: 3.161160945892334
+INFO:root:Epoch: 181, Moving Average Validation Loss: 3.3994691371917725
+INFO:root:Epoch: 181, Epoch IoU: 0.4381584003604224
+INFO:root:Epoch: 181, Epoch Precision: 0.6127028391693264
+INFO:root:Epoch: 181, Epoch Recall: 0.6059992394426856
+INFO:root:Epoch: 182, Training Loss: 1.7521729734208848
+INFO:root:Epoch: 182, Moving Average Training Loss: 1.849501515759362
+INFO:root:Epoch: 182, Validation Loss: 3.3544578552246094
+INFO:root:Epoch: 182, Moving Average Validation Loss: 3.395194244384766
+INFO:root:Epoch: 182, Epoch IoU: 0.41110584918336107
+INFO:root:Epoch: 182, Epoch Precision: 0.6491035873893612
+INFO:root:Epoch: 182, Epoch Recall: 0.5285754743698668
+INFO:root:Epoch: 183, Training Loss: 1.7242342233657837
+INFO:root:Epoch: 183, Moving Average Training Loss: 1.8199783563613892
+INFO:root:Epoch: 183, Validation Loss: 3.309643507003784
+INFO:root:Epoch: 183, Moving Average Validation Loss: 3.35735547542572
+INFO:root:Epoch: 183, Epoch IoU: 0.43356490510713275
+INFO:root:Epoch: 183, Epoch Precision: 0.6099859492754651
+INFO:root:Epoch: 183, Epoch Recall: 0.5998520572417515
+INFO:root:Epoch: 184, Training Loss: 1.744753811094496
+INFO:root:Epoch: 184, Moving Average Training Loss: 1.8001805331971912
+INFO:root:Epoch: 184, Validation Loss: 3.2205004692077637
+INFO:root:Epoch: 184, Moving Average Validation Loss: 3.3385287284851075
+INFO:root:Epoch: 184, Epoch IoU: 0.4190533544497531
+INFO:root:Epoch: 184, Epoch Precision: 0.5934552136832681
+INFO:root:Epoch: 184, Epoch Recall: 0.5877913895694785
+INFO:root:Epoch: 185, Training Loss: 1.7147969669765897
+INFO:root:Epoch: 185, Moving Average Training Loss: 1.7870519942707488
+INFO:root:Epoch: 185, Validation Loss: 3.354266405105591
+INFO:root:Epoch: 185, Moving Average Validation Loss: 3.341003489494324
+INFO:root:Epoch: 185, Epoch IoU: 0.4235519031271831
+INFO:root:Epoch: 185, Epoch Precision: 0.6597996653287619
+INFO:root:Epoch: 185, Epoch Recall: 0.5418955218860073
+INFO:root:Epoch: 186, Training Loss: 1.734611709912618
+INFO:root:Epoch: 186, Moving Average Training Loss: 1.7766853531201678
+INFO:root:Epoch: 186, Validation Loss: 2.964157819747925
+INFO:root:Epoch: 186, Moving Average Validation Loss: 3.3033835172653196
+INFO:root:Epoch: 186, Epoch IoU: 0.4178456731186529
+INFO:root:Epoch: 186, Epoch Precision: 0.605014557717685
+INFO:root:Epoch: 186, Epoch Recall: 0.5745887127255366
+INFO:root:Epoch: 187, Training Loss: 1.7010071674982707
+INFO:root:Epoch: 187, Moving Average Training Loss: 1.7647207842932808
+INFO:root:Epoch: 187, Validation Loss: 3.2771084308624268
+INFO:root:Epoch: 187, Moving Average Validation Loss: 3.307871437072754
+INFO:root:Epoch: 187, Epoch IoU: 0.4234427811827462
+INFO:root:Epoch: 187, Epoch Precision: 0.5996454859836556
+INFO:root:Epoch: 187, Epoch Recall: 0.5903389314719364
+INFO:root:Epoch: 188, Training Loss: 1.7388228442933824
+INFO:root:Epoch: 188, Moving Average Training Loss: 1.7573795331848991
+INFO:root:Epoch: 188, Validation Loss: 3.461146116256714
+INFO:root:Epoch: 188, Moving Average Validation Loss: 3.301862096786499
+INFO:root:Epoch: 188, Epoch IoU: 0.4022871683681152
+INFO:root:Epoch: 188, Epoch Precision: 0.6818906882074448
+INFO:root:Epoch: 188, Epoch Recall: 0.495227062094532
+INFO:root:Epoch: 189, Training Loss: 1.723921325471666
+INFO:root:Epoch: 189, Moving Average Training Loss: 1.7468471394644844
+INFO:root:Epoch: 189, Validation Loss: 3.3256354331970215
+INFO:root:Epoch: 189, Moving Average Validation Loss: 3.286374258995056
+INFO:root:Epoch: 189, Epoch IoU: 0.43458173040657766
+INFO:root:Epoch: 189, Epoch Precision: 0.5845597094746277
+INFO:root:Epoch: 189, Epoch Recall: 0.6287829523285479
+INFO:root:Epoch: 190, Training Loss: 1.6948675447040134
+INFO:root:Epoch: 190, Moving Average Training Loss: 1.736439992321862
+INFO:root:Epoch: 190, Validation Loss: 3.0659594535827637
+INFO:root:Epoch: 190, Moving Average Validation Loss: 3.249403643608093
+INFO:root:Epoch: 190, Epoch IoU: 0.41940227631316923
+INFO:root:Epoch: 190, Epoch Precision: 0.658212328108472
+INFO:root:Epoch: 190, Epoch Recall: 0.536170296099013
+INFO:root:Epoch: 191, Training Loss: 1.6575600041283503
+INFO:root:Epoch: 191, Moving Average Training Loss: 1.7186748570866055
+INFO:root:Epoch: 191, Validation Loss: 3.2036213874816895
+INFO:root:Epoch: 191, Moving Average Validation Loss: 3.253649687767029
+INFO:root:Epoch: 191, Epoch IoU: 0.42645948133672473
+INFO:root:Epoch: 191, Epoch Precision: 0.6228008131488745
+INFO:root:Epoch: 191, Epoch Recall: 0.5749641549237893
+INFO:root:Epoch: 192, Training Loss: 1.6564053032133315
+INFO:root:Epoch: 192, Moving Average Training Loss: 1.7090980900658503
+INFO:root:Epoch: 192, Validation Loss: 3.0901501178741455
+INFO:root:Epoch: 192, Moving Average Validation Loss: 3.2272189140319822
+INFO:root:Epoch: 192, Epoch IoU: 0.41998042017068354
+INFO:root:Epoch: 192, Epoch Precision: 0.5944610653831276
+INFO:root:Epoch: 192, Epoch Recall: 0.5886274490790347
+INFO:root:Epoch: 193, Training Loss: 1.6306744549009535
+INFO:root:Epoch: 193, Moving Average Training Loss: 1.6997421132193673
+INFO:root:Epoch: 193, Validation Loss: 3.1012349128723145
+INFO:root:Epoch: 193, Moving Average Validation Loss: 3.2063780546188356
+INFO:root:Epoch: 193, Epoch IoU: 0.4212301713584
+INFO:root:Epoch: 193, Epoch Precision: 0.6563086974275214
+INFO:root:Epoch: 193, Epoch Recall: 0.540445379523686
+INFO:root:Epoch: 194, Training Loss: 1.6332305404875014
+INFO:root:Epoch: 194, Moving Average Training Loss: 1.6885897861586678
+INFO:root:Epoch: 194, Validation Loss: 3.0429282188415527
+INFO:root:Epoch: 194, Moving Average Validation Loss: 3.1886208295822143
+INFO:root:Epoch: 194, Epoch IoU: 0.4483321859534727
+INFO:root:Epoch: 194, Epoch Precision: 0.6257160726587143
+INFO:root:Epoch: 194, Epoch Recall: 0.6126249650563758
+INFO:root:Epoch: 195, Training Loss: 1.6361744536293878
+INFO:root:Epoch: 195, Moving Average Training Loss: 1.6807275348239474
+INFO:root:Epoch: 195, Validation Loss: 3.4597079753875732
+INFO:root:Epoch: 195, Moving Average Validation Loss: 3.1991649866104126
+INFO:root:Epoch: 195, Epoch IoU: 0.390733974135189
+INFO:root:Epoch: 195, Epoch Precision: 0.6769168738660036
+INFO:root:Epoch: 195, Epoch Recall: 0.4803074516984227
+INFO:root:Epoch: 196, Training Loss: 1.6254678037431505
+INFO:root:Epoch: 196, Moving Average Training Loss: 1.6698131442070008
+INFO:root:Epoch: 196, Validation Loss: 2.920055866241455
+INFO:root:Epoch: 196, Moving Average Validation Loss: 3.194754791259766
+INFO:root:Epoch: 196, Epoch IoU: 0.43262140768737073
+INFO:root:Epoch: 196, Epoch Precision: 0.6304912649005934
+INFO:root:Epoch: 196, Epoch Recall: 0.5795673295088153
+INFO:root:Epoch: 197, Training Loss: 1.621102876133389
+INFO:root:Epoch: 197, Moving Average Training Loss: 1.6618227150705127
+INFO:root:Epoch: 197, Validation Loss: 3.226351261138916
+INFO:root:Epoch: 197, Moving Average Validation Loss: 3.1896790742874144
+INFO:root:Epoch: 197, Epoch IoU: 0.4112239302524998
+INFO:root:Epoch: 197, Epoch Precision: 0.6537770678649372
+INFO:root:Epoch: 197, Epoch Recall: 0.5257093658403474
+INFO:root:Epoch: 198, Training Loss: 1.5997456312179565
+INFO:root:Epoch: 198, Moving Average Training Loss: 1.64791499376297
+INFO:root:Epoch: 198, Validation Loss: 3.118943452835083
+INFO:root:Epoch: 198, Moving Average Validation Loss: 3.1554588079452515
+INFO:root:Epoch: 198, Epoch IoU: 0.4350955563765828
+INFO:root:Epoch: 198, Epoch Precision: 0.6271957005906846
+INFO:root:Epoch: 198, Epoch Recall: 0.5868727093158641
+INFO:root:Epoch: 199, Training Loss: 1.5744493007659912
+INFO:root:Epoch: 199, Moving Average Training Loss: 1.6329677912924025
+INFO:root:Epoch: 199, Validation Loss: 3.260629415512085
+INFO:root:Epoch: 199, Moving Average Validation Loss: 3.148958206176758
+INFO:root:Epoch: 199, Epoch IoU: 0.41901426069552167
+INFO:root:Epoch: 199, Epoch Precision: 0.6498057278416114
+INFO:root:Epoch: 199, Epoch Recall: 0.5412332820889252
+INFO:root:Epoch: 200, Training Loss: 1.5709676345189412
+INFO:root:Epoch: 200, Moving Average Training Loss: 1.6205778002738953
+INFO:root:Epoch: 200, Validation Loss: 3.4432899951934814
+INFO:root:Epoch: 200, Moving Average Validation Loss: 3.1866912603378297
+INFO:root:Epoch: 200, Epoch IoU: 0.43130128346835545
+INFO:root:Epoch: 200, Epoch Precision: 0.6434294250019399
+INFO:root:Epoch: 200, Epoch Recall: 0.5667672012371733
+INFO:root:Epoch: 201, Training Loss: 1.534611079427931
+INFO:root:Epoch: 201, Moving Average Training Loss: 1.6082829078038536
+INFO:root:Epoch: 201, Validation Loss: 3.03511381149292
+INFO:root:Epoch: 201, Moving Average Validation Loss: 3.1698405027389525
+INFO:root:Epoch: 201, Epoch IoU: 0.4293933539991314
+INFO:root:Epoch: 201, Epoch Precision: 0.544694690130999
+INFO:root:Epoch: 201, Epoch Recall: 0.6698030787918429
+INFO:root:Epoch: 202, Training Loss: 1.7453273004955716
+INFO:root:Epoch: 202, Moving Average Training Loss: 1.6171751075320775
+INFO:root:Epoch: 202, Validation Loss: 3.2157583236694336
+INFO:root:Epoch: 202, Moving Average Validation Loss: 3.1824013233184814
+INFO:root:Epoch: 202, Epoch IoU: 0.44212171122091304
+INFO:root:Epoch: 202, Epoch Precision: 0.6064496292599458
+INFO:root:Epoch: 202, Epoch Recall: 0.6200092935109427
+INFO:root:Epoch: 203, Training Loss: 1.5772103468577068
+INFO:root:Epoch: 203, Moving Average Training Loss: 1.6118286967277526
+INFO:root:Epoch: 203, Validation Loss: 3.325042724609375
+INFO:root:Epoch: 203, Moving Average Validation Loss: 3.2047821044921876
+INFO:root:Epoch: 203, Epoch IoU: 0.41898797238630703
+INFO:root:Epoch: 203, Epoch Precision: 0.6651865159398674
+INFO:root:Epoch: 203, Epoch Recall: 0.530964352551239
+INFO:root:Epoch: 204, Training Loss: 1.5695244206322565
+INFO:root:Epoch: 204, Moving Average Training Loss: 1.6054580847422284
+INFO:root:Epoch: 204, Validation Loss: 3.131519317626953
+INFO:root:Epoch: 204, Moving Average Validation Loss: 3.2136412143707274
+INFO:root:Epoch: 204, Epoch IoU: 0.41587220053421
+INFO:root:Epoch: 204, Epoch Precision: 0.6055678554332217
+INFO:root:Epoch: 204, Epoch Recall: 0.5703718315415721
+INFO:root:Epoch: 205, Training Loss: 1.5307999849319458
+INFO:root:Epoch: 205, Moving Average Training Loss: 1.5949206378724838
+INFO:root:Epoch: 205, Validation Loss: 3.3486900329589844
+INFO:root:Epoch: 205, Moving Average Validation Loss: 3.2025394201278687
+INFO:root:Epoch: 205, Epoch IoU: 0.4118672797073554
+INFO:root:Epoch: 205, Epoch Precision: 0.6579777030220467
+INFO:root:Epoch: 205, Epoch Recall: 0.5240655447298495
+INFO:root:Epoch: 206, Training Loss: 1.5005613962809246
+INFO:root:Epoch: 206, Moving Average Training Loss: 1.5824299971262614
+INFO:root:Epoch: 206, Validation Loss: 3.036151170730591
+INFO:root:Epoch: 206, Moving Average Validation Loss: 3.2141489505767824
+INFO:root:Epoch: 206, Epoch IoU: 0.4371300559026636
+INFO:root:Epoch: 206, Epoch Precision: 0.6280896553760742
+INFO:root:Epoch: 206, Epoch Recall: 0.5897898064444568
+INFO:root:Epoch: 207, Training Loss: 1.4972700675328572
+INFO:root:Epoch: 207, Moving Average Training Loss: 1.5700467162662082
+INFO:root:Epoch: 207, Validation Loss: 2.9252829551696777
+INFO:root:Epoch: 207, Moving Average Validation Loss: 3.1840421199798583
+INFO:root:Epoch: 207, Epoch IoU: 0.41381323818996724
+INFO:root:Epoch: 207, Epoch Precision: 0.6698629779800008
+INFO:root:Epoch: 207, Epoch Recall: 0.5198298277030787
+INFO:root:Epoch: 208, Training Loss: 1.5252554284201727
+INFO:root:Epoch: 208, Moving Average Training Loss: 1.56259769598643
+INFO:root:Epoch: 208, Validation Loss: 3.0219626426696777
+INFO:root:Epoch: 208, Moving Average Validation Loss: 3.174344038963318
+INFO:root:Epoch: 208, Epoch IoU: 0.42600874993033494
+INFO:root:Epoch: 208, Epoch Precision: 0.6088099279694554
+INFO:root:Epoch: 208, Epoch Recall: 0.5865718958480214
+INFO:root:Epoch: 209, Training Loss: 1.5301391548580594
+INFO:root:Epoch: 209, Moving Average Training Loss: 1.5581666813956367
+INFO:root:Epoch: 209, Validation Loss: 3.154545783996582
+INFO:root:Epoch: 209, Moving Average Validation Loss: 3.1637356758117674
+INFO:root:Epoch: 209, Epoch IoU: 0.42196790131828366
+INFO:root:Epoch: 209, Epoch Precision: 0.5533585015480877
+INFO:root:Epoch: 209, Epoch Recall: 0.639917358848633
+INFO:root:Epoch: 210, Training Loss: 1.5130030181672838
+INFO:root:Epoch: 210, Moving Average Training Loss: 1.5523702197604712
+INFO:root:Epoch: 210, Validation Loss: 2.979341745376587
+INFO:root:Epoch: 210, Moving Average Validation Loss: 3.117340850830078
+INFO:root:Epoch: 210, Epoch IoU: 0.44307452256481383
+INFO:root:Epoch: 210, Epoch Precision: 0.6006291297941769
+INFO:root:Epoch: 210, Epoch Recall: 0.6281265952016335
+INFO:root:Epoch: 211, Training Loss: 1.492296126153734
+INFO:root:Epoch: 211, Moving Average Training Loss: 1.5481387244330513
+INFO:root:Epoch: 211, Validation Loss: 3.082606792449951
+INFO:root:Epoch: 211, Moving Average Validation Loss: 3.122090148925781
+INFO:root:Epoch: 211, Epoch IoU: 0.43533512881048486
+INFO:root:Epoch: 211, Epoch Precision: 0.6544287922232688
+INFO:root:Epoch: 211, Epoch Recall: 0.5652812988834349
+INFO:root:Epoch: 212, Training Loss: 1.4744162162144978
+INFO:root:Epoch: 212, Moving Average Training Loss: 1.521047616004944
+INFO:root:Epoch: 212, Validation Loss: 3.1064774990081787
+INFO:root:Epoch: 212, Moving Average Validation Loss: 3.1111620664596558
+INFO:root:Epoch: 212, Epoch IoU: 0.42298440536804965
+INFO:root:Epoch: 212, Epoch Precision: 0.6554205458259237
+INFO:root:Epoch: 212, Epoch Recall: 0.5439467046825309
+INFO:root:Epoch: 213, Training Loss: 1.4480890697903104
+INFO:root:Epoch: 213, Moving Average Training Loss: 1.5081354882982043
+INFO:root:Epoch: 213, Validation Loss: 3.1572105884552
+INFO:root:Epoch: 213, Moving Average Validation Loss: 3.094378852844238
+INFO:root:Epoch: 213, Epoch IoU: 0.4225513073655238
+INFO:root:Epoch: 213, Epoch Precision: 0.5587811748322572
+INFO:root:Epoch: 213, Epoch Recall: 0.6341286018299855
+INFO:root:Epoch: 214, Training Loss: 1.529537386364407
+INFO:root:Epoch: 214, Moving Average Training Loss: 1.5041367848714193
+INFO:root:Epoch: 214, Validation Loss: 3.045949935913086
+INFO:root:Epoch: 214, Moving Average Validation Loss: 3.0858219146728514
+INFO:root:Epoch: 214, Epoch IoU: 0.43396297838513076
+INFO:root:Epoch: 214, Epoch Precision: 0.6442719855311627
+INFO:root:Epoch: 214, Epoch Recall: 0.5707096307023896
+INFO:root:Epoch: 215, Training Loss: 1.507826911078559
+INFO:root:Epoch: 215, Moving Average Training Loss: 1.5018394774860806
+INFO:root:Epoch: 215, Validation Loss: 3.156036376953125
+INFO:root:Epoch: 215, Moving Average Validation Loss: 3.0665565490722657
+INFO:root:Epoch: 215, Epoch IoU: 0.4144674274845459
+INFO:root:Epoch: 215, Epoch Precision: 0.6909689965689371
+INFO:root:Epoch: 215, Epoch Recall: 0.5087784901908923
+INFO:root:Epoch: 216, Training Loss: 1.4766382508807712
+INFO:root:Epoch: 216, Moving Average Training Loss: 1.499447162946065
+INFO:root:Epoch: 216, Validation Loss: 2.727525472640991
+INFO:root:Epoch: 216, Moving Average Validation Loss: 3.0356939792633058
+INFO:root:Epoch: 216, Epoch IoU: 0.42389001213101496
+INFO:root:Epoch: 216, Epoch Precision: 0.5552965805409941
+INFO:root:Epoch: 216, Epoch Recall: 0.6417401695504611
+INFO:root:Epoch: 217, Training Loss: 1.473017109764947
+INFO:root:Epoch: 217, Moving Average Training Loss: 1.497021867169274
+INFO:root:Epoch: 217, Validation Loss: 2.707462787628174
+INFO:root:Epoch: 217, Moving Average Validation Loss: 3.0139119625091553
+INFO:root:Epoch: 217, Epoch IoU: 0.42806507138012023
+INFO:root:Epoch: 217, Epoch Precision: 0.6558672105443383
+INFO:root:Epoch: 217, Epoch Recall: 0.5520608417316026
+INFO:root:Epoch: 218, Training Loss: 1.437068780263265
+INFO:root:Epoch: 218, Moving Average Training Loss: 1.4882032023535834
+INFO:root:Epoch: 218, Validation Loss: 2.902728319168091
+INFO:root:Epoch: 218, Moving Average Validation Loss: 3.0019885301589966
+INFO:root:Epoch: 218, Epoch IoU: 0.41978153661796563
+INFO:root:Epoch: 218, Epoch Precision: 0.6336372977138454
+INFO:root:Epoch: 218, Epoch Recall: 0.5543232475503392
+INFO:root:Epoch: 219, Training Loss: 1.4205741749869452
+INFO:root:Epoch: 219, Moving Average Training Loss: 1.4772467043664719
+INFO:root:Epoch: 219, Validation Loss: 3.0224356651306152
+INFO:root:Epoch: 219, Moving Average Validation Loss: 2.9887775182724
+INFO:root:Epoch: 219, Epoch IoU: 0.42694035821997905
+INFO:root:Epoch: 219, Epoch Precision: 0.6287111263293587
+INFO:root:Epoch: 219, Epoch Recall: 0.5708766362917275
+INFO:root:Epoch: 220, Training Loss: 1.4185129801432292
+INFO:root:Epoch: 220, Moving Average Training Loss: 1.4677977005640666
+INFO:root:Epoch: 220, Validation Loss: 2.9402871131896973
+INFO:root:Epoch: 220, Moving Average Validation Loss: 2.984872055053711
+INFO:root:Epoch: 220, Epoch IoU: 0.42200174560481646
+INFO:root:Epoch: 220, Epoch Precision: 0.6329676671279796
+INFO:root:Epoch: 220, Epoch Recall: 0.5587219832465474
+INFO:root:Epoch: 221, Training Loss: 1.4312727318869696
+INFO:root:Epoch: 221, Moving Average Training Loss: 1.4616953611373897
+INFO:root:Epoch: 221, Validation Loss: 3.001591920852661
+INFO:root:Epoch: 221, Moving Average Validation Loss: 2.9767705678939818
+INFO:root:Epoch: 221, Epoch IoU: 0.443886081903288
+INFO:root:Epoch: 221, Epoch Precision: 0.5870577281191807
+INFO:root:Epoch: 221, Epoch Recall: 0.6454026817505946
+INFO:root:Epoch: 222, Training Loss: 1.4179971747928195
+INFO:root:Epoch: 222, Moving Average Training Loss: 1.4560534569952222
+INFO:root:Epoch: 222, Validation Loss: 2.8964149951934814
+INFO:root:Epoch: 222, Moving Average Validation Loss: 2.955764317512512
+INFO:root:Epoch: 222, Epoch IoU: 0.42046097233137714
+INFO:root:Epoch: 222, Epoch Precision: 0.659252008176662
+INFO:root:Epoch: 222, Epoch Recall: 0.5372094332717087
+INFO:root:Epoch: 223, Training Loss: 1.3746767971250746
+INFO:root:Epoch: 223, Moving Average Training Loss: 1.4487122297286985
+INFO:root:Epoch: 223, Validation Loss: 2.878577947616577
+INFO:root:Epoch: 223, Moving Average Validation Loss: 2.92790105342865
+INFO:root:Epoch: 223, Epoch IoU: 0.42314506081708786
+INFO:root:Epoch: 223, Epoch Precision: 0.658793916324231
+INFO:root:Epoch: 223, Epoch Recall: 0.5419083807538713
+INFO:root:Epoch: 224, Training Loss: 1.3544802400800917
+INFO:root:Epoch: 224, Moving Average Training Loss: 1.431206515100267
+INFO:root:Epoch: 224, Validation Loss: 2.8819034099578857
+INFO:root:Epoch: 224, Moving Average Validation Loss: 2.91149640083313
+INFO:root:Epoch: 224, Epoch IoU: 0.419838400629627
+INFO:root:Epoch: 224, Epoch Precision: 0.6422262478059318
+INFO:root:Epoch: 224, Epoch Recall: 0.5480097161949383
+INFO:root:Epoch: 225, Training Loss: 1.3381976551479764
+INFO:root:Epoch: 225, Moving Average Training Loss: 1.414243589507209
+INFO:root:Epoch: 225, Validation Loss: 3.046494245529175
+INFO:root:Epoch: 225, Moving Average Validation Loss: 2.9005421876907347
+INFO:root:Epoch: 225, Epoch IoU: 0.43460903327098044
+INFO:root:Epoch: 225, Epoch Precision: 0.668205245302714
+INFO:root:Epoch: 225, Epoch Recall: 0.5542093159579745
+INFO:root:Epoch: 226, Training Loss: 1.3764580090840657
+INFO:root:Epoch: 226, Moving Average Training Loss: 1.4042255653275384
+INFO:root:Epoch: 226, Validation Loss: 3.1216835975646973
+INFO:root:Epoch: 226, Moving Average Validation Loss: 2.9399580001831054
+INFO:root:Epoch: 226, Epoch IoU: 0.40748021537238466
+INFO:root:Epoch: 226, Epoch Precision: 0.657136529989044
+INFO:root:Epoch: 226, Epoch Recall: 0.5175037632632081
+INFO:root:Epoch: 227, Training Loss: 1.3041295342975192
+INFO:root:Epoch: 227, Moving Average Training Loss: 1.3873368077807957
+INFO:root:Epoch: 227, Validation Loss: 3.083059549331665
+INFO:root:Epoch: 227, Moving Average Validation Loss: 2.9775176763534548
+INFO:root:Epoch: 227, Epoch IoU: 0.42101803024156886
+INFO:root:Epoch: 227, Epoch Precision: 0.650908815674232
+INFO:root:Epoch: 227, Epoch Recall: 0.5438087753055638
+INFO:root:Epoch: 228, Training Loss: 1.3496327532662287
+INFO:root:Epoch: 228, Moving Average Training Loss: 1.378593205081092
+INFO:root:Epoch: 228, Validation Loss: 3.019010066986084
+INFO:root:Epoch: 228, Moving Average Validation Loss: 2.989145851135254
+INFO:root:Epoch: 228, Epoch IoU: 0.42645351783851654
+INFO:root:Epoch: 228, Epoch Precision: 0.5930060200425586
+INFO:root:Epoch: 228, Epoch Recall: 0.6029188779378317
+INFO:root:Epoch: 229, Training Loss: 1.4091495540406969
+INFO:root:Epoch: 229, Moving Average Training Loss: 1.377450742986467
+INFO:root:Epoch: 229, Validation Loss: 2.947824239730835
+INFO:root:Epoch: 229, Moving Average Validation Loss: 2.981684708595276
+INFO:root:Epoch: 229, Epoch IoU: 0.42466288558365645
+INFO:root:Epoch: 229, Epoch Precision: 0.6534787932761884
+INFO:root:Epoch: 229, Epoch Recall: 0.5480841051688079
+INFO:root:Epoch: 230, Training Loss: 1.45863852236006
+INFO:root:Epoch: 230, Moving Average Training Loss: 1.3814632972081504
+INFO:root:Epoch: 230, Validation Loss: 3.137342691421509
+INFO:root:Epoch: 230, Moving Average Validation Loss: 3.001390266418457
+INFO:root:Epoch: 230, Epoch IoU: 0.4020288133800812
+INFO:root:Epoch: 230, Epoch Precision: 0.73771495103893
+INFO:root:Epoch: 230, Epoch Recall: 0.46907686174756547
+INFO:root:Epoch: 231, Training Loss: 1.488709741168552
+INFO:root:Epoch: 231, Moving Average Training Loss: 1.3872069981363082
+INFO:root:Epoch: 231, Validation Loss: 2.9050564765930176
+INFO:root:Epoch: 231, Moving Average Validation Loss: 2.991736721992493
+INFO:root:Epoch: 231, Epoch IoU: 0.42566358971680746
+INFO:root:Epoch: 231, Epoch Precision: 0.5663412430948824
+INFO:root:Epoch: 231, Epoch Recall: 0.6314912739458035
+INFO:root:Epoch: 232, Training Loss: 1.347344438234965
+INFO:root:Epoch: 232, Moving Average Training Loss: 1.3801417244805232
+INFO:root:Epoch: 232, Validation Loss: 2.921283006668091
+INFO:root:Epoch: 232, Moving Average Validation Loss: 2.9942235231399534
+INFO:root:Epoch: 232, Epoch IoU: 0.44382212288179645
+INFO:root:Epoch: 232, Epoch Precision: 0.6163855726107005
+INFO:root:Epoch: 232, Epoch Recall: 0.6131983158726312
+INFO:root:Epoch: 233, Training Loss: 1.353620833820767
+INFO:root:Epoch: 233, Moving Average Training Loss: 1.3780361281500921
+INFO:root:Epoch: 233, Validation Loss: 3.129635810852051
+INFO:root:Epoch: 233, Moving Average Validation Loss: 3.019329309463501
+INFO:root:Epoch: 233, Epoch IoU: 0.3975108171755132
+INFO:root:Epoch: 233, Epoch Precision: 0.689640653166489
+INFO:root:Epoch: 233, Epoch Recall: 0.48411514499346503
+INFO:root:Epoch: 234, Training Loss: 1.3515923155678644
+INFO:root:Epoch: 234, Moving Average Training Loss: 1.3777473356988696
+INFO:root:Epoch: 234, Validation Loss: 2.8823904991149902
+INFO:root:Epoch: 234, Moving Average Validation Loss: 3.0193780183792116
+INFO:root:Epoch: 234, Epoch IoU: 0.42878522575914035
+INFO:root:Epoch: 234, Epoch Precision: 0.5414757865771609
+INFO:root:Epoch: 234, Epoch Recall: 0.6732350812553457
+INFO:root:Epoch: 235, Training Loss: 1.394495619667901
+INFO:root:Epoch: 235, Moving Average Training Loss: 1.3833771321508617
+INFO:root:Epoch: 235, Validation Loss: 2.8351941108703613
+INFO:root:Epoch: 235, Moving Average Validation Loss: 2.99824800491333
+INFO:root:Epoch: 235, Epoch IoU: 0.4211119398795345
+INFO:root:Epoch: 235, Epoch Precision: 0.6937738666243839
+INFO:root:Epoch: 235, Epoch Recall: 0.5172573455163412
+INFO:root:Epoch: 236, Training Loss: 1.3243489662806194
+INFO:root:Epoch: 236, Moving Average Training Loss: 1.3781662278705171
+INFO:root:Epoch: 236, Validation Loss: 2.8722429275512695
+INFO:root:Epoch: 236, Moving Average Validation Loss: 2.973303937911987
+INFO:root:Epoch: 236, Epoch IoU: 0.43460057838794836
+INFO:root:Epoch: 236, Epoch Precision: 0.5904202277678154
+INFO:root:Epoch: 236, Epoch Recall: 0.6221790269334151
+INFO:root:Epoch: 237, Training Loss: 1.3334384096993341
+INFO:root:Epoch: 237, Moving Average Training Loss: 1.3810971154106988
+INFO:root:Epoch: 237, Validation Loss: 3.0655477046966553
+INFO:root:Epoch: 237, Moving Average Validation Loss: 2.9715527534484862
+INFO:root:Epoch: 237, Epoch IoU: 0.40924786068157937
+INFO:root:Epoch: 237, Epoch Precision: 0.6861529748607746
+INFO:root:Epoch: 237, Epoch Recall: 0.5034977951192483
+INFO:root:Epoch: 238, Training Loss: 1.2990795638826158
+INFO:root:Epoch: 238, Moving Average Training Loss: 1.3760417964723375
+INFO:root:Epoch: 238, Validation Loss: 2.970163345336914
+INFO:root:Epoch: 238, Moving Average Validation Loss: 2.9666680812835695
+INFO:root:Epoch: 238, Epoch IoU: 0.4330298301211779
+INFO:root:Epoch: 238, Epoch Precision: 0.597532995415652
+INFO:root:Epoch: 238, Epoch Recall: 0.6113358864609146
+INFO:root:Epoch: 239, Training Loss: 1.2959996726777818
+INFO:root:Epoch: 239, Moving Average Training Loss: 1.3647268083360462
+INFO:root:Epoch: 239, Validation Loss: 2.9941318035125732
+INFO:root:Epoch: 239, Moving Average Validation Loss: 2.971298837661743
+INFO:root:Epoch: 239, Epoch IoU: 0.39883329788323524
+INFO:root:Epoch: 239, Epoch Precision: 0.6727951680742065
+INFO:root:Epoch: 239, Epoch Recall: 0.49481024658658873
+INFO:root:Epoch: 240, Training Loss: 1.3220911423365276
+INFO:root:Epoch: 240, Moving Average Training Loss: 1.3510720703336927
+INFO:root:Epoch: 240, Validation Loss: 3.0219967365264893
+INFO:root:Epoch: 240, Moving Average Validation Loss: 2.959764242172241
+INFO:root:Epoch: 240, Epoch IoU: 0.4302519067696243
+INFO:root:Epoch: 240, Epoch Precision: 0.5646721897537926
+INFO:root:Epoch: 240, Epoch Recall: 0.6437985955740646
+INFO:root:Epoch: 241, Training Loss: 1.2644690805011325
+INFO:root:Epoch: 241, Moving Average Training Loss: 1.3286480042669508
+INFO:root:Epoch: 241, Validation Loss: 3.0429792404174805
+INFO:root:Epoch: 241, Moving Average Validation Loss: 2.9735565185546875
+INFO:root:Epoch: 241, Epoch IoU: 0.4155266770452647
+INFO:root:Epoch: 241, Epoch Precision: 0.6861921634647526
+INFO:root:Epoch: 241, Epoch Recall: 0.513013449654671
+INFO:root:Epoch: 242, Training Loss: 1.243120590845744
+INFO:root:Epoch: 242, Moving Average Training Loss: 1.3182256195280286
+INFO:root:Epoch: 242, Validation Loss: 2.8207345008850098
+INFO:root:Epoch: 242, Moving Average Validation Loss: 2.9635016679763795
+INFO:root:Epoch: 242, Epoch IoU: 0.42580073261084017
+INFO:root:Epoch: 242, Epoch Precision: 0.5996046317343747
+INFO:root:Epoch: 242, Epoch Recall: 0.5949722151267308
+INFO:root:Epoch: 243, Training Loss: 1.2189198202557034
+INFO:root:Epoch: 243, Moving Average Training Loss: 1.3047555181715222
+INFO:root:Epoch: 243, Validation Loss: 2.9949841499328613
+INFO:root:Epoch: 243, Moving Average Validation Loss: 2.9500365018844605
+INFO:root:Epoch: 243, Epoch IoU: 0.43242131794514643
+INFO:root:Epoch: 243, Epoch Precision: 0.639113002048879
+INFO:root:Epoch: 243, Epoch Recall: 0.5721180848076383
+INFO:root:Epoch: 244, Training Loss: 1.1961747937732272
+INFO:root:Epoch: 244, Moving Average Training Loss: 1.2892137659920588
+INFO:root:Epoch: 244, Validation Loss: 2.700894832611084
+INFO:root:Epoch: 244, Moving Average Validation Loss: 2.9318869352340697
+INFO:root:Epoch: 244, Epoch IoU: 0.4333409381945569
+INFO:root:Epoch: 244, Epoch Precision: 0.6518812516952577
+INFO:root:Epoch: 244, Epoch Recall: 0.563815424095601
+INFO:root:Epoch: 245, Training Loss: 1.1922705041037664
+INFO:root:Epoch: 245, Moving Average Training Loss: 1.2689912544356452
+INFO:root:Epoch: 245, Validation Loss: 3.0378851890563965
+INFO:root:Epoch: 245, Moving Average Validation Loss: 2.9521560430526734
+INFO:root:Epoch: 245, Epoch IoU: 0.4205448014016632
+INFO:root:Epoch: 245, Epoch Precision: 0.6701891583660582
+INFO:root:Epoch: 245, Epoch Recall: 0.5302924558915704
+INFO:root:Epoch: 246, Training Loss: 1.2019960350460477
+INFO:root:Epoch: 246, Moving Average Training Loss: 1.2567559613121884
+INFO:root:Epoch: 246, Validation Loss: 2.716620922088623
+INFO:root:Epoch: 246, Moving Average Validation Loss: 2.936593842506409
+INFO:root:Epoch: 246, Epoch IoU: 0.42930570258595746
+INFO:root:Epoch: 246, Epoch Precision: 0.6054631429874463
+INFO:root:Epoch: 246, Epoch Recall: 0.5960490559795837
+INFO:root:Epoch: 247, Training Loss: 1.1872845888137817
+INFO:root:Epoch: 247, Moving Average Training Loss: 1.2421405792236329
+INFO:root:Epoch: 247, Validation Loss: 3.1155877113342285
+INFO:root:Epoch: 247, Moving Average Validation Loss: 2.941597843170166
+INFO:root:Epoch: 247, Epoch IoU: 0.41700810865018195
+INFO:root:Epoch: 247, Epoch Precision: 0.6971433361474855
+INFO:root:Epoch: 247, Epoch Recall: 0.5092661846588549
+INFO:root:Epoch: 248, Training Loss: 1.2642470863130357
+INFO:root:Epoch: 248, Moving Average Training Loss: 1.238657331466675
+INFO:root:Epoch: 248, Validation Loss: 2.8061728477478027
+INFO:root:Epoch: 248, Moving Average Validation Loss: 2.925198793411255
+INFO:root:Epoch: 248, Epoch IoU: 0.43417283545005597
+INFO:root:Epoch: 248, Epoch Precision: 0.6246073556201074
+INFO:root:Epoch: 248, Epoch Recall: 0.5874666012197212
+INFO:root:Epoch: 249, Training Loss: 1.181197292274899
+INFO:root:Epoch: 249, Moving Average Training Loss: 1.2271770934263866
+INFO:root:Epoch: 249, Validation Loss: 2.677891731262207
+INFO:root:Epoch: 249, Moving Average Validation Loss: 2.8935747861862184
+INFO:root:Epoch: 249, Epoch IoU: 0.41531694895636406
+INFO:root:Epoch: 249, Epoch Precision: 0.6655249588861548
+INFO:root:Epoch: 249, Epoch Recall: 0.5248720074113804
+INFO:root:Epoch: 250, Training Loss: 1.1851804123984442
+INFO:root:Epoch: 250, Moving Average Training Loss: 1.2134860204325784
+INFO:root:Epoch: 250, Validation Loss: 2.737215042114258
+INFO:root:Epoch: 250, Moving Average Validation Loss: 2.865096616744995
+INFO:root:Epoch: 250, Epoch IoU: 0.43787350098263345
+INFO:root:Epoch: 250, Epoch Precision: 0.6179746130877976
+INFO:root:Epoch: 250, Epoch Recall: 0.6003932046176337
+INFO:root:Epoch: 251, Training Loss: 1.1566075881322224
+INFO:root:Epoch: 251, Moving Average Training Loss: 1.2026998711956873
+INFO:root:Epoch: 251, Validation Loss: 2.7262372970581055
+INFO:root:Epoch: 251, Moving Average Validation Loss: 2.8334224224090576
+INFO:root:Epoch: 251, Epoch IoU: 0.42994891326241
+INFO:root:Epoch: 251, Epoch Precision: 0.6759632435918104
+INFO:root:Epoch: 251, Epoch Recall: 0.5415688354821597
+INFO:root:Epoch: 252, Training Loss: 1.1971966293123033
+INFO:root:Epoch: 252, Moving Average Training Loss: 1.198107475042343
+INFO:root:Epoch: 252, Validation Loss: 2.6974287033081055
+INFO:root:Epoch: 252, Moving Average Validation Loss: 2.8210918426513674
+INFO:root:Epoch: 252, Epoch IoU: 0.43401609577998745
+INFO:root:Epoch: 252, Epoch Precision: 0.5682735033987497
+INFO:root:Epoch: 252, Epoch Recall: 0.647523299546157
+INFO:root:Epoch: 253, Training Loss: 1.1745924684736464
+INFO:root:Epoch: 253, Moving Average Training Loss: 1.1936747398641374
+INFO:root:Epoch: 253, Validation Loss: 2.689987897872925
+INFO:root:Epoch: 253, Moving Average Validation Loss: 2.7905922174453734
+INFO:root:Epoch: 253, Epoch IoU: 0.42248362303054476
+INFO:root:Epoch: 253, Epoch Precision: 0.6563095805529076
+INFO:root:Epoch: 253, Epoch Recall: 0.542509862248642
+INFO:root:Epoch: 254, Training Loss: 1.139952023824056
+INFO:root:Epoch: 254, Moving Average Training Loss: 1.1880524628692204
+INFO:root:Epoch: 254, Validation Loss: 2.763838052749634
+INFO:root:Epoch: 254, Moving Average Validation Loss: 2.7968865394592286
+INFO:root:Epoch: 254, Epoch IoU: 0.43527183217706394
+INFO:root:Epoch: 254, Epoch Precision: 0.6533884485178764
+INFO:root:Epoch: 254, Epoch Recall: 0.5659528056036082
+INFO:root:Epoch: 255, Training Loss: 1.168414486779107
+INFO:root:Epoch: 255, Moving Average Training Loss: 1.1856668611367542
+INFO:root:Epoch: 255, Validation Loss: 2.5976176261901855
+INFO:root:Epoch: 255, Moving Average Validation Loss: 2.7528597831726076
+INFO:root:Epoch: 255, Epoch IoU: 0.4374187794623519
+INFO:root:Epoch: 255, Epoch Precision: 0.5746012619035664
+INFO:root:Epoch: 255, Epoch Recall: 0.6469136267711788
+INFO:root:Epoch: 256, Training Loss: 1.1587166388829548
+INFO:root:Epoch: 256, Moving Average Training Loss: 1.1813389215204455
+INFO:root:Epoch: 256, Validation Loss: 2.6875855922698975
+INFO:root:Epoch: 256, Moving Average Validation Loss: 2.749956250190735
+INFO:root:Epoch: 256, Epoch IoU: 0.4411524052961145
+INFO:root:Epoch: 256, Epoch Precision: 0.6330423897802641
+INFO:root:Epoch: 256, Epoch Recall: 0.5927270249398083
+INFO:root:Epoch: 257, Training Loss: 1.1191094716389973
+INFO:root:Epoch: 257, Moving Average Training Loss: 1.1745214098029666
+INFO:root:Epoch: 257, Validation Loss: 2.593369245529175
+INFO:root:Epoch: 257, Moving Average Validation Loss: 2.6977344036102293
+INFO:root:Epoch: 257, Epoch IoU: 0.43038100230953424
+INFO:root:Epoch: 257, Epoch Precision: 0.6329509580220674
+INFO:root:Epoch: 257, Epoch Recall: 0.5735189992919518
+INFO:root:Epoch: 258, Training Loss: 1.1255457798639934
+INFO:root:Epoch: 258, Moving Average Training Loss: 1.1606512791580625
+INFO:root:Epoch: 258, Validation Loss: 2.6787636280059814
+INFO:root:Epoch: 258, Moving Average Validation Loss: 2.6849934816360475
+INFO:root:Epoch: 258, Epoch IoU: 0.436716576650231
+INFO:root:Epoch: 258, Epoch Precision: 0.6808450640678578
+INFO:root:Epoch: 258, Epoch Recall: 0.5491332372032515
+INFO:root:Epoch: 259, Training Loss: 1.1120979256100125
+INFO:root:Epoch: 259, Moving Average Training Loss: 1.1537413424915737
+INFO:root:Epoch: 259, Validation Loss: 2.682500123977661
+INFO:root:Epoch: 259, Moving Average Validation Loss: 2.685454320907593
+INFO:root:Epoch: 259, Epoch IoU: 0.4452070638413836
+INFO:root:Epoch: 259, Epoch Precision: 0.598352696671323
+INFO:root:Epoch: 259, Epoch Recall: 0.6349646809991458
+INFO:root:Epoch: 260, Training Loss: 1.1448751754230924
+INFO:root:Epoch: 260, Moving Average Training Loss: 1.1497108187940384
+INFO:root:Epoch: 260, Validation Loss: 2.6293556690216064
+INFO:root:Epoch: 260, Moving Average Validation Loss: 2.674668383598328
+INFO:root:Epoch: 260, Epoch IoU: 0.4309780632650588
+INFO:root:Epoch: 260, Epoch Precision: 0.6589474629949911
+INFO:root:Epoch: 260, Epoch Recall: 0.5547136097415705
+INFO:root:Epoch: 261, Training Loss: 1.1752901143497891
+INFO:root:Epoch: 261, Moving Average Training Loss: 1.151579071415795
+INFO:root:Epoch: 261, Validation Loss: 2.889709711074829
+INFO:root:Epoch: 261, Moving Average Validation Loss: 2.691015625
+INFO:root:Epoch: 261, Epoch IoU: 0.39868645581173856
+INFO:root:Epoch: 261, Epoch Precision: 0.694682616512239
+INFO:root:Epoch: 261, Epoch Recall: 0.4833882647292323
+INFO:root:Epoch: 262, Training Loss: 1.1370718081792195
+INFO:root:Epoch: 262, Moving Average Training Loss: 1.145566589302487
+INFO:root:Epoch: 262, Validation Loss: 2.6937315464019775
+INFO:root:Epoch: 262, Moving Average Validation Loss: 2.6906459093093873
+INFO:root:Epoch: 262, Epoch IoU: 0.4353617343080413
+INFO:root:Epoch: 262, Epoch Precision: 0.6125990210220151
+INFO:root:Epoch: 262, Epoch Recall: 0.6007624842888349
+INFO:root:Epoch: 263, Training Loss: 1.1101256211598713
+INFO:root:Epoch: 263, Moving Average Training Loss: 1.1391199045711093
+INFO:root:Epoch: 263, Validation Loss: 2.840278148651123
+INFO:root:Epoch: 263, Moving Average Validation Loss: 2.705674934387207
+INFO:root:Epoch: 263, Epoch IoU: 0.4294688952907955
+INFO:root:Epoch: 263, Epoch Precision: 0.6591226217380123
+INFO:root:Epoch: 263, Epoch Recall: 0.5520930253876439
+INFO:root:Epoch: 264, Training Loss: 1.1030431456036038
+INFO:root:Epoch: 264, Moving Average Training Loss: 1.1354290167490642
+INFO:root:Epoch: 264, Validation Loss: 2.8432507514953613
+INFO:root:Epoch: 264, Moving Average Validation Loss: 2.71361620426178
+INFO:root:Epoch: 264, Epoch IoU: 0.445750947170516
+INFO:root:Epoch: 264, Epoch Precision: 0.6274073909072684
+INFO:root:Epoch: 264, Epoch Recall: 0.6062279655800299
+INFO:root:Epoch: 265, Training Loss: 1.0762106710010104
+INFO:root:Epoch: 265, Moving Average Training Loss: 1.1262086351712544
+INFO:root:Epoch: 265, Validation Loss: 2.58656644821167
+INFO:root:Epoch: 265, Moving Average Validation Loss: 2.712511086463928
+INFO:root:Epoch: 265, Epoch IoU: 0.4367786914551305
+INFO:root:Epoch: 265, Epoch Precision: 0.6444324877487828
+INFO:root:Epoch: 265, Epoch Recall: 0.5754613884518639
+INFO:root:Epoch: 266, Training Loss: 1.105757799413469
+INFO:root:Epoch: 266, Moving Average Training Loss: 1.120912751224306
+INFO:root:Epoch: 266, Validation Loss: 2.696089506149292
+INFO:root:Epoch: 266, Moving Average Validation Loss: 2.7133614778518678
+INFO:root:Epoch: 266, Epoch IoU: 0.42736396237801105
+INFO:root:Epoch: 266, Epoch Precision: 0.7072270917348328
+INFO:root:Epoch: 266, Epoch Recall: 0.5192234950195901
+INFO:root:Epoch: 267, Training Loss: 1.0879798995123968
+INFO:root:Epoch: 267, Moving Average Training Loss: 1.117799794011646
+INFO:root:Epoch: 267, Validation Loss: 2.773191452026367
+INFO:root:Epoch: 267, Moving Average Validation Loss: 2.731343698501587
+INFO:root:Epoch: 267, Epoch IoU: 0.44519398845112823
+INFO:root:Epoch: 267, Epoch Precision: 0.6127695697879509
+INFO:root:Epoch: 267, Epoch Recall: 0.6194723713054653
+INFO:root:Epoch: 268, Training Loss: 1.087094955974155
+INFO:root:Epoch: 268, Moving Average Training Loss: 1.113954711622662
+INFO:root:Epoch: 268, Validation Loss: 2.8229727745056152
+INFO:root:Epoch: 268, Moving Average Validation Loss: 2.7457646131515503
+INFO:root:Epoch: 268, Epoch IoU: 0.4389725136045526
+INFO:root:Epoch: 268, Epoch Precision: 0.6228834588987503
+INFO:root:Epoch: 268, Epoch Recall: 0.5978679301154871
+INFO:root:Epoch: 269, Training Loss: 1.055477413866255
+INFO:root:Epoch: 269, Moving Average Training Loss: 1.1082926604482863
+INFO:root:Epoch: 269, Validation Loss: 2.5145814418792725
+INFO:root:Epoch: 269, Moving Average Validation Loss: 2.7289727449417116
+INFO:root:Epoch: 269, Epoch IoU: 0.42601230993720846
+INFO:root:Epoch: 269, Epoch Precision: 0.6517639794331042
+INFO:root:Epoch: 269, Epoch Recall: 0.5515560781003487
+INFO:root:Epoch: 270, Training Loss: 1.0651508304807875
+INFO:root:Epoch: 270, Moving Average Training Loss: 1.1003202259540559
+INFO:root:Epoch: 270, Validation Loss: 2.7931692600250244
+INFO:root:Epoch: 270, Moving Average Validation Loss: 2.745354104042053
+INFO:root:Epoch: 270, Epoch IoU: 0.45064536261088534
+INFO:root:Epoch: 270, Epoch Precision: 0.6190124836330912
+INFO:root:Epoch: 270, Epoch Recall: 0.6236110991758974
+INFO:root:Epoch: 271, Training Loss: 1.0466660261154175
+INFO:root:Epoch: 271, Moving Average Training Loss: 1.0874578171306184
+INFO:root:Epoch: 271, Validation Loss: 2.4988596439361572
+INFO:root:Epoch: 271, Moving Average Validation Loss: 2.706269097328186
+INFO:root:Epoch: 271, Epoch IoU: 0.42332040101497964
+INFO:root:Epoch: 271, Epoch Precision: 0.6446826713827178
+INFO:root:Epoch: 271, Epoch Recall: 0.5521426534084762
+INFO:root:Epoch: 272, Training Loss: 1.0501153204176161
+INFO:root:Epoch: 272, Moving Average Training Loss: 1.0787621683544582
+INFO:root:Epoch: 272, Validation Loss: 2.714750051498413
+INFO:root:Epoch: 272, Moving Average Validation Loss: 2.7083709478378295
+INFO:root:Epoch: 272, Epoch IoU: 0.42402815185563003
+INFO:root:Epoch: 272, Epoch Precision: 0.6506001711557517
+INFO:root:Epoch: 272, Epoch Recall: 0.5490608800596779
+INFO:root:Epoch: 273, Training Loss: 1.0310512781143188
+INFO:root:Epoch: 273, Moving Average Training Loss: 1.0708547340499028
+INFO:root:Epoch: 273, Validation Loss: 2.6283822059631348
+INFO:root:Epoch: 273, Moving Average Validation Loss: 2.6871813535690308
+INFO:root:Epoch: 273, Epoch IoU: 0.4257786601903884
+INFO:root:Epoch: 273, Epoch Precision: 0.6218568765534382
+INFO:root:Epoch: 273, Epoch Recall: 0.5745306848843217
+INFO:root:Epoch: 274, Training Loss: 1.0505942437383864
+INFO:root:Epoch: 274, Moving Average Training Loss: 1.0656098438633812
+INFO:root:Epoch: 274, Validation Loss: 2.463186502456665
+INFO:root:Epoch: 274, Moving Average Validation Loss: 2.649174928665161
+INFO:root:Epoch: 274, Epoch IoU: 0.4332670094834492
+INFO:root:Epoch: 274, Epoch Precision: 0.6481323997172646
+INFO:root:Epoch: 274, Epoch Recall: 0.5665237915954705
+INFO:root:Epoch: 275, Training Loss: 1.0506137675709195
+INFO:root:Epoch: 275, Moving Average Training Loss: 1.0630501535203722
+INFO:root:Epoch: 275, Validation Loss: 2.8909523487091064
+INFO:root:Epoch: 275, Moving Average Validation Loss: 2.6796135187149046
+INFO:root:Epoch: 275, Epoch IoU: 0.4208578584407293
+INFO:root:Epoch: 275, Epoch Precision: 0.6640891806472682
+INFO:root:Epoch: 275, Epoch Recall: 0.53468007165967
+INFO:root:Epoch: 276, Training Loss: 1.0149334073066711
+INFO:root:Epoch: 276, Moving Average Training Loss: 1.0539677143096924
+INFO:root:Epoch: 276, Validation Loss: 2.4988222122192383
+INFO:root:Epoch: 276, Moving Average Validation Loss: 2.6598867893218996
+INFO:root:Epoch: 276, Epoch IoU: 0.45087848781187856
+INFO:root:Epoch: 276, Epoch Precision: 0.6357653225923017
+INFO:root:Epoch: 276, Epoch Recall: 0.6079082666863229
+INFO:root:Epoch: 277, Training Loss: 1.0164664255248175
+INFO:root:Epoch: 277, Moving Average Training Loss: 1.0468163669109345
+INFO:root:Epoch: 277, Validation Loss: 2.576144218444824
+INFO:root:Epoch: 277, Moving Average Validation Loss: 2.640182065963745
+INFO:root:Epoch: 277, Epoch IoU: 0.4390147197303861
+INFO:root:Epoch: 277, Epoch Precision: 0.6544479685051005
+INFO:root:Epoch: 277, Epoch Recall: 0.571486504546104
+INFO:root:Epoch: 278, Training Loss: 1.0120457079675462
+INFO:root:Epoch: 278, Moving Average Training Loss: 1.0393114421102736
+INFO:root:Epoch: 278, Validation Loss: 2.630814790725708
+INFO:root:Epoch: 278, Moving Average Validation Loss: 2.6209662675857546
+INFO:root:Epoch: 278, Epoch IoU: 0.4194794510302532
+INFO:root:Epoch: 278, Epoch Precision: 0.6510141899538608
+INFO:root:Epoch: 278, Epoch Recall: 0.5411717596657629
+INFO:root:Epoch: 279, Training Loss: 1.012754499912262
+INFO:root:Epoch: 279, Moving Average Training Loss: 1.0350391507148742
+INFO:root:Epoch: 279, Validation Loss: 2.574805736541748
+INFO:root:Epoch: 279, Moving Average Validation Loss: 2.6269886970520018
+INFO:root:Epoch: 279, Epoch IoU: 0.459357204276652
+INFO:root:Epoch: 279, Epoch Precision: 0.606664581128162
+INFO:root:Epoch: 279, Epoch Recall: 0.6541943354636575
+INFO:root:Epoch: 280, Training Loss: 1.0650504695044622
+INFO:root:Epoch: 280, Moving Average Training Loss: 1.0350291146172417
+INFO:root:Epoch: 280, Validation Loss: 2.587480068206787
+INFO:root:Epoch: 280, Moving Average Validation Loss: 2.6064197778701783
+INFO:root:Epoch: 280, Epoch IoU: 0.4477217290802922
+INFO:root:Epoch: 280, Epoch Precision: 0.6213902346901186
+INFO:root:Epoch: 280, Epoch Recall: 0.6156742621648094
+INFO:root:Epoch: 281, Training Loss: 1.0095889965693157
+INFO:root:Epoch: 281, Moving Average Training Loss: 1.0313214116626315
+INFO:root:Epoch: 281, Validation Loss: 2.5908002853393555
+INFO:root:Epoch: 281, Moving Average Validation Loss: 2.615613842010498
+INFO:root:Epoch: 281, Epoch IoU: 0.4431393729811628
+INFO:root:Epoch: 281, Epoch Precision: 0.6512166083402483
+INFO:root:Epoch: 281, Epoch Recall: 0.5810443540042768
+INFO:root:Epoch: 282, Training Loss: 0.9907607038815817
+INFO:root:Epoch: 282, Moving Average Training Loss: 1.025385950009028
+INFO:root:Epoch: 282, Validation Loss: 2.5930559635162354
+INFO:root:Epoch: 282, Moving Average Validation Loss: 2.6034444332122804
+INFO:root:Epoch: 282, Epoch IoU: 0.44082094690811036
+INFO:root:Epoch: 282, Epoch Precision: 0.6640635182691055
+INFO:root:Epoch: 282, Epoch Recall: 0.5673389659860159
+INFO:root:Epoch: 283, Training Loss: 0.9886999726295471
+INFO:root:Epoch: 283, Moving Average Training Loss: 1.021150819460551
+INFO:root:Epoch: 283, Validation Loss: 2.599250316619873
+INFO:root:Epoch: 283, Moving Average Validation Loss: 2.600531244277954
+INFO:root:Epoch: 283, Epoch IoU: 0.45273759470138664
+INFO:root:Epoch: 283, Epoch Precision: 0.6652290762053487
+INFO:root:Epoch: 283, Epoch Recall: 0.5863233923578751
+INFO:root:Epoch: 284, Training Loss: 0.9859696295526292
+INFO:root:Epoch: 284, Moving Average Training Loss: 1.0146883580419752
+INFO:root:Epoch: 284, Validation Loss: 2.827394962310791
+INFO:root:Epoch: 284, Moving Average Validation Loss: 2.6369520902633665
+INFO:root:Epoch: 284, Epoch IoU: 0.4189730417034624
+INFO:root:Epoch: 284, Epoch Precision: 0.697167769275327
+INFO:root:Epoch: 284, Epoch Recall: 0.512186599891595
+INFO:root:Epoch: 285, Training Loss: 0.9840651220745511
+INFO:root:Epoch: 285, Moving Average Training Loss: 1.0080334934923383
+INFO:root:Epoch: 285, Validation Loss: 2.5209972858428955
+INFO:root:Epoch: 285, Moving Average Validation Loss: 2.599956583976746
+INFO:root:Epoch: 285, Epoch IoU: 0.4299433219726213
+INFO:root:Epoch: 285, Epoch Precision: 0.6719738662114836
+INFO:root:Epoch: 285, Epoch Recall: 0.5441481375563023
+INFO:root:Epoch: 286, Training Loss: 1.0040945543183222
+INFO:root:Epoch: 286, Moving Average Training Loss: 1.0069496081935037
+INFO:root:Epoch: 286, Validation Loss: 2.5861408710479736
+INFO:root:Epoch: 286, Moving Average Validation Loss: 2.6086884498596192
+INFO:root:Epoch: 286, Epoch IoU: 0.4503502535417429
+INFO:root:Epoch: 286, Epoch Precision: 0.6119109453730217
+INFO:root:Epoch: 286, Epoch Recall: 0.6304100253836127
+INFO:root:Epoch: 287, Training Loss: 1.0256413618723552
+INFO:root:Epoch: 287, Moving Average Training Loss: 1.0078671018282572
+INFO:root:Epoch: 287, Validation Loss: 2.5611844062805176
+INFO:root:Epoch: 287, Moving Average Validation Loss: 2.6071924686431887
+INFO:root:Epoch: 287, Epoch IoU: 0.4480318665119343
+INFO:root:Epoch: 287, Epoch Precision: 0.5861815674897103
+INFO:root:Epoch: 287, Epoch Recall: 0.655295958015845
+INFO:root:Epoch: 288, Training Loss: 0.9794820812013414
+INFO:root:Epoch: 288, Moving Average Training Loss: 1.0046107391516368
+INFO:root:Epoch: 288, Validation Loss: 2.792616844177246
+INFO:root:Epoch: 288, Moving Average Validation Loss: 2.6233726739883423
+INFO:root:Epoch: 288, Epoch IoU: 0.41066269593998594
+INFO:root:Epoch: 288, Epoch Precision: 0.7185732188245623
+INFO:root:Epoch: 288, Epoch Recall: 0.489370422338266
+INFO:root:Epoch: 289, Training Loss: 1.0601684384875827
+INFO:root:Epoch: 289, Moving Average Training Loss: 1.009352133009169
+INFO:root:Epoch: 289, Validation Loss: 2.6754910945892334
+INFO:root:Epoch: 289, Moving Average Validation Loss: 2.633441209793091
+INFO:root:Epoch: 289, Epoch IoU: 0.4132611488921621
+INFO:root:Epoch: 289, Epoch Precision: 0.7166127761323805
+INFO:root:Epoch: 289, Epoch Recall: 0.4939921518679116
+INFO:root:Epoch: 290, Training Loss: 1.0475942293802898
+INFO:root:Epoch: 290, Moving Average Training Loss: 1.0076065089967516
+INFO:root:Epoch: 290, Validation Loss: 2.6819193363189697
+INFO:root:Epoch: 290, Moving Average Validation Loss: 2.642885136604309
+INFO:root:Epoch: 290, Epoch IoU: 0.4433014650738442
+INFO:root:Epoch: 290, Epoch Precision: 0.5471554403956254
+INFO:root:Epoch: 290, Epoch Recall: 0.700198204500408
+INFO:root:Epoch: 291, Training Loss: 1.0357781449953716
+INFO:root:Epoch: 291, Moving Average Training Loss: 1.010225423839357
+INFO:root:Epoch: 291, Validation Loss: 2.419365644454956
+INFO:root:Epoch: 291, Moving Average Validation Loss: 2.6257416725158693
+INFO:root:Epoch: 291, Epoch IoU: 0.41437505251407375
+INFO:root:Epoch: 291, Epoch Precision: 0.6755464525429368
+INFO:root:Epoch: 291, Epoch Recall: 0.5173333599744245
+INFO:root:Epoch: 292, Training Loss: 0.9756225347518921
+INFO:root:Epoch: 292, Moving Average Training Loss: 1.0087116069263882
+INFO:root:Epoch: 292, Validation Loss: 2.592532157897949
+INFO:root:Epoch: 292, Moving Average Validation Loss: 2.6256892919540404
+INFO:root:Epoch: 292, Epoch IoU: 0.4491773159008514
+INFO:root:Epoch: 292, Epoch Precision: 0.6389253162961961
+INFO:root:Epoch: 292, Epoch Recall: 0.6019874683961746
+INFO:root:Epoch: 293, Training Loss: 0.9354846080144247
+INFO:root:Epoch: 293, Moving Average Training Loss: 1.0033900704648762
+INFO:root:Epoch: 293, Validation Loss: 2.507638692855835
+INFO:root:Epoch: 293, Moving Average Validation Loss: 2.616528129577637
+INFO:root:Epoch: 293, Epoch IoU: 0.42444965769593956
+INFO:root:Epoch: 293, Epoch Precision: 0.6590945540357871
+INFO:root:Epoch: 293, Epoch Recall: 0.5438450559110716
+INFO:root:Epoch: 294, Training Loss: 0.9185399214426676
+INFO:root:Epoch: 294, Moving Average Training Loss: 0.9966470996538799
+INFO:root:Epoch: 294, Validation Loss: 2.4820735454559326
+INFO:root:Epoch: 294, Moving Average Validation Loss: 2.581995987892151
+INFO:root:Epoch: 294, Epoch IoU: 0.4317882187938289
+INFO:root:Epoch: 294, Epoch Precision: 0.6250748692959748
+INFO:root:Epoch: 294, Epoch Recall: 0.5827024264678048
+INFO:root:Epoch: 295, Training Loss: 0.9271916349728903
+INFO:root:Epoch: 295, Moving Average Training Loss: 0.9909597509437139
+INFO:root:Epoch: 295, Validation Loss: 2.515265941619873
+INFO:root:Epoch: 295, Moving Average Validation Loss: 2.5814228534698485
+INFO:root:Epoch: 295, Epoch IoU: 0.4311832807096677
+INFO:root:Epoch: 295, Epoch Precision: 0.5899258541401915
+INFO:root:Epoch: 295, Epoch Recall: 0.6157365879725939
+INFO:root:Epoch: 296, Training Loss: 0.9518684347470602
+INFO:root:Epoch: 296, Moving Average Training Loss: 0.9857371389865877
+INFO:root:Epoch: 296, Validation Loss: 2.4866273403167725
+INFO:root:Epoch: 296, Moving Average Validation Loss: 2.5714715003967283
+INFO:root:Epoch: 296, Epoch IoU: 0.4243391926610831
+INFO:root:Epoch: 296, Epoch Precision: 0.6246681303653371
+INFO:root:Epoch: 296, Epoch Recall: 0.5695554548952565
+INFO:root:Epoch: 297, Training Loss: 0.9165301654073927
+INFO:root:Epoch: 297, Moving Average Training Loss: 0.9748260193400913
+INFO:root:Epoch: 297, Validation Loss: 2.6180777549743652
+INFO:root:Epoch: 297, Moving Average Validation Loss: 2.5771608352661133
+INFO:root:Epoch: 297, Epoch IoU: 0.43328187598779727
+INFO:root:Epoch: 297, Epoch Precision: 0.6991666913792592
+INFO:root:Epoch: 297, Epoch Recall: 0.5325686249706345
+INFO:root:Epoch: 298, Training Loss: 0.9280017680592008
+INFO:root:Epoch: 298, Moving Average Training Loss: 0.9696779880258772
+INFO:root:Epoch: 298, Validation Loss: 2.3624038696289062
+INFO:root:Epoch: 298, Moving Average Validation Loss: 2.534139537811279
+INFO:root:Epoch: 298, Epoch IoU: 0.43657809224518784
+INFO:root:Epoch: 298, Epoch Precision: 0.6728794307876106
+INFO:root:Epoch: 298, Epoch Recall: 0.5542037274908509
+INFO:root:Epoch: 299, Training Loss: 0.9118107822206285
+INFO:root:Epoch: 299, Moving Average Training Loss: 0.9548422223991817
+INFO:root:Epoch: 299, Validation Loss: 2.528435707092285
+INFO:root:Epoch: 299, Moving Average Validation Loss: 2.5194339990615844
+INFO:root:Epoch: 299, Epoch IoU: 0.42939390531879007
+INFO:root:Epoch: 299, Epoch Precision: 0.6831167746975235
+INFO:root:Epoch: 299, Epoch Recall: 0.5361972206750324
+INFO:root:Epoch: 300, Training Loss: 0.9151513576507568
+INFO:root:Epoch: 300, Moving Average Training Loss: 0.9415979352262285
+INFO:root:Epoch: 300, Validation Loss: 2.4626970291137695
+INFO:root:Epoch: 300, Moving Average Validation Loss: 2.4975117683410644
+INFO:root:Epoch: 300, Epoch IoU: 0.434260580546669
+INFO:root:Epoch: 300, Epoch Precision: 0.6462292876925603
+INFO:root:Epoch: 300, Epoch Recall: 0.5696945930552832
