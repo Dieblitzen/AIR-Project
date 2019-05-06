@@ -46,6 +46,25 @@ def conv_layer(input_t, filter_shape, stride=[1,1,1,1], padding='SAME'):
 
   return tf.nn.conv2d(input_t, weights, stride, padding) + biases
 
+## Define Upsampling
+"""
+deconv_layer(input, filter_shape, stride) creates a new transpose convolutional layer 
+and returns the transpose convolution of the input. 
+It uses weights/biases created based on filter_shape, stride and padding
+
+Requires:
+  input: the input Tensor [batch, height, width, in_channels]
+  filter_shape: [filter_height, filter_width, output_channels, input_channels]
+  output_shape: [batch, height, width, channels]
+  stride: [batch=1, horizontal_stride, vertical_stride, depth_of_convolution=1]
+  padding: string of 'SAME' (1/stride * input_size) or 'VALID' (no padding)
+"""
+def deconv_layer(input_t, filter_shape, output_shape, stride=[1,2,2,1], padding='SAME'):
+  # Have to define weights when using tf.nn.conv2d_transpose
+  weights = tf.Variable(tf.truncated_normal(filter_shape, stddev=0.05))
+  biases = tf.Variable(tf.zeros([filter_shape[2]]))
+  return tf.nn.conv2d_transpose(input_t, weights, output_shape, stride, padding) + biases
+
 """
 batch_norm(x) batch normalises the input tensor x
 Requires:
@@ -114,25 +133,6 @@ def resnet_block_bottleneck(input_t, filter_shape, stride=[1,1,1,1], padding='SA
 ## Define FCN Operations
 ## =============================================================================================
 
-## Define Upsampling
-"""
-deconv_layer(input, filter_shape, stride) creates a new transpose convolutional layer 
-and returns the transpose convolution of the input. 
-It uses weights/biases created based on filter_shape, stride and padding
-
-Requires:
-  input: the input Tensor [batch, height, width, in_channels]
-  filter_shape: [filter_height, filter_width, output_channels, input_channels]
-  output_shape: [batch, height, width, channels]
-  stride: [batch=1, horizontal_stride, vertical_stride, depth_of_convolution=1]
-  padding: string of 'SAME' (1/stride * input_size) or 'VALID' (no padding)
-"""
-def deconv_layer(input_t, filter_shape, output_shape, stride=[1,2,2,1], padding='SAME'):
-  # Have to define weights when using tf.nn.conv2d_transpose
-  weights = tf.Variable(tf.truncated_normal(filter_shape, stddev=0.05))
-  biases = tf.Variable(tf.zeros([filter_shape[2]]))
-  return tf.nn.conv2d_transpose(input_t, weights, output_shape, stride, padding) + biases
-
 """
 Fully Convolutional Net
 fcn(input_tensors) combines and upsamples the input tensors using fully convolutional nets.
@@ -147,27 +147,25 @@ def fcn(input_tensors):
   sorted_resolution = sorted(input_tensors, key=lambda t: int(t.get_shape()[1]) )
 
   # Result of upsampling and adding.
-  upsampled = sorted_resolution[0]
-  for i in range(len(sorted_resolution) - 1):
+  result = sorted_resolution[0]
+  for i in range(1, len(sorted_resolution)):
 
-    t_next = sorted_resolution[i+1]
+    t_next = sorted_resolution[i]
 
-    old_dim = tuple(upsampled.get_shape())
+    old_dim = tuple(result.get_shape())
     new_dim = tuple(t_next.get_shape())
 
     # Calculate stride based on multiple required to get from old res to new res.
-    x = deconv_layer(upsampled, \
+    x = deconv_layer(result, \
                     [3, 3, int(new_dim[3]), int(old_dim[3])],\
                     [batch_size, int(new_dim[1]), int(new_dim[2]), int(new_dim[3])],\
                     stride=[1, int(new_dim[1])//int(old_dim[1]), int(new_dim[2])//int(old_dim[2]), 1])
     
     # Sum the upsampled with the larger tensor.
-    upsampled = x + t_next
+    result = x + t_next
   
-  return upsampled
+  return result
     
-
-
 
 
 ## =============================================================================================
@@ -322,33 +320,26 @@ block_17 = resnet_block(block_16, [3,3,512,512]) # 1/32 downsampled
 ## =============================================================================================
 ## Apply FCN-8
 ## =============================================================================================
-# upsampled_32 = deconv_layer(block_17, [3,3,256,512], [batch_size,14,14,256], [1,2,2,1])
-# pool_4_and_5 = upsampled_32 + block_14
 
-# upsampled_32_16 = deconv_layer(pool_4_and_5, [3,3,128,256], [batch_size,28,28,128], [1,2,2,1]) 
-# pool_3_and_4 = upsampled_32_16 + block_8
-fcn8 = fcn([block_17, block_14, block_8])
-# result = deconv_layer(fcn8, [3,3,1,128], [batch_size,224,224,1], [1,8,8,1])
-
-resized_bilinear = tf.image.resize_bilinear(fcn8, (LABEL_SIZE[0], LABEL_SIZE[1]) )
-result = conv_layer(resized_bilinear, [1, 1, 128, 1])
-
+# FCN-8 returns result 1/8 the size of input. Still need to upsample 8 times.
+# Expect the depth of the FCN output to be 128, since that is depth of 1/8 downsampled.
+# fcn8 = fcn([block_17, block_14, block_8])
+# resized_bilinear = tf.image.resize_bilinear(fcn8, (LABEL_SIZE[0], LABEL_SIZE[1]) )
+# result = conv_layer(resized_bilinear, [1, 1, 128, 1])
 
 
 ## =============================================================================================
-## Apply Refine-Net 
+## Apply Refine-Net (2-cascaded)
 ## =============================================================================================
 
-# # Refine Net returns result 1/4 the size of input. Still need to upsample 4 times.
-# # Expect the depth of the refine net output to be 64, since that is depth of #4 downsampled.
-# refine_net2 = refine_net_block([block_17, block_14]) # 1/16 downsampled
-# refine_net1 = refine_net_block([refine_net2, block_8, block_4]) # 1/4 downsampled.
-
-# # result = deconv_layer(upsampled, [3,3,1,64], [batch_size,224,224,1], [1,4,4,1])
-
-# # Alternative: convolve and then resize.
-# resized = tf.image.resize_bilinear(refine_net1, (LABEL_SIZE[0], LABEL_SIZE[1]) )
-# result = conv_layer(resized, [1, 1, 64, 1])
+# Refine Net returns result 1/4 the size of input. Still need to upsample 4 times.
+# Expect the depth of the refine net output to be 64, since that is depth of 1/4 downsampled.
+refine_net2 = refine_net_block([block_17, block_14]) # 1/16 downsampled
+refine_net1 = refine_net_block([refine_net2, block_8, block_4]) # 1/4 downsampled.
+# result = deconv_layer(upsampled, [3,3,1,64], [batch_size,224,224,1], [1,4,4,1])
+# Alternative: convolve and then resize.
+resized = tf.image.resize_bilinear(refine_net1, (LABEL_SIZE[0], LABEL_SIZE[1]) )
+result = conv_layer(resized, [1, 1, 64, 1])
 
 
 ## =============================================================================================
