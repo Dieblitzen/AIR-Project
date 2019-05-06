@@ -281,29 +281,29 @@ block_17 = resnet_block(block_16, [3,3,512,512]) # 1/32 downsampled
 ## =============================================================================================
 ## Apply FCN-8
 ## =============================================================================================
-# upsampled_32 = deconv_layer(block_17, [3,3,256,512], [batch_size,14,14,256], [1,2,2,1])
-# pool_4_and_5 = upsampled_32 + block_14
+upsampled_32 = deconv_layer(block_17, [3,3,256,512], [batch_size,14,14,256], [1,2,2,1])
+pool_4_and_5 = upsampled_32 + block_14
 
-# upsampled_32_16 = deconv_layer(pool_4_and_5, [3,3,128,256], [batch_size,28,28,128], [1,2,2,1]) 
-# pool_3_and_4 = upsampled_32_16 + block_8
+upsampled_32_16 = deconv_layer(pool_4_and_5, [3,3,128,256], [batch_size,28,28,128], [1,2,2,1]) 
+pool_3_and_4 = upsampled_32_16 + block_8
 
-# fcn8 = deconv_layer(pool_3_and_4, [3,3,1,128], [batch_size,224,224,1], [1,8,8,1])
+result = deconv_layer(pool_3_and_4, [3,3,1,128], [batch_size,224,224,1], [1,8,8,1])
 
 
 ## =============================================================================================
 ## Apply Refine-Net 
 ## =============================================================================================
 
-# Refine Net returns result 1/4 the size of input. Still need to upsample 4 times.
-# Expect the depth of the refine net output to be 64, since that is depth of #4 downsampled.
-refine_net2 = refine_net_block([block_17, block_14]) # 1/16 downsampled
-refine_net1 = refine_net_block([refine_net2, block_8, block_4]) # 1/4 downsampled.
+# # Refine Net returns result 1/4 the size of input. Still need to upsample 4 times.
+# # Expect the depth of the refine net output to be 64, since that is depth of #4 downsampled.
+# refine_net2 = refine_net_block([block_17, block_14]) # 1/16 downsampled
+# refine_net1 = refine_net_block([refine_net2, block_8, block_4]) # 1/4 downsampled.
 
-# result = deconv_layer(upsampled, [3,3,1,64], [batch_size,224,224,1], [1,4,4,1])
+# # result = deconv_layer(upsampled, [3,3,1,64], [batch_size,224,224,1], [1,4,4,1])
 
-# Alternative: convolve and then resize.
-resized = tf.image.resize_bilinear(refine_net1, (IM_SIZE[0], IM_SIZE[1]) )
-result = conv_layer(resized, [1, 1, 64, 1])
+# # Alternative: convolve and then resize.
+# resized = tf.image.resize_bilinear(refine_net1, (IM_SIZE[0], IM_SIZE[1]) )
+# result = conv_layer(resized, [1, 1, 64, 1])
 
 
 ## =============================================================================================
