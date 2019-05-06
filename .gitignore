@@ -11,3 +11,4 @@ WhitePlains_data/
 **/annotations/*.json
 **/*.xml
 **/*.png
+**/*.log
