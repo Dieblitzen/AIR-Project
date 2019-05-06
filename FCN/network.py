@@ -354,8 +354,9 @@ if __name__ == "__main__":
     num_val_batches = num_val//batch_size
 
     # Mean and std-dev of training data
-    mean = preprocess.mean_of_data(data.get_batch(list(range(num_train)), "train") )
-    std_dev = preprocess.std_of_data(data.get_batch(list(range(num_train)), "train") )
+    data_x, _ = data.get_batch(list(range(num_train)), "train")
+    mean = preprocess.mean_of_data(data_x)
+    std_dev = preprocess.std_of_data(data_x)
 
     # Moving average loss
     ma_train_loss = [0.0] * 10
