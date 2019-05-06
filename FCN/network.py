@@ -6,7 +6,7 @@ import numpy as np
 import tensorflow as tf
 import scipy.misc
 from ImSeg_Dataset import ImSeg_Dataset as Data
-import FCN.preprocess
+import FCN.preprocess as preprocess
 import os
 from PIL import Image
 import logging
