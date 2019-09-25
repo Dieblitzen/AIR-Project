@@ -13,30 +13,38 @@ import overpy
 import pickle 
 import scipy.misc
 import math
+import argparse
 from PIL import Image
 
 ## Previous Query Coordinates:
 # White Plains: [41.009, -73.779, 41.03, -73.758] (returns image of approx 5280x5280)
 
-# DATA_PATH is the path to the directory where the processed and queried data will be saved
-DATA_PATH = './data_path'
+class DataInfo:
+  def __init__(self, data_path, tile_size, pairs_query_path):
+    # data_path is the path to the directory where the processed and queried data will be saved
+    self.data_path = data_path
 
-# RAW_DATA_PATH is the path to the directory where the raw queried image(s) will be saved
-RAW_DATA_PATH = f'{DATA_PATH}/raw_data'
+    # Square tile size that the large image will be broken up into
+    self.tile_size = tile_size
 
-# IMAGES_PATH is the path to the directory where the images will be saved
-IMAGES_PATH = f'{DATA_PATH}/images'
+    # Path to the file where json PAIRS query is stored.
+    self.pairs_query_path = pairs_query_path
 
-# ANNOTATIONS_PATH is the path to the directory where the bounding box labels will be saved
-ANNOTATIONS_PATH = f'{DATA_PATH}/annotations'
+    ## Processed data paths
+    # raw_data_path is the path to the directory where raw queried images will be saved
+    self.raw_data_path = f'{self.data_path}/raw_data'
 
-# OSM_FILENAME is the name of the pickle file where the queried raw OSM data will be saved
-OSM_FILENAME = 'OSM_bbox.pkl'
+    # images_path is where the tiled images will be saved.
+    self.images_path = f'{self.data_path}/images'
 
-# TILE_SIZE is the size of the tile the entire image will be cut up into
-TILE_SIZE = 224
+    # annotations_path is where the json annotations per tile will be saved.
+    self.annotations_path = f'{self.data_path}/annotations'
+
+    # Name of file where raw OSM data will be dumped as a dictionary.
+    self.osm_filename = 'OSM_bbox.pkl'
+
   
-def create_dataset(query_path, source="IBM"):
+def create_dataset(data_info, source="IBM"):
   """
   Initialises the query image coordinates, query source and image download path. 
   This is the main function to be called from this module.
@@ -50,6 +58,7 @@ def create_dataset(query_path, source="IBM"):
   """
 
   # Read the query file, exit if wrong format
+  query_path = data_info.pairs_query_path
   query_path = query_path if query_path.endswith('.json') else query_path + '.json'
   with open(f'{query_path}', 'r') as query_file:
     try:
@@ -65,11 +74,11 @@ def create_dataset(query_path, source="IBM"):
     print("Your .json query does not have coordinates specified in the right manner.")
 
   # If directory for dataset does not exist, create directory
-  create_directories()
+  create_directories(data_info)
 
   # First query image layers from API
   print("Querying raw image from PAIRS using coordinates given.")
-  query_PAIRS(query)
+  query_PAIRS(query, data_info.raw_data_path)
 
   print("")
   
@@ -85,39 +94,41 @@ def create_dataset(query_path, source="IBM"):
   im_size = im_arr.shape
 
   # Bounding box data in pixel format
-  building_coords = coords_to_pixels(raw_OSM, coords, im_size)
+  building_coords = coords_to_pixels(raw_OSM, coords, im_size, data_info.raw_data_path)
 
   # Finally, tile the image and save it in the DATA_PATH
   print("Tiling image and saving .jpeg files (for tile) and .json files (for bounding boxes)")
-  tile_image(TILE_SIZE, building_coords, im_arr, im_size)
+  tile_image(building_coords, im_arr, im_size, data_info)
 
   print("Success! Your raw dataset is now ready!")
 
 
-def create_directories():
+def create_directories(data_info):
   """
   Creates directory to store dataset specified by DATA_PATH, if one does not exist.
   Nested inside DATA_PATH, creates directories for the raw data, images and annotations.
   """
-  if not os.path.isdir(DATA_PATH):
+  if not os.path.isdir(data_info.data_path):
     print(f"Creating directory to store your dataset.")
-    os.mkdir(DATA_PATH)
+    os.mkdir(data_info.data_path)
 
-  if not os.path.isdir(RAW_DATA_PATH):
+  if not os.path.isdir(data_info.raw_data_path):
     print(f"Creating directory to store raw data, including queried image.")
-    os.mkdir(RAW_DATA_PATH)
+    os.mkdir(data_info.raw_data_path)
 
-  if not os.path.isdir(IMAGES_PATH):
+  if not os.path.isdir(data_info.images_path):
     print(f"Creating directory to store jpeg images.")
-    os.mkdir(IMAGES_PATH)
+    os.mkdir(data_info.images_path)
 
-  if not os.path.isdir(ANNOTATIONS_PATH):
+  if not os.path.isdir(data_info.annotations_path):
     print(f"Creating directory to store json annotations.")
-    os.mkdir(ANNOTATIONS_PATH)
+    os.mkdir(data_info.annotations_path)
 
-  print(f"Your dataset's directory is {DATA_PATH} and the raw data is stored in {RAW_DATA_PATH}")
+  print(f"Your dataset's directory is {data_info.data_path}")
+  print(f"The raw data is stored in {data_info.raw_data_path}")
 
-def query_PAIRS(query_json):
+
+def query_PAIRS(query_json, raw_data_path):
   """
   Sends a request to PAIRS server and downloads the images in the area specified
   by coords. The raw images are saved in RAW_DATA_PATH
@@ -169,10 +180,10 @@ def query_PAIRS(query_json):
   z = zipfile.ZipFile(io.BytesIO(download.content))
 
   ## Extract to download path specified
-  z.extractall(RAW_DATA_PATH)
+  z.extractall(raw_data_path)
     
 
-def image_to_array():
+def image_to_array(raw_data_path):
   """
   Takes the image(s) downloaded in RAW_DATA_PATH and converts them into an 
   np array. Deletes the raw images in the process.
@@ -184,17 +195,17 @@ def image_to_array():
   # Fetches images from download folder
   images_arr = []
   # Loop through files in downloads directory (if multiple)
-  file_names = os.listdir(RAW_DATA_PATH)
+  file_names = os.listdir(raw_data_path)
   file_names.sort(reverse=True)
   for filename in file_names:
 
     # Remove output.info
     if filename.endswith(".info"):
-      path_to_file = RAW_DATA_PATH + '/' + filename
+      path_to_file = os.path.join(raw_data_path, filename)
       os.remove(path_to_file)
 
     if filename.endswith(".tiff"):
-      path_to_file = RAW_DATA_PATH + '/' + filename
+      path_to_file = os.path.join(raw_data_path, filename)
       dataset = gdal.Open(path_to_file)
       raw_array = np.array(dataset.GetRasterBand(1).ReadAsArray())
 
@@ -215,7 +226,7 @@ def image_to_array():
   im_arr = np.dstack(images_arr)
 
   # Turns np array into jpg and saves into RAW_DATA_PATH
-  scipy.misc.imsave(f'{RAW_DATA_PATH}/Entire_Area.jpg', im_arr)
+  scipy.misc.imsave(os.path.join(raw_data_path,'Entire_Area.jpg'), im_arr)
 
   return im_arr
 
@@ -255,7 +266,7 @@ def query_OSM(coords):
   #   pickle.dump(building_coords, filename)
 
 
-def coords_to_pixels(raw_OSM, coords, im_size):
+def coords_to_pixels(raw_OSM, coords, im_size, raw_data_path):
   """
   Converts the OSM coordinates to pixels relative to the image data.
   Also stores the returned list of buildings in a pickle file called 'annotations.pkl'
@@ -283,7 +294,7 @@ def coords_to_pixels(raw_OSM, coords, im_size):
       nodeY = math.floor(((lat_max-lat)/height)*im_size[0])
       building_coords[b_ind][n_ind] = (nodeX, nodeY) 
     
-  with open(f"{RAW_DATA_PATH}/annotations.pkl", "wb") as filename:
+  with open(f"{raw_data_path}/annotations.pkl", "wb") as filename:
     pickle.dump(building_coords, filename)
 
   # Reutrn the pixel building coords
@@ -335,7 +346,8 @@ def boxes_in_tile(building_coords, col_start, col_end, row_start, row_end):
     
   return buildings_in_tile
 
-def save_tile_and_bboxes(tile, building_coords, file_index):
+
+def save_tile_and_bboxes(tile, building_coords, file_index, data_info):
   """
   Saves the tile as an indexed .jpeg image and the building_coords as an indexed .json file.
 
@@ -350,16 +362,16 @@ def save_tile_and_bboxes(tile, building_coords, file_index):
   bbox_name = "annotation_" + str(file_index) + '.json'
 
   # save jpeg
-  with open(f'{IMAGES_PATH}/{img_name}', 'w') as filename:
+  with open(os.path.join(data_info.images_path, img_name), 'w') as filename:
     scipy.misc.imsave(filename, tile)
 
   # save json
-  with open(f'{ANNOTATIONS_PATH}/{bbox_name}', 'w') as filename:
+  with open(os.path.join(data_info.annotations_path, bbox_name), 'w') as filename:
     json.dump(building_coords, filename, indent=2)
 
 
       
-def tile_image(tile_size, building_coords, im_arr, im_size):
+def tile_image(building_coords, im_arr, im_size, data_info):
   """
   Tiles image array [im_arr] and saves tiles of size [tile_size x tile_size] 
   and corresponding bounding boxes in [DATA_PATH] as individual .jpeg and .json files
@@ -372,6 +384,7 @@ def tile_image(tile_size, building_coords, im_arr, im_size):
   [im_size] is the shape of the numpy array
   """
 
+  tile_size = data_info.tile_size
   height, width, depth = im_size
   total_rows = height//tile_size
   total_cols = width//tile_size
@@ -391,7 +404,7 @@ def tile_image(tile_size, building_coords, im_arr, im_size):
 
       tile = im_arr[row_start:row_end, col_start:col_end, :]
 
-      save_tile_and_bboxes(tile, buildings_in_tile, index)
+      save_tile_and_bboxes(tile, buildings_in_tile, index, data_info)
       
       index += 1
   
@@ -399,27 +412,20 @@ def tile_image(tile_size, building_coords, im_arr, im_size):
   #   pickle.dump(tiles_and_boxes, filename)
 
 
+def passed_arguments():
+  parser = argparse.ArgumentParser(description="Script to extract raw data from PAIRS and Open Street Map.")
+  parser.add_argument("--data_path",type=str, required=True,\
+                      help="Path to directory where extracted data will be stored.")
+  parser.add_argument("--tile_size", type=int, default=224,\
+                      help="Size of square tile (in pixels) into which to break large image.")
+  parser.add_argument("--query_path", type=str, default="./PAIRS_Queries/Query_WhitePlains.json",\
+                      help="Path to file containing json query for PAIRS data.")
+  args = parser.parse_args()
+  return args
+
 if __name__ == "__main__":
-  print("\nPipeline usage: ")
-  print(f"1) Make sure your data path is what you want it to be (it is currently: {DATA_PATH})")
-  print( "   Specify your data path directory name (to use default, just hit enter)")
-  data_path_input = input("Enter data path (no quotes): ").strip()
-  DATA_PATH = DATA_PATH if data_path_input == "" else data_path_input
-  print(f"   Using data path: {DATA_PATH}")
+  args = passed_arguments()
+  data_info = DataInfo(args.data_path, args.tile_size, args.query_path)
 
-  print(f"\n2) Make sure your tile size is correct (it is currently: {TILE_SIZE})")
-  print( "   Specify your tile size (to use default, just hit enter)")
-  tile_size_input = input("Enter tile size (must be int): ").strip()
-  TILE_SIZE = TILE_SIZE if tile_size_input == "" else int(tile_size_input)
-  print(f"   Using tile size: {TILE_SIZE}")
-
-  print("\n3) Call the function: create_dataset(query_path)")
-  print("   query_path is the path to the json query that will be input when querying PAIRS")
-  print("   Eg: query_path can be './PAIRS_Queries/Query_WhitePlains' (file extension not needed)\n")
-  query_list = os.listdir("./PAIRS_Queries")
-  print(f"Available queries in directory 'PAIRS_Queries': {query_list}\n")
-
-
-
-
-     
+  # For now only IBM.
+  create_dataset(data_info, source="IBM")     
