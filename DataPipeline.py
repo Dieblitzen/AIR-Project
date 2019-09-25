@@ -84,7 +84,7 @@ def create_dataset(data_info, source="IBM"):
   
   # Convert the raw image layers into a numpy array (delete the raw image layers)
   print("Converting raw image to numpy array.\nDeleting raw images, saving jpeg instead.")
-  im_arr = image_to_array()
+  im_arr = image_to_array(data_info.raw_data_path)
 
   # Then query bounding box data from OSM
   print("Querying raw bounding box data from OpenStreetMap using coordinates given. ")
