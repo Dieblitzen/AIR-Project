@@ -2,11 +2,9 @@
 ## Minimal processing is done.
 import json
 import os
-import pandas as pd
 import numpy as np
-import geojson
-import requests
 import zipfile, io
+from ibmpairs import paw
 from osgeo import gdal
 from time import sleep
 import overpy
@@ -32,13 +30,13 @@ class DataInfo:
 
     ## Processed data paths
     # raw_data_path is the path to the directory where raw queried images will be saved
-    self.raw_data_path = f'{self.data_path}/raw_data'
+    self.raw_data_path = os.path.join(self.data_path, 'raw_data')
 
     # images_path is where the tiled images will be saved.
-    self.images_path = f'{self.data_path}/images'
+    self.images_path = os.path.join(self.data_path, 'images')
 
     # annotations_path is where the json annotations per tile will be saved.
-    self.annotations_path = f'{self.data_path}/annotations'
+    self.annotations_path = os.path.join(self.data_path, 'annotations')
 
     # Name of file where raw OSM data will be dumped as a dictionary.
     self.osm_filename = 'OSM_bbox.pkl'
@@ -77,7 +75,7 @@ def create_dataset(data_info, source="IBM"):
   create_directories(data_info)
 
   # First query image layers from API
-  print("Querying raw image from PAIRS using coordinates given.")
+  print("Querying raw image from PAIRS using coordinates given:\n")
   query_PAIRS(query, data_info.raw_data_path)
 
   print("")
@@ -128,59 +126,40 @@ def create_directories(data_info):
   print(f"The raw data is stored in {data_info.raw_data_path}")
 
 
-def query_PAIRS(query_json, raw_data_path):
+def query_PAIRS(query_json, raw_data_path, path_to_credentials='./ibmpairspass.txt'):
   """
   Sends a request to PAIRS server and downloads the images in the area specified
   by coords. The raw images are saved in RAW_DATA_PATH
   """
-
-  # PAIRS server
-  pairs_server = "https://pairs.res.ibm.com"
-
-  # Pairs auth for making requests to server
-  user = input("Input your PAIRS Username: ")
-  password = input("Input your PAIRS Password: ")
-  pairs_auth = (user,password)
+  with open(path_to_credentials, 'r') as creds:
+    creds = creds.read().split(':')
+  
+  # PAIRS server, and authentication
+  pairs_server, user_name, password = creds
+  pairs_server = 'https://' + pairs_server
+  pairs_auth = (user_name, password)
 
 
   # Make request to IBM server for images from area within coordinates
-  response = requests.post(
-    json = query_json,
-    url=f'{pairs_server}/v2/query',
-    auth=pairs_auth,
-  )   
-
-  res = response.json()
-  id = res['id'] # each request has an id we can access it with
+  query = paw.PAIRSQuery(
+    query_json,
+    pairs_server,
+    pairs_auth,
+    baseURI='/',
+    downloadDir=raw_data_path
+  )
   
+  # Submit query and wait until downloaded
+  query.submit()
+  query.poll_till_finished()
+  query.download()
+  query.create_layers()
 
-  # Check status of query, make sure it's finished before downloading
-  response = requests.get(
-      url=f'{pairs_server}/v2/queryjobs/{id}',
-      auth=pairs_auth,
-  )
-
-  # Do not download until the query is succeeded
-  while response.json()["status"] != "Succeeded" and response.json()["status"] != "Failed":
-    sleep(3)
-    # Recheck status after waiting 3 seconds
-    response = requests.get(
-        url=f'{pairs_server}/v2/queryjobs/{id}',
-        auth=pairs_auth,
-    )
-    print("Query status: " + response.json()["status"])
-
-  # Status updates
-  print("json eventual response: " + response.json()["status"])
-
-  #Download and extract to files
-  download = requests.get(
-      f'{pairs_server}/download/{id}', auth=pairs_auth, stream=True,
-  )
-  z = zipfile.ZipFile(io.BytesIO(download.content))
-
-  ## Extract to download path specified
-  z.extractall(raw_data_path)
+  # Extract from zip file, and then delete the zip file.
+  zip_file_path = os.path.join(raw_data_path, query.zipFilePath)
+  with zipfile.ZipFile(zip_file_path, 'r') as zip_ref:
+    zip_ref.extractall(raw_data_path)
+  os.remove(zip_file_path)
     
 
 def image_to_array(raw_data_path):
