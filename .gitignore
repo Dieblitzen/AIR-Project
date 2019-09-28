@@ -5,6 +5,7 @@ data_path/
 data_path_white_plains/
 data_path_dallas/
 WhitePlains_data/
+**/__pycache__/
 **/data_acknowledgement.txt
 **/*.DS_Store
 **/*.jpg

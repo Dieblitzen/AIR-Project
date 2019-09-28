@@ -6,6 +6,7 @@ from PIL import Image
 import json
 import pickle
 import re
+import argparse
 
 # Visualising
 import matplotlib.pyplot as plt
@@ -220,3 +221,15 @@ class Dataset:
     # plt.xticks(np.arange(0, 6000, 228), range(0, 23))
     # plt.yticks(np.arange(0, 6000, 228), range(0, 23))
     plt.show()
+
+
+if __name__ == "__main__":
+  parser = argparse.ArgumentParser(description="Script to visualize labels on entire queried area.")
+  parser.add_argument('--data_path',\
+                      type=str,
+                      help='Path to directory where extracted dataset is stored',
+                      required=True)
+  args = parser.parse_args()
+
+  ds = Dataset(args.data_path)
+  ds.visualize_dataset()
