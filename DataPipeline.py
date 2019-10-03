@@ -393,7 +393,7 @@ def tile_image(building_coords, im_arr, im_size, data_info):
 
 def passed_arguments():
   parser = argparse.ArgumentParser(description="Script to extract raw data from PAIRS and Open Street Map.")
-  parser.add_argument("--data_path",type=str, required=True,\
+  parser.add_argument("--data_path",type=str, required=True, default='./data_path',\
                       help="Path to directory where extracted data will be stored.")
   parser.add_argument("--tile_size", type=int, default=224,\
                       help="Size of square tile (in pixels) into which to break large image.")
