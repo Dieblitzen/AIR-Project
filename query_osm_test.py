@@ -12,16 +12,16 @@ def query_OSM(coords, classes):
   """
   api = overpy.Overpass()
 
-  # The list of each building's coordinates and classes.
-  # Each item in this list is a list of points in (lat,lon) for each building's nodes.
-  building_coords = []
+  # The list of each instance's coordinates and classes.
+  # Each item in this list is a list of points in (lat,lon) for each instance's nodes.
+  query_data = []
 
   # the query to request buildings not in the classes, initialized with a header
-  building_query = """way({0}, {1}, {2}, {3}) ["building"];""".format(coords[0], coords[1], coords[2], coords[3])
+  building_query = """way({0}, {1}, {2}, {3}) ["building"]""".format(coords[0], coords[1], coords[2], coords[3])
 
   for building_class in classes:
     # update the bulding query to exclude certain classes
-    class_query = """way({0}, {1}, {2}, {3})["amenity"!={4}];""".format(coords[0], coords[1], coords[2], coords[3], building_class)
+    class_query = """ ["amenity"!={}]""".format(building_class)
     building_query += class_query
 
     class_result = api.query(("""
@@ -33,10 +33,10 @@ def query_OSM(coords, classes):
     # Unprocessed class data from the query
     for way in class_result.ways:
       points = [(float(str(n.lat)), float(str(n.lon))) for n in way.nodes]
-      building_coords.append({'class': building_class, 'coords': points})
+      query_data.append({'class': building_class, 'coords': points})
 
   building_result = api.query(("""
-      {}
+      {};
       (._;>;);
       out body;
       """).format(building_query))
@@ -45,9 +45,9 @@ def query_OSM(coords, classes):
   buildings = building_result.ways
   for building in buildings:
     points = [(float(str(n.lat)), float(str(n.lon))) for n in building.nodes]
-    building_coords.append({'class': 'building', 'coords': points})
+    query_data.append({'class': 'building', 'coords': points})
   
-  return building_coords
+  return query_data
 
 if __name__ == "__main__":
     # testing with hospital and parking and output the first 10 instances
