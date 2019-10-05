@@ -9,7 +9,6 @@ from osgeo import gdal
 from time import sleep
 import overpy
 import pickle 
-import scipy.misc
 import math
 import argparse
 from PIL import Image
@@ -195,7 +194,7 @@ def image_to_array(raw_data_path):
       clean_array = (arr_clean_rows[col_mask]).T
 
       # Append clean image array 
-      images_arr.append(clean_array)
+      images_arr.append(clean_array.astype(np.uint8))
       
       # Remove the raw .tiff image
       os.remove(path_to_file)
@@ -205,7 +204,9 @@ def image_to_array(raw_data_path):
   im_arr = np.dstack(images_arr)
 
   # Turns np array into jpg and saves into RAW_DATA_PATH
-  scipy.misc.imsave(os.path.join(raw_data_path,'Entire_Area.jpg'), im_arr)
+  filename = os.path.join(raw_data_path,'Entire_Area.jpg')
+  im = Image.fromarray(im_arr)
+  im.save(filename)
 
   return im_arr
 
@@ -341,8 +342,9 @@ def save_tile_and_bboxes(tile, building_coords, file_index, data_info):
   bbox_name = "annotation_" + str(file_index) + '.json'
 
   # save jpeg
-  with open(os.path.join(data_info.images_path, img_name), 'w') as filename:
-    scipy.misc.imsave(filename, tile)
+  filename = os.path.join(data_info.images_path, img_name)
+  im = Image.fromarray(tile)
+  im.save(filename)
 
   # save json
   with open(os.path.join(data_info.annotations_path, bbox_name), 'w') as filename:
