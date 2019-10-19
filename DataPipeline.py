@@ -270,41 +270,6 @@ def query_OSM(coords, classes):
   return query_data
 
 
-# def query_OSM(coords):
-#   """
-#   Sends a request to OSM server and returns an array of all the building nodes
-#   in the area specified by [coords]
-
-#   Returns: 
-#   [[building1_node, ...], [building2_node, ...], ...] where each building_node
-#   is in (lat,lon) format.
-#   """
-#   api = overpy.Overpass()
-#   query_result = api.query(("""
-#       way
-#           ({}, {}, {}, {}) ["building"];
-#       (._;>;);
-#       out body;
-#       """).format(coords[0], coords[1], coords[2], coords[3]))
-  
-#   # Unprocessed building data from the query
-#   buildings = query_result.ways
-
-#   # The list of each building's coordinates.
-#   # Each item in this list is a list of points in (lat,lon) for each building's nodes.
-#   building_coords = []
-
-#   for building in buildings:
-#     points = [(float(str(n.lat)), float(str(n.lon))) for n in building.nodes]
-#     building_coords.append(points)
-  
-#   return building_coords
-
-#   # # Save the bounding boxes (in lat,lon coordinates) to a pickle file
-#   # with open(f"{RAW_DATA_PATH}/{OSM_FILENAME}", "wb") as filename:
-#   #   pickle.dump(building_coords, filename)
-
-
 def coords_to_pixels(raw_OSM, coords, im_size, raw_data_path):
   """
   Converts the OSM coordinates to pixels relative to the image data.
