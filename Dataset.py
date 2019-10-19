@@ -218,9 +218,9 @@ class Dataset:
         sub_class_colour = list(np.random.choice(range(256), size=3)/256)
         if super_class == 'building':
           for label in labels:
-              poly = Polygon(label)
-              x, y = poly.exterior.xy
-              plt.plot(x, y, c=sub_class_colour)
+            poly = Polygon(label)
+            x, y = poly.exterior.xy
+            plt.plot(x, y, c=sub_class_colour)
         elif super_class == 'highway':
           lines = mc.LineCollection(labels, colors=sub_class_colour)
           plt.gca().add_collection(lines)

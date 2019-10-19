@@ -260,10 +260,8 @@ def query_OSM(coords, classes):
       sub_class_key = "amenity" if super_class == "building" else super_class
 
       # subclass is "other" if it doesn't exist in defined set of subclasses
-      sub_class = "other"
-      sub_class_tag = way.tags.get(sub_class_key, None)
-      if sub_class_tag:
-        sub_class = sub_class_tag if sub_class_tag in sub_classes else sub_class
+      sub_class_tag = way.tags.get(sub_class_key, "other")
+      sub_class = sub_class_tag if sub_class_tag in sub_classes else "other"
 
       query_data[super_class][sub_class].append(points)
   
