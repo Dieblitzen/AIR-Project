@@ -251,7 +251,6 @@ def query_OSM(coords, classes):
       (._;>;);
       out body;
       """
-    print(query_string)
     super_class_query_result = api.query(query_string)
 
     # Go through each way and append nodes to corresponding subclass list of points.
