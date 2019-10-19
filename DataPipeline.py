@@ -232,7 +232,7 @@ def query_OSM(coords, classes):
   where each node is in (lat,lon) format.
   """
   api = overpy.Overpass()
-  coords_string = f"{coords[0]}, {[coords[1]]}, {coords[2]}, {coords[3]}"
+  coords_string = f"{coords[0]}, {coords[1]}, {coords[2]}, {coords[3]}"
 
   # The dictionary of queried OSM labels for all classes
   query_data = {super_class: {} for super_class in classes}
@@ -241,7 +241,7 @@ def query_OSM(coords, classes):
   super_class_queries = {}
   for super_class in classes:
     super_class_queries[super_class] =\
-      f"""way({coords_string})["{super_class}"]"""
+      f"""way({coords_string}) ["{super_class}"]"""
 
   for super_class, sub_classes in classes.items():
     for sub_class in sub_classes:
@@ -249,7 +249,7 @@ def query_OSM(coords, classes):
       amenity_for_buildings = "amenity" if super_class == "building" else super_class
 
       # Exclude each sub-class for the super-class query.
-      super_class_queries[super_class] += f"""["{amenity_for_buildings}"!={sub_class}]"""
+      super_class_queries[super_class] += f""" ["{amenity_for_buildings}"!={sub_class}]"""
 
       # Query each sub-class individually.
       sub_class_query_result = api.query((f"""
