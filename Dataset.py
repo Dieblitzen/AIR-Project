@@ -11,6 +11,7 @@ import argparse
 # Visualising
 import matplotlib.pyplot as plt
 import matplotlib.ticker as plticker
+from matplotlib import collections as mc
 from shapely.geometry.polygon import Polygon
 
 
@@ -215,11 +216,14 @@ class Dataset:
     for super_class, sub_class_labels in label_coords.items():
       for sub_class, labels in sub_class_labels.items():
         sub_class_colour = list(np.random.choice(range(256), size=3)/256)
-        for label in labels:
-          if len(label) > 2:
-            poly = Polygon(label)
-            x, y = poly.exterior.xy
-            plt.plot(x, y, c=sub_class_colour)
+        if super_class == 'building':
+          for label in labels:
+              poly = Polygon(label)
+              x, y = poly.exterior.xy
+              plt.plot(x, y, c=sub_class_colour)
+        elif super_class == 'highway':
+          lines = mc.LineCollection(labels, colors=sub_class_colour)
+          plt.gca().add_collection(lines)
     
     # # Add the grid
     # ax.grid(which='major', axis='both', linestyle='-')
