@@ -17,7 +17,7 @@ from PIL import Image
 # White Plains: [41.009, -73.779, 41.03, -73.758] (returns image of approx 5280x5280)
 
 class DataInfo:
-  def __init__(self, data_path, tile_size, pairs_query_path):
+  def __init__(self, data_path, tile_size, pairs_query_path, classes_path):
     # data_path is the path to the directory where the processed and queried data will be saved
     self.data_path = data_path
 
@@ -26,6 +26,9 @@ class DataInfo:
 
     # Path to the file where json PAIRS query is stored.
     self.pairs_query_path = pairs_query_path
+
+    # Path to json file containing the OSM classes.
+    self.classes_path = classes_path
 
     ## Processed data paths
     # raw_data_path is the path to the directory where raw queried images will be saved
@@ -50,7 +53,6 @@ def create_dataset(data_info, source="IBM"):
   [[LAT_MIN, LON_MIN, LAT_MAX, LON_MAX]]
 
   [source] is the source API of the data (eg. IBM, Google, etc.)
-
   If [source=="IBM"], then [(user, password)] is also required.
   """
 
@@ -70,32 +72,35 @@ def create_dataset(data_info, source="IBM"):
   except:
     print("Your .json query does not have coordinates specified in the right manner.")
 
+  # Extract dictionary of OSM label classes from file.
+  with open(data_info.classes_path, 'r') as classes_file:
+    try:
+      classes = json.load(classes_file)
+    except:
+      print("Your classes .json file is not in the right json format (or is empty)")
+      return
+
   # If directory for dataset does not exist, create directory
   create_directories(data_info)
 
-  # First query image layers from API
   print("Querying raw image from PAIRS using coordinates given:\n")
   query_PAIRS(query, data_info.raw_data_path)
 
-  print("")
-  
-  # Convert the raw image layers into a numpy array (delete the raw image layers)
-  print("Converting raw image to numpy array.\nDeleting raw images, saving jpeg instead.")
+  print("\nConverting raw image to numpy array.\nDeleting raw images, saving jpeg instead.")
   im_arr = image_to_array(data_info.raw_data_path)
 
-  # Then query bounding box data from OSM
   print("Querying raw bounding box data from OpenStreetMap using coordinates given. ")
-  raw_OSM = query_OSM(coords)
+  raw_OSM = query_OSM(coords, classes)
 
   # Size of the image
   im_size = im_arr.shape
 
   # Bounding box data in pixel format
-  building_coords = coords_to_pixels(raw_OSM, coords, im_size, data_info.raw_data_path)
+  label_coords = coords_to_pixels(raw_OSM, coords, im_size, data_info.raw_data_path)
 
   # Finally, tile the image and save it in the DATA_PATH
   print("Tiling image and saving .jpeg files (for tile) and .json files (for bounding boxes)")
-  tile_image(building_coords, im_arr, im_size, data_info)
+  tile_image(label_coords, im_arr, im_size, data_info)
 
   print("Success! Your raw dataset is now ready!")
 
@@ -211,39 +216,107 @@ def image_to_array(raw_data_path):
   return im_arr
 
 
-def query_OSM(coords):
+def query_OSM(coords, classes):
   """
-  Sends a request to OSM server and returns an array of all the building nodes
-  in the area specified by [coords]
+  Sends a request to OSM server and returns a dictionary of all the buildings
+  and roads nodes along with their sub classes in the area specified by [coords].
+  Those buildings and roads not in specified sub-classes are of sub-class "other".
 
   Returns: 
-  [[building1_node, ...], [building2_node, ...], ...] where each building_node
-  is in (lat,lon) format.
+  {building:
+    building_class1: [[building_class1_way1_node1, ...], [way2_node1, ...], ...],
+  ..., 
+  road:
+    road_class_1: [[road_class1_way1_node1, ...], [way2_node1, ...], ...],
+  ...} 
+  where each node is in (lat,lon) format.
   """
   api = overpy.Overpass()
-  query_result = api.query(("""
-      way
-          ({}, {}, {}, {}) ["building"];
+  coords_string = f"{coords[0]}, {[coords[1]]}, {coords[2]}, {coords[3]}"
+
+  # The dictionary of queried OSM labels for all classes
+  query_data = {super_class: {} for super_class in classes}
+
+  # the query for each super-class to request ways that don't fall under the sub-classes.
+  super_class_queries = {}
+  for super_class in classes:
+    super_class_queries[super_class] =\
+      f"""way({coords_string})["{super_class}"]"""
+
+  for super_class, sub_classes in classes.items():
+    for sub_class in sub_classes:
+      # "amenity" is current building status (eg: building that is hospital now vs was in past).
+      amenity_for_buildings = "amenity" if super_class == "building" else super_class
+
+      # Exclude each sub-class for the super-class query.
+      super_class_queries[super_class] += f"""["{amenity_for_buildings}"!={sub_class}]"""
+
+      # Query each sub-class individually.
+      sub_class_query_result = api.query((f"""
+          way({coords_string})["{amenity_for_buildings}"={sub_class}];
+          (._;>;);
+          out body;
+          """))
+      sleep(5)
+
+      # Add the resulting ways to each subclass (convert their coordinates to floats)
+      query_data[super_class][sub_class] = []
+      for way in sub_class_query_result.ways:
+        points = [(float(str(n.lat)), float(str(n.lon))) for n in way.nodes]
+        query_data[super_class][sub_class].append(points)
+
+  # Run the queries for the super-classes that exclude the sub-classes
+  for super_class, super_class_query in super_class_queries.items():
+    super_class_query_result = api.query((
+      f"""
+      {super_class_query};
       (._;>;);
       out body;
-      """).format(coords[0], coords[1], coords[2], coords[3]))
+      """))
+    sleep(5)
+
+    # Add the resulting ways to the sub-class "other"
+    query_data[super_class]["other"] = []
+    for way in super_class_query_result.ways:
+      points = [(float(str(n.lat)), float(str(n.lon))) for n in way.nodes]
+      query_data[super_class]["other"].append(points)
+
+  return query_data
+
+
+# def query_OSM(coords):
+#   """
+#   Sends a request to OSM server and returns an array of all the building nodes
+#   in the area specified by [coords]
+
+#   Returns: 
+#   [[building1_node, ...], [building2_node, ...], ...] where each building_node
+#   is in (lat,lon) format.
+#   """
+#   api = overpy.Overpass()
+#   query_result = api.query(("""
+#       way
+#           ({}, {}, {}, {}) ["building"];
+#       (._;>;);
+#       out body;
+#       """).format(coords[0], coords[1], coords[2], coords[3]))
   
-  # Unprocessed building data from the query
-  buildings = query_result.ways
+#   # Unprocessed building data from the query
+#   buildings = query_result.ways
 
-  # The list of each building's coordinates.
-  # Each item in this list is a list of points in (lat,lon) for each building's nodes.
-  building_coords = []
+#   # The list of each building's coordinates.
+#   # Each item in this list is a list of points in (lat,lon) for each building's nodes.
+#   building_coords = []
 
-  for building in buildings:
-    points = [(float(str(n.lat)), float(str(n.lon))) for n in building.nodes]
-    building_coords.append(points)
+#   for building in buildings:
+#     points = [(float(str(n.lat)), float(str(n.lon))) for n in building.nodes]
+#     building_coords.append(points)
   
-  return building_coords
+#   return building_coords
 
-  # # Save the bounding boxes (in lat,lon coordinates) to a pickle file
-  # with open(f"{RAW_DATA_PATH}/{OSM_FILENAME}", "wb") as filename:
-  #   pickle.dump(building_coords, filename)
+#   # # Save the bounding boxes (in lat,lon coordinates) to a pickle file
+#   # with open(f"{RAW_DATA_PATH}/{OSM_FILENAME}", "wb") as filename:
+#   #   pickle.dump(building_coords, filename)
 
 
 def coords_to_pixels(raw_OSM, coords, im_size, raw_data_path):
@@ -255,89 +328,45 @@ def coords_to_pixels(raw_OSM, coords, im_size, raw_data_path):
   [coords] is is in [LAT_MIN, LON_MIN, LAT_MAX, LON_MAX] format
   [im_size] is the shape of the shape of the entire image numpy array
 
-  Returns:
-  [[building1_node, ...], [building2_node, ...], ...] where each building_node 
-  is in (pixel_x, pixel_y) format
+  Returns: 
+  {building:
+    building_class1: [[building_class1_way1_node1, ...], [way2_node1, ...], ...], ..., 
+  road:
+    road_class_1: [[road_class1_way1_node1, ...], [way2_node1, ...], ...], ...} 
+  where each node is in (pixel_x, pixel_y) format.
   """
 
-  building_coords = raw_OSM
+  label_coords = raw_OSM
 
   lat_min, lon_min, lat_max, lon_max = coords
   width = lon_max - lon_min # width in longitude of image
   height = lat_max - lat_min # height in latitude of image
 
-  # Replaces lat,lon building coordinates with x,y coordinates relative to image array
-  for b_ind in range(len(building_coords)):
-    for n_ind in range(len(building_coords[b_ind])):
-      lat, lon = building_coords[b_ind][n_ind]
-      nodeX = math.floor(((lon-lon_min)/width)*im_size[1])
-      nodeY = math.floor(((lat_max-lat)/height)*im_size[0])
-      building_coords[b_ind][n_ind] = (nodeX, nodeY) 
+  # Replaces lat,lon label coordinates with x,y coordinates relative to image array
+  for super_class, sub_class_ways in label_coords.items():
+    for sub_class, ways in sub_class_ways.items():
+      for w_index, way in enumerate(ways):
+        for n_index, (lat, lon) in enumerate(way):
+          nodeX = math.floor(((lon-lon_min)/width)*im_size[1])
+          nodeY = math.floor(((lat_max-lat)/height)*im_size[0])
+          label_coords[super_class][sub_class][w_index][n_index] = (nodeX, nodeY)
     
   with open(f"{raw_data_path}/annotations.pkl", "wb") as filename:
-    pickle.dump(building_coords, filename)
+    pickle.dump(label_coords, filename)
 
   # Reutrn the pixel building coords
-  return building_coords
-    
-  
-def boxes_in_tile(building_coords, col_start, col_end, row_start, row_end):
+  return label_coords
+
+
+def save_tile_and_bboxes(tile, label_coords, file_index, data_info):
   """
-  Helper function that returns the dictionary of boxes that are in the tile specified by
-  col_start..col_end (the x range) and row_start..row_end (the y range). 
-
-  Requires: 
-  [building_coords] are in pixels not in lat,lon
-
-  Returns:
-  {0:[building1_node, ...], 1:[building2_node, ...], ...} of the buildings inside the 
-  given tile range, with coordinates of building_nodes converted so that they are relative to tile.
-  """
-  
-  # Output buildings that are in the tile
-  buildings_in_tile = {}
-
-  building_index = 0
-
-  for building in building_coords:
-
-    # All the x and y coordinates of the nodes in a building, separated
-    x_coords = [node[0] for node in building]
-    y_coords = [node[1] for node in building]
-
-    min_x = min(x_coords)
-    max_x = max(x_coords)
-
-    min_y = min(y_coords)
-    max_y = max(y_coords)
-
-    centre_x = (min_x + max_x) / 2
-    centre_y = (min_y + max_y) / 2
-
-    if col_start <= centre_x < col_end and row_start <= centre_y < row_end:
-      
-      # Goes through each node in building, converts coords relative to entire image to 
-      # coords relative to tile
-      new_building = list(map(lambda pos: (pos[0] - col_start, pos[1] - row_start), building))
-
-      buildings_in_tile[building_index] = new_building
-
-      building_index += 1
-    
-  return buildings_in_tile
-
-
-def save_tile_and_bboxes(tile, building_coords, file_index, data_info):
-  """
-  Saves the tile as an indexed .jpeg image and the building_coords as an indexed .json file.
+  Saves the tile as an indexed .jpeg image and the label_coords as an indexed .json file.
 
   Requires: 
   [tile] is a numpy array, 
-  [building_coords] is a dictionary of int, list pairs of the building coordinates
-    associated with the tile
+  [label_coords] is a dictionary of label coordinates (in pixel value) associated with tile.
   [file_index] is an integer.
   """
-
   img_name = "img_" + str(file_index) + '.jpg'
   bbox_name = "annotation_" + str(file_index) + '.json'
 
@@ -348,19 +377,60 @@ def save_tile_and_bboxes(tile, building_coords, file_index, data_info):
 
   # save json
   with open(os.path.join(data_info.annotations_path, bbox_name), 'w') as filename:
-    json.dump(building_coords, filename, indent=2)
+    json.dump(label_coords, filename, indent=2)
+  
+  
+def boxes_in_tile(label_coords, col_start, col_end, row_start, row_end):
+  """
+  Helper function that returns the dictionary of boxes that are in the tile specified by
+  col_start..col_end (the x range) and row_start..row_end (the y range). 
 
+  Requires: 
+  [label_coords] are in pixels not in lat,lon
+
+  Returns:
+  {building: 
+    building_class1: [label1_nodes, label2_nodes, ...], ...} 
+  of the labels inside given tile range, with coords of label_nodes converted relative to tile.
+  """
+  
+  # Output buildings that are in the tile
+  labels_in_tile = {super_class: {} for super_class in label_coords}
+
+  for super_class, sub_class_labels in label_coords.items():
+    for sub_class, labels in sub_class_labels.items():
+      for label in labels:
+        # All the x and y coordinates of the nodes in a building, separated
+        x_coords, y_coords = [node[0] for node in label], [node[1] for node in label]
+
+        min_x, max_x= min(x_coords), max(x_coords)
+        min_y, max_y = min(y_coords), max(y_coords)
+
+        centre_x, centre_y = (min_x + max_x) / 2, (min_y + max_y) / 2
+
+        if col_start <= centre_x < col_end and row_start <= centre_y < row_end:
+          
+          # Goes through each node in building, converts coords relative to entire image to 
+          # coords relative to tile
+          new_label_nodes = [(node[0] - col_start, node[1] - row_start) for node in label]
+          labels_in_tile[super_class][sub_class] = []
+          labels_in_tile[super_class][sub_class].append(new_label_nodes)
+
+  return labels_in_tile
 
       
-def tile_image(building_coords, im_arr, im_size, data_info):
+def tile_image(label_coords, im_arr, im_size, data_info):
   """
   Tiles image array [im_arr] and saves tiles of size [tile_size x tile_size] 
   and corresponding bounding boxes in [DATA_PATH] as individual .jpeg and .json files
 
   Requires: 
   [tile_size] is a positive integer
-  [building_coords] is [[building1_node, ...], [building2_node, ...], ...] where each 
-   building_node is (pixel_x, pixel_y)
+  [label_coords] is 
+    {building: 
+      building_class1: [label_nodes_1, ...], ...
+     roads: ...} 
+    where each label_nodes_i = [label_node1, ...] and label_node is (pixel_x, pixel_y)
   [im_arr] is a numpy array of the entire queried image
   [im_size] is the shape of the numpy array
   """
@@ -375,22 +445,15 @@ def tile_image(building_coords, im_arr, im_size, data_info):
   for row in range(total_rows):
     for col in range(total_cols):
       # row_start, row_end, col_start, col_end in pixels relative to entire img
-      row_start = row*tile_size
-      row_end = (row+1)*tile_size
-      col_start = col*tile_size
-      col_end = (col+1)*tile_size
-
-      # All the building bounding boxes in the tile range
-      buildings_in_tile = boxes_in_tile(building_coords, col_start, col_end, row_start,row_end)
-
+      row_start, row_end = row*tile_size, (row+1)*tile_size
+      col_start, col_end = col*tile_size, (col+1)*tile_size
       tile = im_arr[row_start:row_end, col_start:col_end, :]
 
-      save_tile_and_bboxes(tile, buildings_in_tile, index, data_info)
+      # All the building bounding boxes in the tile range
+      labels_in_tile = boxes_in_tile(label_coords, col_start, col_end, row_start,row_end)
+      save_tile_and_bboxes(tile, labels_in_tile, index, data_info)
       
       index += 1
-  
-  # with open(f"{DataPipeline.download_path}/{DataPipeline.tiles_filename}", "wb") as filename:
-  #   pickle.dump(tiles_and_boxes, filename)
 
 
 def passed_arguments():
@@ -401,12 +464,14 @@ def passed_arguments():
                       help="Size of square tile (in pixels) into which to break large image.")
   parser.add_argument("--query_path", type=str, default="./PAIRS_Queries/Query_WhitePlains.json",\
                       help="Path to file containing json query for PAIRS data.")
+  parser.add_argument("--classes", type=str, default="./classes.json",\
+                      help="Path to json file determining OSM classes. Should not be changed.")
   args = parser.parse_args()
   return args
 
 if __name__ == "__main__":
   args = passed_arguments()
-  data_info = DataInfo(args.data_path, args.tile_size, args.query_path)
+  data_info = DataInfo(args.data_path, args.tile_size, args.query_path, args.classes)
 
   # For now only IBM.
   create_dataset(data_info, source="IBM")     

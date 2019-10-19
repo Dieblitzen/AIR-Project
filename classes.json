@@ -1,0 +1,11 @@
+{
+  "building":
+  [
+    "hospital",
+    "parking"
+  ],
+  "highway":
+  [
+    "roads"
+  ]
+}
