@@ -160,17 +160,20 @@ class Dataset:
     plt.imshow(im_arr)
 
     # Open the json file and parse into dictionary of index -> buildings pairs
-    buildings_in_tile = {}
+    labels_in_tile = {}
     with open(f'{self.annotations_path}/{self.annotation_list[index]}', 'r') as filename:
       try: 
-        buildings_in_tile = json.load(filename)
+        labels_in_tile = json.load(filename)
       except ValueError:
-        buildings_in_tile = {}
+        labels_in_tile = {}
 
-    for building_coords in buildings_in_tile.values():
-      poly = Polygon(building_coords)
-      x, y = poly.exterior.xy
-      plt.plot(x, y)
+    for super_class, sub_class_labels in labels_in_tile.items():
+      for sub_class, labels in sub_class_labels.items():
+        sub_class_colour = list(np.random.choice(range(256), size=3)/256)
+        for label in labels:
+          poly = Polygon(label)
+          x, y = poly.exterior.xy
+          plt.plot(x, y, c=sub_class_colour)
 
     # TODO: Visualize bounding boxes from json format.
 
@@ -200,7 +203,7 @@ class Dataset:
     The OSM data should be in a pickle file, and the entire image area should be in 
     a jpeg file.
     """
-    bboxes = []
+    label_coords = {}
     # Open pickle file with osm data
     with open(f"{self.data_path}/raw_data/annotations.pkl", "rb") as filename:
       bboxes = pickle.load(filename)
@@ -209,10 +212,13 @@ class Dataset:
     im_arr = np.array(im)
 
     plt.imshow(im_arr)
-    for building_coords in bboxes:
-      poly = Polygon(building_coords)
-      x, y = poly.exterior.xy
-      plt.plot(x, y)
+    for super_class, sub_class_labels in label_coords.items():
+      for sub_class, labels in sub_class_labels.items():
+        sub_class_colour = list(np.random.choice(range(256), size=3)/256)
+        for label in labels:
+          poly = Polygon(label)
+          x, y = poly.exterior.xy
+          plt.plot(x, y, c=sub_class_colour)
     
     # # Add the grid
     # ax.grid(which='major', axis='both', linestyle='-')

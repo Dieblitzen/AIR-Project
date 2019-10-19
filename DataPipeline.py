@@ -232,55 +232,42 @@ def query_OSM(coords, classes):
   where each node is in (lat,lon) format.
   """
   api = overpy.Overpass()
-  coords_string = f"{coords[0]}, {[coords[1]]}, {coords[2]}, {coords[3]}"
+  coords_string = f"{coords[0]}, {coords[1]}, {coords[2]}, {coords[3]}"
 
   # The dictionary of queried OSM labels for all classes
-  query_data = {super_class: {} for super_class in classes}
-
-  # the query for each super-class to request ways that don't fall under the sub-classes.
-  super_class_queries = {}
-  for super_class in classes:
-    super_class_queries[super_class] =\
-      f"""way({coords_string})["{super_class}"]"""
-
+  query_data = {}
   for super_class, sub_classes in classes.items():
-    for sub_class in sub_classes:
-      # "amenity" is current building status (eg: building that is hospital now vs was in past).
-      amenity_for_buildings = "amenity" if super_class == "building" else super_class
-
-      # Exclude each sub-class for the super-class query.
-      super_class_queries[super_class] += f"""["{amenity_for_buildings}"!={sub_class}]"""
-
-      # Query each sub-class individually.
-      sub_class_query_result = api.query((f"""
-          way({coords_string})["{amenity_for_buildings}"={sub_class}];
-          (._;>;);
-          out body;
-          """))
-      sleep(5)
-
-      # Add the resulting ways to each subclass (convert their coordinates to floats)
+    query_data[super_class] = {}
+    for sub_class in sub_classes + ["other"]:
       query_data[super_class][sub_class] = []
-      for way in sub_class_query_result.ways:
-        points = [(float(str(n.lat)), float(str(n.lon))) for n in way.nodes]
-        query_data[super_class][sub_class].append(points)
 
-  # Run the queries for the super-classes that exclude the sub-classes
-  for super_class, super_class_query in super_class_queries.items():
-    super_class_query_result = api.query((
+  # Query each super class, and then process data.
+  for super_class, sub_classes in classes.items():
+    sub_classes = set(sub_classes)
+    
+    query_string =\
       f"""
-      {super_class_query};
+      way({coords_string})["{super_class}"];
       (._;>;);
       out body;
-      """))
-    sleep(5)
+      """
+    print(query_string)
+    super_class_query_result = api.query(query_string)
 
-    # Add the resulting ways to the sub-class "other"
-    query_data[super_class]["other"] = []
+    # Go through each way and append nodes to corresponding subclass list of points.
     for way in super_class_query_result.ways:
       points = [(float(str(n.lat)), float(str(n.lon))) for n in way.nodes]
-      query_data[super_class]["other"].append(points)
+      # "amenity" is current building status (eg: building that is hospital now vs was in past)
+      sub_class_key = "amenity" if super_class == "building" else super_class
 
+      # subclass is "other" if it doesn't exist in defined set of subclasses
+      sub_class = "other"
+      sub_class_tag = way.tags.get(sub_class_key, None)
+      if sub_class_tag:
+        sub_class = sub_class_tag if sub_class_tag in sub_classes else sub_class
+
+      query_data[super_class][sub_class].append(points)
+  
   return query_data
 
 
