@@ -206,7 +206,7 @@ class Dataset:
     label_coords = {}
     # Open pickle file with osm data
     with open(f"{self.data_path}/raw_data/annotations.pkl", "rb") as filename:
-      bboxes = pickle.load(filename)
+      label_coords = pickle.load(filename)
 
     im = Image.open(f"{self.data_path}/raw_data/Entire_Area.jpg")
     im_arr = np.array(im)
@@ -216,9 +216,10 @@ class Dataset:
       for sub_class, labels in sub_class_labels.items():
         sub_class_colour = list(np.random.choice(range(256), size=3)/256)
         for label in labels:
-          poly = Polygon(label)
-          x, y = poly.exterior.xy
-          plt.plot(x, y, c=sub_class_colour)
+          if len(label) > 2:
+            poly = Polygon(label)
+            x, y = poly.exterior.xy
+            plt.plot(x, y, c=sub_class_colour)
     
     # # Add the grid
     # ax.grid(which='major', axis='both', linestyle='-')
