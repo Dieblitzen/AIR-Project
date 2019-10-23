@@ -7,6 +7,7 @@ import json
 import pickle
 import re
 import argparse
+import random
 
 # Visualising
 import matplotlib.pyplot as plt
@@ -157,7 +158,7 @@ class Dataset:
     im = Image.open(f'{self.images_path}/{self.img_list[index]}')
     im_arr = np.array(im)
     mng = plt.get_current_fig_manager()
-    mng.window.showMaximized()
+    mng.window.state('zoomed')
     plt.imshow(im_arr)
 
     # Open the json file and parse into dictionary of index -> buildings pairs
@@ -238,13 +239,27 @@ class Dataset:
     plt.show()
 
 
-if __name__ == "__main__":
+def passed_arguments():
   parser = argparse.ArgumentParser(description="Script to visualize labels on entire queried area.")
   parser.add_argument('--data_path',\
                       type=str,
-                      help='Path to directory where extracted dataset is stored',
-                      required=True)
+                      required=True,
+                      help='Path to directory where extracted dataset is stored.')
+  parser.add_argument('--tile',\
+                      action='store_true',
+                      default=False,
+                      help='Visualize a random sequence of 20 tiles in the dataset.')
   args = parser.parse_args()
+  return args
 
+
+if __name__ == "__main__":
+  args = passed_arguments()
   ds = Dataset(args.data_path)
-  ds.visualize_dataset()
+  
+  if args.tile:
+    inds = random.sample(range(ds.length), 20)
+    for i in inds:
+      ds.visualize_tile(i)
+  else:
+    ds.visualize_dataset()

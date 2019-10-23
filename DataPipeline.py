@@ -348,6 +348,8 @@ def boxes_in_tile(label_coords, col_start, col_end, row_start, row_end):
 
   for super_class, sub_class_labels in label_coords.items():
     for sub_class, labels in sub_class_labels.items():
+      
+      labels_in_tile[super_class][sub_class] = []
       for label in labels:
         # All the x and y coordinates of the nodes in a building, separated
         x_coords, y_coords = [node[0] for node in label], [node[1] for node in label]
@@ -362,7 +364,6 @@ def boxes_in_tile(label_coords, col_start, col_end, row_start, row_end):
           # Goes through each node in building, converts coords relative to entire image to 
           # coords relative to tile
           new_label_nodes = [(node[0] - col_start, node[1] - row_start) for node in label]
-          labels_in_tile[super_class][sub_class] = []
           labels_in_tile[super_class][sub_class].append(new_label_nodes)
 
   return labels_in_tile
