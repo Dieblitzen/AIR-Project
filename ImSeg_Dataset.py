@@ -41,15 +41,15 @@ class ImSeg_Dataset(Dataset):
     Dataset.__init__(self, data_path)
 
     self.train_val_test = train_val_test
-    self.train_path = self.data_path + '/im_seg/train'
-    self.val_path = self.data_path + '/im_seg/val'
-    self.test_path = self.data_path + '/im_seg/test'
-    self.out_path = self.data_path + '/im_seg/out'
+    self.train_path = os.path.join(self.data_path, 'im_seg', 'train')
+    self.val_path = os.path.join(self.data_path, 'im_seg', 'val')
+    self.test_path = os.path.join(self.data_path, 'im_seg', 'test')
+    self.out_path = os.path.join(self.data_path, 'im_seg', 'out')
     self.data_sizes = [] # [train_size, val_size, test_size, out_size]
 
-    if not os.path.isdir(self.data_path + '/im_seg'):
+    if not os.path.isdir(os.path.join(self.data_path, 'im_seg')):
       print(f"Creating directory to store semantic segmentation formatted dataset.")
-      os.mkdir(self.data_path + '/im_seg')
+      os.mkdir(os.path.join(self.data_path, 'im_seg'))
 
     # Create train, validation, test directories, each with an images and
     # annotations sub-directories
@@ -57,14 +57,14 @@ class ImSeg_Dataset(Dataset):
       if not os.path.isdir(directory):
         os.mkdir(directory)
 
-      if not os.path.isdir(directory + '/images'):
-        os.mkdir(directory + '/images')
+      if not os.path.isdir(os.path.join(directory, 'images')):
+        os.mkdir(os.path.join(directory, 'images'))
 
-      if not os.path.isdir(directory + '/annotations'):
-        os.mkdir(directory + '/annotations')
+      if not os.path.isdir(os.path.join(directory, 'annotations')):
+        os.mkdir(os.path.join(directory, 'annotations'))
 
       # Size of each training, val and test directories  
-      num_samples = len([name for name in os.listdir(f'{directory}/images') if name.endswith('.jpg')])
+      num_samples = len([name for name in os.listdir(os.path.join(directory, 'images')) if name.endswith('.jpg')])
       self.data_sizes.append(num_samples)
 
   def build_dataset(self):
@@ -84,13 +84,11 @@ class ImSeg_Dataset(Dataset):
       if i < math.floor(train*len(shuffled_img)):
         # Add to train folder
 
-        # copyfile(f"{self.images_path}/{shuffled_img[i]}", \
-        #          f"{self.train_path}/images/{i}.jpg")
-        self.resize_and_save_image(f"{self.images_path}/{shuffled_img[i]}", \
-                                   f"{self.train_path}/images/{i}.jpg")
+        self.format_image(os.path.join(self.images_path, shuffled_img[i]), \
+                          os.path.join(self.train_path, "images", f"{i}.jpg"))
 
-        self.format_json(f"{self.annotations_path}/{shuffled_annotations[i]}",\
-                         f"{self.train_path}/annotations/{i}.json", f"{i}.jpg")
+        self.format_json(os.path.join(self.annotations_path, shuffled_annotations[i]), \
+                         os.path.join(self.train_path, "annotations", f"{i}.json"), f"{i}.jpg")
         
         self.data_sizes[0] += 1
 
@@ -98,13 +96,11 @@ class ImSeg_Dataset(Dataset):
         # Add to val folder
         ind = i - math.floor(train*len(shuffled_img))
 
-        # copyfile(f"{self.images_path}/{shuffled_img[i]}",\
-        #          f"{self.val_path}/images/{ind}.jpg")
-        self.resize_and_save_image(f"{self.images_path}/{shuffled_img[i]}", \
-                                   f"{self.val_path}/images/{ind}.jpg")
+        self.format_image(os.path.join(self.images_path, shuffled_img[i]), \
+                          os.path.join(self.val_path, "images", f"{ind}.jpg"))
 
-        self.format_json(f"{self.annotations_path}/{shuffled_annotations[i]}",\
-                         f"{self.val_path}/annotations/{ind}.json", f"{ind}.jpg")
+        self.format_json(os.path.join(self.annotations_path, shuffled_annotations[i]), \
+                         os.path.join(self.val_path, "annotations", f"{ind}.json"), f"{ind}.jpg")
         
         self.data_sizes[1] += 1
         
@@ -112,24 +108,23 @@ class ImSeg_Dataset(Dataset):
         # Add to test folder
         ind = i - math.floor((train+val)*len(shuffled_img))
 
-        # copyfile(f"{self.images_path}/{shuffled_img[i]}",\
-        #          f"{self.test_path}/images/{ind}.jpg")
-        self.resize_and_save_image(f"{self.images_path}/{shuffled_img[i]}", \
-                                   f"{self.test_path}/images/{ind}.jpg")
+        self.format_image(os.path.join(self.images_path, shuffled_img[i]), \
+                          os.path.join(self.test_path, "images", f"{ind}.jpg"))
 
-        self.format_json(f"{self.annotations_path}/{shuffled_annotations[i]}",\
-                         f"{self.test_path}/annotations/{ind}.json", f"{ind}.jpg")
+        self.format_json(os.path.join(self.annotations_path, shuffled_annotations[i]), \
+                         os.path.join(self.test_path, "annotations", f"{ind}.json"), f"{ind}.jpg")
         
         self.data_sizes[2] += 1
       # increment index counter
       i += 1
 
-  def resize_and_save_image(self, path_to_file, path_to_dest):
+  def format_image(self, path_to_file, path_to_dest):
     """
     Helper method called in build_dataset that copies the file from 
     path_to_file, resizes it to IMAGE_SIZE x IMAGE_SIZE x 3, and saves
     it in the destination folder. 
     """
+    # copyfile(path_to_file, path_to_dest)
     im = Image.open(path_to_file)
     im = np.array(im)
     im = scipy.misc.imresize(im, (IMAGE_SIZE, IMAGE_SIZE, 3), interp="bilinear")
