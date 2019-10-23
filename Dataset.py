@@ -171,10 +171,14 @@ class Dataset:
     for super_class, sub_class_labels in labels_in_tile.items():
       for sub_class, labels in sub_class_labels.items():
         sub_class_colour = list(np.random.choice(range(256), size=3)/256)
-        for label in labels:
-          poly = Polygon(label)
-          x, y = poly.exterior.xy
-          plt.plot(x, y, c=sub_class_colour)
+        if super_class == 'building':
+          for label in labels:
+            poly = Polygon(label)
+            x, y = poly.exterior.xy
+            plt.plot(x, y, c=sub_class_colour)
+        elif super_class == 'highway':
+          lines = mc.LineCollection(labels, colors=sub_class_colour)
+          plt.gca().add_collection(lines)
 
     # TODO: Visualize bounding boxes from json format.
 
