@@ -2,10 +2,12 @@
   "building":
   [
     "hospital",
-    "parking"
+    "parking",
+    "other"
   ],
   "highway":
   [
-    "roads"
+    "roads",
+    "other"
   ]
 }

@@ -14,8 +14,6 @@ import matplotlib.ticker as plticker
 from shapely.geometry.polygon import Polygon
 from matplotlib.path import Path
 
-## Size of image that the old tiles will be resized to when building the data set.
-IMAGE_SIZE = 224
 
 class ImSeg_Dataset(Dataset):
   """
@@ -41,6 +39,8 @@ class ImSeg_Dataset(Dataset):
     Dataset.__init__(self, data_path)
 
     self.image_size = image_resize if image_resize else self.get_img_size()
+    self.seg_classes = self.sorted_classes(self.classes)
+
     self.train_val_test = train_val_test
     self.train_path = os.path.join(self.data_path, 'im_seg', 'train')
     self.val_path = os.path.join(self.data_path, 'im_seg', 'val')
@@ -67,6 +67,28 @@ class ImSeg_Dataset(Dataset):
       # Size of each training, val and test directories  
       num_samples = len([name for name in os.listdir(os.path.join(directory, 'images')) if name.endswith('.jpg')])
       self.data_sizes.append(num_samples)
+
+  
+  def get_seg_class_name(self, super_class_name, sub_class_name, delim=':'):
+    """
+    Maps a given super class name and sub-class name to the class name stored
+    in the ordered list of segmentation classes.
+    """
+    return super_class_name + delim + sub_class_name
+
+
+  def sorted_classes(self, classes_dict):
+    """
+    Helper method to return a sorted list of all the sub_classes.
+    The list of classes should be same every time a new ImSeg_Dataset object is created.
+    Returns: 
+      ['superclass0:subclass1', 'superclass0:subclass1', ...]
+    """
+    seg_classes = []
+    for super_class, sub_classes in classes_dict.items():
+      seg_classes.extend([self.get_seg_class_name(super_class, sub_class) for sub_class in sub_classes])
+    return sorted(seg_classes)
+
 
   def build_dataset(self):
     """
@@ -119,6 +141,7 @@ class ImSeg_Dataset(Dataset):
       # increment index counter
       i += 1
 
+
   def format_image(self, path_to_file, path_to_dest):
     """
     Helper method called in build_dataset that copies the file from 
@@ -159,7 +182,7 @@ class ImSeg_Dataset(Dataset):
       json.dump(labels_in_tile, dest)
 
 
-  def create_mask(self, buildings_dict):
+  def create_mask(self, labels_in_tile):
     """
     Helper method only called in convert_json that takes a dictionary of
       building coordinates and creates a one-hot encoding for each pixel 
@@ -169,7 +192,8 @@ class ImSeg_Dataset(Dataset):
     Reference: https://stackoverflow.com/questions/21339448/how-to-get-list-of-points-inside-a-polygon-in-python
     """
     # Image size of tiles.
-    h, w, c = self.image_size
+    h, w, _ = self.image_size
+    C = len(self.seg_classes)
 
     # make a canvas with pixel coordinates
     x, y = np.meshgrid(np.arange(w), np.arange(h))
@@ -177,21 +201,24 @@ class ImSeg_Dataset(Dataset):
     # A list of all pixels in terms of indices
     all_pix = np.vstack((x, y)).T
 
-    # Single, w*h 1d array of all pixels in image initialised to 0s. This will accumulate
-    # annotation markings for each building. 
-    pixel_annotations = np.zeros((w*h), dtype=bool)
-    for building, nodes in buildings_dict.items():
-      p = Path(nodes)
-      one_building_pixels = p.contains_points(all_pix)
+    # Single, (C, w*h) 1d array of empty mask for all pixels in image, for each class, initialised
+    # to 0s. This will accumulate annotation markings for each building. 
+    pixel_annotations = np.zeros((C, w*h), dtype=bool)
+    for super_class, sub_class_labels in labels_in_tile.items():
+      for sub_class, labels in sub_class_labels.items():
+        for label_nodes in labels:
+          p = Path(label_nodes)
+          one_building_pixels = p.contains_points(all_pix)
 
-      pixel_annotations = np.logical_or(pixel_annotations, one_building_pixels)
-      pixel_annotations = np.array(pixel_annotations)
+          # Index of label's class name in list of ordered seg_classes
+          seg_class = self.seg_classes.index(self.get_seg_class_name(super_class, sub_class))
+          pixel_annotations = np.logical_or(pixel_annotations[seg_class], one_building_pixels)
+          # pixel_annotations = np.array(pixel_annotations)
 
-    pixel_annotations = np.array(pixel_annotations, dtype=np.uint8).reshape((w,h))
-    pixel_annotations = scipy.misc.imresize(pixel_annotations, (IMAGE_SIZE, IMAGE_SIZE) )
-    pixel_annotations = np.array(pixel_annotations, dtype=bool)
+    pixel_annotations = pixel_annotations.astype(np.uint8).reshape((C, h, w))
 
     return {"annotation": pixel_annotations.tolist()}
+
 
   def get_batch(self, indices, train_val_test):
     """
@@ -214,21 +241,21 @@ class ImSeg_Dataset(Dataset):
     # Accumulators for images and annotations in batch
     images = []
     annotations = []
+    C = len(self.seg_classes)
     for i in indices:
-      image = Image.open(f'{path}/images/{i}.jpg')
+      image = Image.open(os.path.join(path, 'images', f'{i}.jpg'))
       image = np.array(image)
 
-      with open(f'{path}/annotations/{i}.json', 'r') as ann:
-        annotation = np.array(json.load(ann)['annotation'])
-        
-      # Reshape to the width/height dimensions of image, with depth=num_classes (here, it is 1)
-      annotation = np.reshape(annotation, (image.shape[0], image.shape[1], 1))
+      # Reshape to (h,w,C) dimensions
+      with open(os.path.join(path, 'annotations', f'{i}.json'), 'r') as ann:
+        annotation = np.array(json.load(ann)['annotation']).T
 
       images.append(image)
       annotations.append(annotation)
 
     # Return tuple by stacking them into blocks
     return (np.stack(images), np.stack(annotations))
+
 
   def save_preds(self, image_indices, preds, image_dir="val"):
     """
@@ -285,23 +312,24 @@ class ImSeg_Dataset(Dataset):
       path = self.out_path
 
     # Image visualization
-    im = Image.open(f'{path}/images/{index}.jpg')
+    im = Image.open(os.path.join(path, 'images', f'{index}.jpg'))
     im_arr = np.array(im)
     fig, ax = plt.subplots(nrows=1, ncols=1)
     ax.imshow(im_arr)
-
-    with open(f'{path}/annotations/{index}.json') as f:
+  
+    with open(os.path.join(path, 'annotations', f'{index}.json')) as f:
       try:
         annotation = json.load(f)
       except:
         annotation = {}
 
-    # w, h, _ = self.get_img_size()  # Right?
-    w, h = IMAGE_SIZE, IMAGE_SIZE
+    h, w = self.image_size
+    C = len(self.seg_classes)
 
-    pixel_annotation = np.array(annotation["annotation"]).reshape(w, h)  # Right?
+    class_masks = np.array(annotation["annotation"])#.reshape(C, h, w)
 
     # Check our results
-    ax.imshow(pixel_annotation, alpha=0.3)
+    for mask in class_masks:
+      ax.imshow(mask, alpha=0.15)
 
     plt.show()
