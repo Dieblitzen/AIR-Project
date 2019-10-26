@@ -1,7 +1,5 @@
 import os
 import numpy as np
-import scipy.misc
-import math
 from PIL import Image
 import json
 import pickle
@@ -25,9 +23,10 @@ class Dataset:
 
   Attributes:
   1) The path to the dataset, images and annotations.
-  2) A sorted list of image file names
-  3) A sorted list of annotation/ building label file names
-  4) The length of the dataset.
+  2) The dictionary of classes defined for the dataset.
+  3) A sorted list of image file names
+  4) A sorted list of annotation/ building label file names
+  5) The length of the dataset.
 
   Methods:
   1) Getting the size of each image in the dataset (assumed to be the same for all images)
@@ -42,7 +41,7 @@ class Dataset:
 
   """
 
-  def __init__(self, data_path):
+  def __init__(self, data_path, classes_path='./classes.json'):
     """
     Initializes a dataset object using the data in data_path. 
     """
@@ -51,14 +50,18 @@ class Dataset:
     self.data_path = data_path
     self.images_path = f'{data_path}/images'
     self.annotations_path = f'{data_path}/annotations'
-      
+
     # Attribute 2)
+    with open(classes_path, 'r') as f:
+      self.classes = json.load(f)
+      
+    # Attribute 3)
     self.img_list = sorted(os.listdir(self.images_path), key = self.sort_key)
 
-    # Attritbute 3)
+    # Attritbute 4)
     self.annotation_list = sorted(os.listdir(self.annotations_path), key = self.sort_key)
 
-    # Attribute 4)
+    # Attribute 5)
     self.length = len(self.img_list)
 
   def sort_key(self, file_name):
@@ -245,6 +248,10 @@ def passed_arguments():
                       type=str,
                       required=True,
                       help='Path to directory where extracted dataset is stored.')
+  parser.add_argument('--classes_path',\
+                      type=str,
+                      default='./classes.json',
+                      help='Path to directory where extracted dataset is stored.')
   parser.add_argument('--tile',\
                       action='store_true',
                       default=False,
@@ -255,7 +262,7 @@ def passed_arguments():
 
 if __name__ == "__main__":
   args = passed_arguments()
-  ds = Dataset(args.data_path)
+  ds = Dataset(args.data_path, args.classes_path)
   
   if args.tile:
     inds = random.sample(range(ds.length), 20)

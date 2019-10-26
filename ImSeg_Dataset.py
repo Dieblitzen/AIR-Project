@@ -25,7 +25,7 @@ class ImSeg_Dataset(Dataset):
 
   """
 
-  def __init__(self, data_path, train_val_test=(0.8, 0.1, 0.1)):
+  def __init__(self, data_path, train_val_test=(0.8, 0.1, 0.1), image_resize=None):
     """
     Initialises a ImSeg_Dataset object by calling the superclass initialiser.
 
@@ -40,6 +40,7 @@ class ImSeg_Dataset(Dataset):
 
     Dataset.__init__(self, data_path)
 
+    self.image_size = image_resize if image_resize else self.get_img_size()
     self.train_val_test = train_val_test
     self.train_path = os.path.join(self.data_path, 'im_seg', 'train')
     self.val_path = os.path.join(self.data_path, 'im_seg', 'val')
@@ -126,9 +127,9 @@ class ImSeg_Dataset(Dataset):
     """
     # copyfile(path_to_file, path_to_dest)
     im = Image.open(path_to_file)
-    im = np.array(im)
-    im = scipy.misc.imresize(im, (IMAGE_SIZE, IMAGE_SIZE, 3), interp="bilinear")
-    scipy.misc.imsave(path_to_dest, im)
+    if (im.size[1], im.size[0], len(im.getbands())) != self.image_size:
+      im = im.resize(self.image_size, resample=Image.BILINEAR)
+    im.save(path_to_dest)
 
 
   def format_json(self, path_to_file, path_to_dest, img_name):
@@ -144,20 +145,21 @@ class ImSeg_Dataset(Dataset):
     # Im_size: [width, height, depth] should be squares
     with open(path_to_file) as f:
       try:
-        buildings_dict = json.load(f)
+        labels_in_tile = json.load(f)
       except:
-        buildings_dict = {}
+        labels_in_tile = {}
 
-    buildings_dict = self.one_hot_encoding(buildings_dict)
+    labels_in_tile = self.create_mask(labels_in_tile)
 
     # Add corresponding image name to annotaion
-    buildings_dict["img"] = img_name
+    labels_in_tile["img"] = img_name
 
     # save annotation in file
     with open(path_to_dest, 'w') as dest:
-      json.dump(buildings_dict, dest)
+      json.dump(labels_in_tile, dest)
 
-  def one_hot_encoding(self, buildings_dict):
+
+  def create_mask(self, buildings_dict):
     """
     Helper method only called in convert_json that takes a dictionary of
       building coordinates and creates a one-hot encoding for each pixel 
@@ -167,7 +169,7 @@ class ImSeg_Dataset(Dataset):
     Reference: https://stackoverflow.com/questions/21339448/how-to-get-list-of-points-inside-a-polygon-in-python
     """
     # Image size of tiles.
-    w, h, _ = self.get_img_size()  # Right order?
+    h, w, c = self.image_size
 
     # make a canvas with pixel coordinates
     x, y = np.meshgrid(np.arange(w), np.arange(h))
