@@ -11,6 +11,7 @@ import scipy.misc
 # Visualising
 import matplotlib.pyplot as plt
 import matplotlib.ticker as plticker
+import matplotlib.colors as colors
 from shapely.geometry.polygon import Polygon
 from matplotlib.path import Path
 
@@ -330,6 +331,6 @@ class ImSeg_Dataset(Dataset):
 
     # Check our results
     for mask in class_masks:
-      ax.imshow(mask, alpha=0.15)
+      ax.imshow(mask, alpha=0.15, cmap=colors.ListedColormap(np.random.rand(256,3))))
 
     plt.show()
