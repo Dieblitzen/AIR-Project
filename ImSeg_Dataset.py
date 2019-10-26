@@ -49,6 +49,11 @@ class ImSeg_Dataset(Dataset):
     self.out_path = os.path.join(self.data_path, 'im_seg', 'out')
     self.data_sizes = [] # [train_size, val_size, test_size, out_size]
 
+    # Create color maps
+    self.class_colors = []
+    for _ in self.seg_classes:
+      self.class_colors.append(colors.ListedColormap(np.random.rand(256,3)))
+
     if not os.path.isdir(os.path.join(self.data_path, 'im_seg')):
       print(f"Creating directory to store semantic segmentation formatted dataset.")
       os.mkdir(os.path.join(self.data_path, 'im_seg'))
@@ -330,8 +335,8 @@ class ImSeg_Dataset(Dataset):
     class_masks = np.array(annotation["annotation"])#.reshape(C, h, w)
 
     # Check our results
-    for mask in class_masks:
-      ax.imshow(mask, alpha=0.15, cmap=colors.ListedColormap(np.random.rand(256,3))))
+    for i in len(class_masks):
+      ax.imshow(mask, alpha=0.15, cmap=self.class_colors[i])
 
     plt.show()
 
