@@ -280,13 +280,13 @@ class ImSeg_Dataset(Dataset):
     # Output directory
     if not os.path.isdir(self.out_path):
       os.mkdir(self.out_path) 
-      os.mkdir(self.out_path + '/images')
-      os.mkdir(self.out_path + '/annotations')
+      os.mkdir(os.path.join(self.out_path, 'images'))
+      os.mkdir(os.path.join(self.out_path, 'annotations'))
     
     # First copy the images in image_indices
     for i in image_indices:
-      copyfile(
-          f"{path_to_im}/images/{i}.jpg", f"{self.out_path}/images/{i}.jpg")
+      copyfile(os.path.join(path_to_im, 'images', f'{i}.jpg'), 
+               os.path.join(self.out_path, 'images', f'{i}.jpg'))
 
     # Save prediction in json format and dump
     for i in range(len(preds)): 
@@ -295,7 +295,7 @@ class ImSeg_Dataset(Dataset):
       preds_json["annotation"] = preds[i].tolist()
 
       # save annotation in file
-      with open(f"{self.out_path}/annotations/{image_indices[i]}.json", 'w') as dest:
+      with open(os.path.join(self.out_path, 'annotations', f'{image_indices[i]}.json'), 'w') as dest:
         json.dump(preds_json, dest)
     
 
