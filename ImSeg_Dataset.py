@@ -1,12 +1,12 @@
-from Dataset import Dataset
 import os
-import numpy as np
 import math
-from PIL import Image
 import json
 import random
+import argparse
+import numpy as np
+from PIL import Image
 from shutil import copyfile
-import scipy.misc 
+from Dataset import Dataset
 
 # Visualising
 import matplotlib.pyplot as plt
@@ -24,7 +24,7 @@ class ImSeg_Dataset(Dataset):
 
   """
 
-  def __init__(self, data_path, train_val_test=(0.8, 0.1, 0.1), image_resize=None):
+  def __init__(self, data_path, classes_path, train_val_test=(0.8, 0.1, 0.1), image_resize=None):
     """
     Initialises a ImSeg_Dataset object by calling the superclass initialiser.
 
@@ -37,7 +37,7 @@ class ImSeg_Dataset(Dataset):
     assert train_val_test[0] > 0 and train_val_test[1] > 0 and train_val_test[
         2] > 0, 'Train, val and test percentages should be non-negative'
 
-    Dataset.__init__(self, data_path)
+    Dataset.__init__(self, data_path, classes_path=classes_path)
 
     self.image_size = image_resize if image_resize else self.get_img_size()
     self.seg_classes = self.sorted_classes(self.classes)
@@ -213,7 +213,7 @@ class ImSeg_Dataset(Dataset):
 
           # Index of label's class name in list of ordered seg_classes
           seg_class = self.seg_classes.index(self.get_seg_class_name(super_class, sub_class))
-          pixel_annotations = np.logical_or(pixel_annotations[seg_class], one_building_pixels)
+          pixel_annotations[seg_class] = np.logical_or(pixel_annotations[seg_class], one_building_pixels)
           # pixel_annotations = np.array(pixel_annotations)
 
     pixel_annotations = pixel_annotations.astype(np.uint8).reshape((C, h, w))
@@ -324,7 +324,7 @@ class ImSeg_Dataset(Dataset):
       except:
         annotation = {}
 
-    h, w = self.image_size
+    h, w, _ = self.image_size
     C = len(self.seg_classes)
 
     class_masks = np.array(annotation["annotation"])#.reshape(C, h, w)
@@ -334,3 +334,38 @@ class ImSeg_Dataset(Dataset):
       ax.imshow(mask, alpha=0.15, cmap=colors.ListedColormap(np.random.rand(256,3))))
 
     plt.show()
+
+
+def passed_arguments():
+  parser = argparse.ArgumentParser(description="Script to create Image Segmentation dataset from raw dataset.")
+  parser.add_argument('--data_path',\
+                      type=str,
+                      required=True,
+                      help='Path to directory where extracted dataset is stored.')
+  parser.add_argument('--classes_path',\
+                      type=str,
+                      default='./classes.json',
+                      help='Path to directory where extracted dataset is stored.')
+  parser.add_argument('--tile',\
+                      action='store_true',
+                      default=False,
+                      help='Visualize a random sequence of 20 tiles in the dataset.')
+  args = parser.parse_args()
+  return args
+
+
+if __name__ == "__main__":
+  args = passed_arguments()
+  
+  ds = ImSeg_Dataset(args.data_path, args.classes_path)
+
+  # Create dataset.
+  if not os.path.isdir(os.path.join(args.data_path, 'im_seg')):
+    ds.build_dataset()
+
+  # Visualize tiles.
+  if args.tile:
+    inds = random.sample(range(ds.data_sizes[0]), 20)
+    for i in inds:
+      ds.visualize_tile(i, directory='train')
+
