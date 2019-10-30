@@ -49,7 +49,13 @@ class ImSeg_Dataset(Dataset):
     self.test_path = os.path.join(self.data_path, 'im_seg', 'test')
     self.out_path = os.path.join(self.data_path, 'im_seg', 'out')
     self.data_sizes = [] # [train_size, val_size, test_size, out_size]
+  
 
+  def make_directories(self):
+    """
+    Creates the 'im_seg' directory in the data_path. Also creates the train/val/test/out
+    directories with the images/ and annotations/ directory for each.
+    """
     if not os.path.isdir(os.path.join(self.data_path, 'im_seg')):
       print(f"Creating directory to store semantic segmentation formatted dataset.")
       os.mkdir(os.path.join(self.data_path, 'im_seg'))
@@ -97,6 +103,8 @@ class ImSeg_Dataset(Dataset):
     Helper method only called in build_dataset that splits data into test
     train and validation sets.
     """
+    self.make_directories()
+
     data = list(zip(self.img_list, self.annotation_list))
     random.shuffle(data)
     shuffled_img, shuffled_annotations = zip(*data)
