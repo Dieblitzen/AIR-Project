@@ -48,13 +48,17 @@ class ImSeg_Dataset(Dataset):
     self.val_path = os.path.join(self.data_path, 'im_seg', 'val')
     self.test_path = os.path.join(self.data_path, 'im_seg', 'test')
     self.out_path = os.path.join(self.data_path, 'im_seg', 'out')
-    self.data_sizes = [] # [train_size, val_size, test_size, out_size]
+
+    self.data_sizes = [0] * 4
+    self.init_directories()
   
 
-  def make_directories(self):
+  def init_directories(self):
     """
     Creates the 'im_seg' directory in the data_path. Also creates the train/val/test/out
     directories with the images/ and annotations/ directory for each.
+    If the directories already exist, then initialises the data_sizes based on existing 
+    directories.
     """
     if not os.path.isdir(os.path.join(self.data_path, 'im_seg')):
       print(f"Creating directory to store semantic segmentation formatted dataset.")
@@ -62,7 +66,7 @@ class ImSeg_Dataset(Dataset):
 
     # Create train, validation, test directories, each with an images and
     # annotations sub-directories
-    for directory in [self.train_path, self.val_path, self.test_path, self.out_path]:
+    for i, directory in enumerate([self.train_path, self.val_path, self.test_path, self.out_path]):
       if not os.path.isdir(directory):
         os.mkdir(directory)
 
@@ -74,7 +78,7 @@ class ImSeg_Dataset(Dataset):
 
       # Size of each training, val and test directories  
       num_samples = len([name for name in os.listdir(os.path.join(directory, 'images')) if name.endswith('.jpg')])
-      self.data_sizes.append(num_samples)
+      self.data_sizes[i] = num_samples
 
   
   def get_seg_class_name(self, super_class_name, sub_class_name, delim=':'):
@@ -103,8 +107,6 @@ class ImSeg_Dataset(Dataset):
     Helper method only called in build_dataset that splits data into test
     train and validation sets.
     """
-    self.make_directories()
-
     data = list(zip(self.img_list, self.annotation_list))
     random.shuffle(data)
     shuffled_img, shuffled_annotations = zip(*data)
@@ -340,7 +342,7 @@ class ImSeg_Dataset(Dataset):
 
     # Check our results
     for i, mask in enumerate(class_masks):
-      ax.imshow(mask, alpha=0.15, cmap=self.class_colors[i])
+      ax.imshow(mask, alpha=0.075, cmap=self.class_colors[i])
 
     plt.show()
 
@@ -369,9 +371,10 @@ if __name__ == "__main__":
   ds = ImSeg_Dataset(args.data_path, args.classes_path)
 
   # Create dataset.
-  if not os.path.isdir(os.path.join(args.data_path, 'im_seg')):
+  if ds.data_sizes[0] == 0:
     ds.build_dataset()
 
+  print(ds.seg_classes)
   # Visualize tiles.
   if args.tile:
     inds = random.sample(range(ds.data_sizes[0]), 20)
