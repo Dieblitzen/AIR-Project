@@ -4,7 +4,7 @@ import json
 import random
 import argparse
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageDraw
 from shutil import copyfile
 from Dataset import Dataset
 
@@ -327,8 +327,11 @@ class ImSeg_Dataset(Dataset):
     im = Image.open(os.path.join(path, 'images', f'{index}.jpg'))
     im_arr = np.array(im)
     fig, ax = plt.subplots(nrows=1, ncols=1)
-    ax.imshow(im_arr)
-  
+
+    # Works better for bitmaps
+    im = Image.fromarray(im_arr, mode='RGB')
+    drawer = ImageDraw.Draw(im)
+
     with open(os.path.join(path, 'annotations', f'{index}.json')) as f:
       try:
         annotation = json.load(f)
@@ -341,9 +344,11 @@ class ImSeg_Dataset(Dataset):
     class_masks = np.array(annotation["annotation"])#.reshape(C, h, w)
 
     # Check our results
-    for i, mask in enumerate(class_masks):
-      ax.imshow(mask, alpha=0.075, cmap=self.class_colors[i])
-
+    for i, mask in enumerate(class_masks[:3]):
+      mask_im = Image.fromarray(mask.astype(np.uint8) * 128, mode='L')
+      drawer.bitmap((0,0), mask_im, fill=(0, 1, 0))
+    
+    ax.imshow(im)
     plt.show()
 
 
