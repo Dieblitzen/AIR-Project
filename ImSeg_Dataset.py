@@ -1,4 +1,4 @@
-import os
+asmport os
 import math
 import json
 import random
@@ -41,7 +41,13 @@ class ImSeg_Dataset(Dataset):
 
     self.image_size = image_resize if image_resize else self.get_img_size()
     self.seg_classes = self.sorted_classes(self.classes)
-    self.class_colors = [colors.ListedColormap(np.random.rand(256,3)) for _ in self.seg_classes]
+    self.class_colors = [] #[colors.ListedColormap(np.random.rand(256,3)) for _ in self.seg_classes]
+	# power set of colors across RBG for visualizing
+	for i in range(2**3):
+		c = []
+		for s in range(2, -1, -1):
+			c.append((i >> s) % 2)
+		class_colors.append(c * 255)
 
     self.train_val_test = train_val_test
     self.train_path = os.path.join(self.data_path, 'im_seg', 'train')
@@ -344,9 +350,9 @@ class ImSeg_Dataset(Dataset):
     class_masks = np.array(annotation["annotation"])#.reshape(C, h, w)
 
     # Check our results
-    for i, mask in enumerate(class_masks[:3]):
-      mask_im = Image.fromarray(mask.astype(np.uint8) * 128, mode='L')
-      drawer.bitmap((0,0), mask_im, fill=(0, 1, 0))
+    for i, mask in enumerate(class_masks):
+      mask_im = Image.fromarray(mask.astype(np.uint8) * 64, mode='L')
+      drawer.bitmap((0,0), mask_im, fill=self.class_colors(i % len(class_colors)))
     
     ax.imshow(im)
     plt.show()
