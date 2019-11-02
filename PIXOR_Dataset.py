@@ -63,8 +63,11 @@ class PIXOR_Dataset(Dataset):
       if not os.path.isdir(directory + '/images'):
           os.mkdir(directory + '/images')
 
-      if not os.path.isdir(directory + '/annotations'):
-          os.mkdir(directory + '/annotations')
+      if not os.path.isdir(directory + '/box_annotations'):
+          os.mkdir(directory + '/box_annotations')
+
+      if not os.path.isdir(directory + '/class_annotations'):
+          os.mkdir(directory + '/class_annotations')
   
   def build_dataset(self):
     """
@@ -86,6 +89,21 @@ class PIXOR_Dataset(Dataset):
 
     train, val, test = self.train_val_test
 
+    class_map = {}
+
+    classes_path =  "./classes.json"
+    with open(classes_path) as classes_file:
+      try:
+        classes = json.load(classes_file)
+      except ValueError:
+        classes = {}
+    
+    cnt = 1
+    for sub in classes["building"]:
+      class_map[sub] = cnt
+      cnt += 1
+    class_map["other"] = cnt
+
     logging.info("number of tiles: " + str(len(shuffled_img)))
     # for each tile
     for i in range(0, len(shuffled_img)):
@@ -96,17 +114,29 @@ class PIXOR_Dataset(Dataset):
       # load data from json format
       with open(labels_path) as f:
         try:
-          buildings_dict = json.load(f)
-          buildings_list = list(buildings_dict.values())
-        except:
-          buildings_list = []
+          labels_in_tile = json.load(f)
+        except ValueError:
+          labels_in_tile = {}
+
+      building_list = []
+      #highway_list = []
+      for super_class, sub_class_labels in labels_in_tile.items():
+        for sub_class, labels in sub_class_labels.items():
+          #sub_class_colour = list(np.random.choice(range(256), size=3)/256)
+          if super_class == 'building':
+            print('length of labels', len(labels))
+            for label in labels:
+              building_list.append((sub_class, label))
 
       # convert each node set to a (bbox as 4 corners)
-      corner_boxes = self.get_rects(buildings_list)
+      corner_boxes_building = self.get_rects(building_list)
       # convert each (bbox as 4 corners) to a PIXOR box
-      pixor_boxes = self.create_pixor_labels(corner_boxes)
+      pixor_boxes = self.create_pixor_labels(corner_boxes_building)
+      print('length of pixor_boxes', len(pixor_boxes))
       # assign to pixels
-      box_labels, class_labels = self.boxes_in_pixels(pixor_boxes, corner_boxes, (228, 228))
+      box_labels, class_labels = self.boxes_in_pixels(class_map, pixor_boxes, corner_boxes_building, (228, 228))
+
+      
 
       if i < math.floor(train*len(shuffled_img)):
         # Copy image to train folder
@@ -133,25 +163,32 @@ class PIXOR_Dataset(Dataset):
         # Create annotation matrices
         np.save(self.test_path + "/box_annotations/" + str(ind), box_labels)
         np.save(self.test_path + "/class_annotations/" + str(ind), class_labels)
+
+      #im = plt.imread(urllib2.urlopen(url), format=‘jpeg’)
+      img = plt.imread("{self.train_path}/images/{i}.jpg", format='jpeg')
+      plt.imshow(class_labels*100+img)
+      plt.show()
+      
+      
       
   
   def create_pixor_labels(self, corner_labels):
     """ Input: Set of bounding boxes, where each box is repped as 4 corners.
         Output: Set of bounding boxes, where each box is repped PIXOR-style. """
     bb_pixels = []
-    for corner_label in corner_labels:
+    for _, corner_label in corner_labels:
       centreX, centreY = self.get_pixor_center(corner_label)
       heading, width, length = self.get_pixor_box_dimensions(corner_label)
       dimensions = [centreX, centreY, heading, width, length]
-      bb_pixels.append(dimensions)
+      bb_pixels.append( dimensions)
     return bb_pixels
 
-  def boxes_in_pixels(self, bboxes, corner_boxes, tile_shape):
+  def boxes_in_pixels(self, class_map, bboxes, corner_boxes, tile_shape):
     
     logging.info("len of boxes_within_tile: " + str(len(bboxes)))
     
     pixel_box_labels = np.zeros((228, 228, 6))
-    pixel_class_labels = np.zeros((228, 228, 1))
+    pixel_class_labels = np.zeros((228, 228))
 
     counter = 0
     sec_counter = 0
@@ -168,10 +205,9 @@ class PIXOR_Dataset(Dataset):
             length = 0
             in_a_box = 0
             for bbox_index in range(0,len(bboxes)):
-
                 pixel_xyform = (c, r)
                 
-                if self.inside_box(pixel_xyform, corner_boxes[bbox_index]):
+                if self.inside_box(pixel_xyform, corner_boxes[bbox_index][1]):
                     new_dx = -1*(pixel_xyform[0] - bboxes[bbox_index][0])
                     new_dy = -1*(pixel_xyform[1] - bboxes[bbox_index][1])
                     counter+=1
@@ -181,7 +217,7 @@ class PIXOR_Dataset(Dataset):
                         dx = new_dx
                         dy = new_dy
                         heading, width, length = bboxes[bbox_index][2:]
-                        in_a_box = 1
+                        in_a_box = class_map[corner_boxes[bbox_index][0]]
                 
             pixel_box_labels[r, c, :] = [int(dx), int(dy), np.sin(heading), np.cos(heading), int(width), int(length)]
             pixel_class_labels[r, c] = in_a_box
@@ -202,9 +238,9 @@ class PIXOR_Dataset(Dataset):
   def get_rects(self, buildings):
     """ Returns each bounding box in terms of its 4 corners. """
     corner_boxes = []
-    for building in buildings:
+    for c, building in buildings:
       bounding_box = list(MinimumBoundingBox(building).corner_points)
-      corner_boxes.append(bounding_box)
+      corner_boxes.append((c, bounding_box))
     return corner_boxes
   
   def get_pixor_center(self, bbox):
