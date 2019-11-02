@@ -13,6 +13,12 @@ The overall strcuture of the project can be divided into the following component
    * [RefineNet](https://arxiv.org/pdf/1611.06612.pdf) (semantic segmentation)
 3. Scripts to train and evaluate each of the abovementioned models.
 
+## Dependencies and Setup
+1. Install `IBM Pairs Geoscope` by following these [instructions](https://pairs.res.ibm.com/tutorial/tutorials/api/technical_requirements.html). Complete all optional steps. Used for retrieving satellite imagery.
+2. Create IBM PAIRS account at [https://ibmpairs.mybluemix.net](https://ibmpairs.mybluemix.net/)
+2. `conda install -c conda-forge overpy`. Used for retrieving building/road labels sudofrom OpenStreeMaps
+3. `git clone https://github.com/Dieblitzen/SAMAR-Project.git`
+4. Create `SAMAR-Project/ibmpairspass.txt` and add `pairs.res.ibm.com:<email@email.com>:<password>` to file
 
 ## DataPipeline
 
