@@ -89,7 +89,13 @@ Running the above command will generate four directories inside the created `im_
 
 The images will be randomly shuffled to be splitted into `train`, `test`, and `val` dataset with specified ratio. Each images will be resized to `self.image_size` and the `i`'th image in the shuffled list of each dataset will be stored as `i.jpg`.
 
-Each annotation contains a list of 1-d arrays of the one-hot encoding for each pixel for each class in the corresponding image (tile). the value of pixels representing the class in that tile will be set to `1` with all the rest being set to `0`. 
+Each image segementation annotation contains a list of 1-d arrays and each array in the list is the one-hot encoding for each pixel of the nodes representing a certain class in the corresponding image (tile). the value of pixels representing the class in that tile will be set to `1` with all the rest being set to `0`. Each label will be in the format of a dictionary that contains two keys, `"annotation"` and `"img"`, and will be stored as `i.json` for the `i`'th image. More concretely, `i.json` will be in the following format:
+```
+{
+  "annotation": [arrays of the one-hot encoding for each class],
+  "img": "i.jpg"
+}
+```
 
 
 
