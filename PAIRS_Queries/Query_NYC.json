@@ -1,29 +1,29 @@
 {
-    "layers": [
-      {
-        "type": "raster",
-        "id": "49238"
-      },
-      {
-        "type": "raster",
-        "id": "49239"
-      },
-      {
-        "type": "raster",
-        "id": "49240"
-      }
-    ],
-    "spatial": {
-      "type": "square",
-      "coordinates": [40.6119693, -73.9909834, 40.6460255, -73.9200175]
+  "layers": [
+    {
+      "type": "raster",
+      "id": "49238"
     },
-    "temporal": {
-      "intervals": [
-        {
-          "start": "2015-01-01T0:0:0",
-          "end": "2015-12-31T0:0:0"
-        }
-      ]
+    {
+      "type": "raster",
+      "id": "49239"
+    },
+    {
+      "type": "raster",
+      "id": "49240"
     }
+  ],
+  "spatial": {
+    "type": "square",
+    "coordinates": [40.6119693, -73.9909834, 40.6460255, -73.9200175]
+  },
+  "temporal": {
+    "intervals": [
+      {
+        "start": "2015-01-01T0:0:0",
+        "end": "2015-12-31T0:0:0"
+      }
+    ]
   }
+}
   
