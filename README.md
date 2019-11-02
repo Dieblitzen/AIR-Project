@@ -69,6 +69,7 @@ The `data_path/annotations` directory contains `.json` files for annotations for
 
 Finally, `data_path/images` directory simply contains `.jpg` files for each tiled image from the entire area. Thus, `image_i.jpg` in this folder is simply the `i`'th tile.
 
+
 ## Image Segementation Dataset
 The file `ImSeg_Dataset.py` is the script to transform the raw dataset into the format that could be used in our semantic segementation model (RefineNet). This script creates a new (local) directory named `im_seg` to store the train, test, validation dataset and the model predictions with images and labels in the image segmentation format.
 
@@ -89,3 +90,38 @@ Running the above command will generate four directories inside the created `im_
 The images will be randomly shuffled to be splitted into `train`, `test`, and `val` dataset with specified ratio. Each images will be resized to `self.image_size` and the `i`'th image in the shuffled list of each dataset will be stored as `i.jpg`.
 
 Each annotation contains a list of 1-d arrays of the one-hot encoding for each pixel for each class in the corresponding image (tile). the value of pixels representing the class in that tile will be set to `1` with all the rest being set to `0`. 
+
+
+
+## PIXOR Dataset Generation
+The file `PIXOR_Data.py` is a script that takes in tile images and annotations from `./data_path`, and generate input data and output labels in the format specified by the PIXOR model. To generate the dataset, a PIXOR_Dataset object must be created.  Then, the `build_dataset()` function can be called on the object to generate the dataset.  This process is exemplified in the `test_pixor.py` file.  Inserting the directory name of the dataset question into the appropriate location will create the PIXOR_Dataset object for that dataset.  
+
+To run `test_pixor.py`, simply run:
+```python test_pixor.py```
+
+After the script is finished running, there will be a new pixor folder in the dataset directory. This folder is structured as follows:
+```
+pixor
+|--test 
+|  |--box_annotations
+|     |--0.npy
+|     |--1.npy
+|     ...
+|  |--class_annotations
+|     |--0.npy
+|     |--1.npy
+|     ...
+|  |--images
+|     |--0.jpg
+|     |--1.jpg
+|     ...
+|--train
+   ...
+|--val
+   …
+```
+The test, train, and val folder each hold the data that will be used during training, testing, and validation.  The default spit for train, test, validation datasets is .8, .1, .1 respectively.  This can be changed in the `PIXOR_Dataset.py` file. 
+
+Within each stratification of the dataset, there are `box_annotations`, `class_annotations`, and `images` folders. The naming convention for the files within the folders is that it is the id of the tile image followed by the file format.  Files with the same id number describe features of the same input. The `box_annotations` folder contains the bounding box representation `[dx, dy, sin(heading), cos(heading), width, length]` as specified by the PIXOR model for each pixel in the corresponding image. The class_annotations folder contains the building class label represented as an integer for each of the pixels in the image. The images folder contains the jpeg images.
+
+
