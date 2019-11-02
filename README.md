@@ -62,6 +62,7 @@ Running the above command will generate three directories: `data_path/images`, `
 The `data_path/annotations` directory contains `.json` files for annotations for each tile, in the same format as above. Note that each `annotation_i.json` file will contain pixel node coordinates with respect to the tile's frame, and not the global 'full area' frame.
 
 Finally, `data_path/images` directory simply contains `.jpg` files for each tiled image from the entire area. Thus, `image_i.jpg` in this folder is simply the `i`'th tile.
+<<<<<<< HEAD
 
 ## PIXOR Dataset Generation
 The file `PIXOR_Data.py` is a script that will generate in input data and output labels in the format specified by the PIXOR model.  To generate the dataset, a PIXOR_Dataset object must be created.  Then, the `build_dataset()` function can be called on the object to generate the dataset.  This process is exemplified in the `test_pixor.py` file.  Inserting the directory name of the dataset question into the appropriate location will create the PIXOR_Dataset object for that dataset.  
@@ -93,3 +94,5 @@ pixor
 The test, train, and val folder each hold the data that will be used during training, testing, and validation.  The default spit for train, test, validation datasets is .8, .1, .1 respectively.  This can be changed in the `PIXOR_Dataset.py` file.  
 Within each stratification of the dataset, there are `box_annotations`, `class_annotations`, and `images` folders. The naming convention for the files within the folders is that it is the id of the tile image followed by the file format.  Files with the same id number describe features of the same input. The `box_annotations` folder contains the bounding box representation as specified by the PIXOR model for each pixel in the corresponding image.  The class_annotations folder contains the class labels for each of the pixels in the image of the corresponding label.  The images folder contains the jpeg images.
 
+=======
+>>>>>>> 8e28f520ad4c8ede50cd2f514ddcbc418452769f
