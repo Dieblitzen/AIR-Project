@@ -4,7 +4,7 @@ import json
 import random
 import argparse
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageDraw
 from shutil import copyfile
 from Dataset import Dataset
 
@@ -41,22 +41,36 @@ class ImSeg_Dataset(Dataset):
 
     self.image_size = image_resize if image_resize else self.get_img_size()
     self.seg_classes = self.sorted_classes(self.classes)
-    self.class_colors = [colors.ListedColormap(np.random.rand(256,3)) for _ in self.seg_classes]
+    self.class_colors = [] #[colors.ListedColormap(np.random.rand(256,3)) for _ in self.seg_classes]
+    # power set of colors across RBG for visualizing
+    for i in range(2**3):
+      c = [((i >> s) % 2) * 255 for s in range(2, -1, -1)]
+      self.class_colors.append(tuple(c))
 
     self.train_val_test = train_val_test
     self.train_path = os.path.join(self.data_path, 'im_seg', 'train')
     self.val_path = os.path.join(self.data_path, 'im_seg', 'val')
     self.test_path = os.path.join(self.data_path, 'im_seg', 'test')
     self.out_path = os.path.join(self.data_path, 'im_seg', 'out')
-    self.data_sizes = [] # [train_size, val_size, test_size, out_size]
 
+    self.data_sizes = [0] * 4
+    self.init_directories()
+  
+
+  def init_directories(self):
+    """
+    Creates the 'im_seg' directory in the data_path. Also creates the train/val/test/out
+    directories with the images/ and annotations/ directory for each.
+    If the directories already exist, then initialises the data_sizes based on existing 
+    directories.
+    """
     if not os.path.isdir(os.path.join(self.data_path, 'im_seg')):
       print(f"Creating directory to store semantic segmentation formatted dataset.")
       os.mkdir(os.path.join(self.data_path, 'im_seg'))
 
     # Create train, validation, test directories, each with an images and
     # annotations sub-directories
-    for directory in [self.train_path, self.val_path, self.test_path, self.out_path]:
+    for i, directory in enumerate([self.train_path, self.val_path, self.test_path, self.out_path]):
       if not os.path.isdir(directory):
         os.mkdir(directory)
 
@@ -68,7 +82,7 @@ class ImSeg_Dataset(Dataset):
 
       # Size of each training, val and test directories  
       num_samples = len([name for name in os.listdir(os.path.join(directory, 'images')) if name.endswith('.jpg')])
-      self.data_sizes.append(num_samples)
+      self.data_sizes[i] = num_samples
 
   
   def get_seg_class_name(self, super_class_name, sub_class_name, delim=':'):
@@ -280,13 +294,13 @@ class ImSeg_Dataset(Dataset):
     # Output directory
     if not os.path.isdir(self.out_path):
       os.mkdir(self.out_path) 
-      os.mkdir(self.out_path + '/images')
-      os.mkdir(self.out_path + '/annotations')
+      os.mkdir(os.path.join(self.out_path, 'images'))
+      os.mkdir(os.path.join(self.out_path, 'annotations'))
     
     # First copy the images in image_indices
     for i in image_indices:
-      copyfile(
-          f"{path_to_im}/images/{i}.jpg", f"{self.out_path}/images/{i}.jpg")
+      copyfile(os.path.join(path_to_im, 'images', f'{i}.jpg'), 
+               os.path.join(self.out_path, 'images', f'{i}.jpg'))
 
     # Save prediction in json format and dump
     for i in range(len(preds)): 
@@ -295,7 +309,7 @@ class ImSeg_Dataset(Dataset):
       preds_json["annotation"] = preds[i].tolist()
 
       # save annotation in file
-      with open(f"{self.out_path}/annotations/{image_indices[i]}.json", 'w') as dest:
+      with open(os.path.join(self.out_path, 'annotations', f'{image_indices[i]}.json'), 'w') as dest:
         json.dump(preds_json, dest)
     
 
@@ -317,8 +331,11 @@ class ImSeg_Dataset(Dataset):
     im = Image.open(os.path.join(path, 'images', f'{index}.jpg'))
     im_arr = np.array(im)
     fig, ax = plt.subplots(nrows=1, ncols=1)
-    ax.imshow(im_arr)
-  
+
+    # Works better for bitmaps
+    im = Image.fromarray(im_arr, mode='RGB')
+    drawer = ImageDraw.Draw(im)
+
     with open(os.path.join(path, 'annotations', f'{index}.json')) as f:
       try:
         annotation = json.load(f)
@@ -332,8 +349,10 @@ class ImSeg_Dataset(Dataset):
 
     # Check our results
     for i, mask in enumerate(class_masks):
-      ax.imshow(mask, alpha=0.15, cmap=self.class_colors[i])
-
+      mask_im = Image.fromarray(mask.astype(np.uint8) * 64, mode='L')
+      drawer.bitmap((0,0), mask_im, fill=self.class_colors[i % len(self.class_colors)])
+    
+    ax.imshow(im)
     plt.show()
 
 
@@ -361,9 +380,10 @@ if __name__ == "__main__":
   ds = ImSeg_Dataset(args.data_path, args.classes_path)
 
   # Create dataset.
-  if not os.path.isdir(os.path.join(args.data_path, 'im_seg')):
+  if ds.data_sizes[0] == 0:
     ds.build_dataset()
 
+  print(ds.seg_classes)
   # Visualize tiles.
   if args.tile:
     inds = random.sample(range(ds.data_sizes[0]), 20)
