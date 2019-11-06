@@ -3,6 +3,7 @@
 import os, sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import numpy as np
+import json
 import tensorflow as tf
 import scipy.misc
 from ImSeg_Dataset import ImSeg_Dataset as Data
@@ -12,9 +13,13 @@ from PIL import Image
 import logging
 
 
+with open('./classes.json', 'r') as f:
+  classes = json.load(f) 
+
 ## Global variables
+num_classes = len(classes.values())
 IM_SIZE = [224,224,3]
-LABEL_SIZE = [224,224,1]
+LABEL_SIZE = [224,224, num_classes]
 
 learning_rate = 0.0001
 num_epochs = 300
@@ -325,7 +330,7 @@ block_17 = resnet_block(block_16, [3,3,512,512]) # 1/32 downsampled
 # Expect the depth of the FCN output to be 128, since that is depth of 1/8 downsampled.
 # fcn8 = fcn([block_17, block_14, block_8])
 # resized_bilinear = tf.image.resize_bilinear(fcn8, (LABEL_SIZE[0], LABEL_SIZE[1]) )
-# result = conv_layer(resized_bilinear, [1, 1, 128, 1])
+# result = conv_layer(resized_bilinear, [1, 1, 128, num_classes])
 
 
 ## =============================================================================================
@@ -339,7 +344,7 @@ refine_net1 = refine_net_block([refine_net2, block_8, block_4]) # 1/4 downsample
 # result = deconv_layer(upsampled, [3,3,1,64], [batch_size,224,224,1], [1,4,4,1])
 # Alternative: convolve and then resize.
 resized = tf.image.resize_bilinear(refine_net1, (LABEL_SIZE[0], LABEL_SIZE[1]) )
-result = conv_layer(resized, [1, 1, 64, 1])
+result = conv_layer(resized, [1, 1, 64, num_classes])
 
 
 ## =============================================================================================
