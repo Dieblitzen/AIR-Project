@@ -161,7 +161,7 @@ class Dataset:
     im = Image.open(f'{self.images_path}/{self.img_list[index]}')
     im_arr = np.array(im)
     mng = plt.get_current_fig_manager()
-    mng.window.state('zoomed')
+    # mng.window.state('zoomed')
     plt.imshow(im_arr)
 
     # Open the json file and parse into dictionary of index -> buildings pairs
