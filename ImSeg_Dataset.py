@@ -24,7 +24,7 @@ class ImSeg_Dataset(Dataset):
 
   """
 
-  def __init__(self, data_path, classes_path, train_val_test=(0.8, 0.1, 0.1), image_resize=None):
+  def __init__(self, data_path, classes_path='./classes.json', train_val_test=(0.8, 0.1, 0.1), image_resize=None):
     """
     Initialises a ImSeg_Dataset object by calling the superclass initialiser.
 
