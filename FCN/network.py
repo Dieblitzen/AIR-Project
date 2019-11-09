@@ -17,7 +17,7 @@ with open('./classes.json', 'r') as f:
   classes = json.load(f) 
 
 ## Global variables
-num_classes = len(classes.values())
+num_classes = sum([len(subclasses.values()) for subclasses in classes.values()])
 IM_SIZE = [224,224,3]
 LABEL_SIZE = [224,224, num_classes]
 
