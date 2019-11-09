@@ -47,7 +47,7 @@ class PIXOR_Dataset(Dataset):
   by the PIXOR architecture 
   """
 
-  def __init__(self, data_path, train_val_test=(0.8, 0.1, 0.1)):
+  def __init__(self, data_path, train_val_test=(0.8, 0.1, 0.1), is_plot=False):
     """
     Initialises a 'PIXOR_Dataset' object by calling the superclass initialiser.
 
@@ -66,6 +66,7 @@ class PIXOR_Dataset(Dataset):
     self.train_path = self.data_path + '/pixor/train'
     self.val_path = self.data_path + '/pixor/val'
     self.test_path = self.data_path + '/pixor/test'
+    self.is_plot = is_plot
 
     if not os.path.isdir(self.data_path + '/pixor'):
       print(f"Creating directory to store PIXOR formatted dataset.")
@@ -141,15 +142,16 @@ class PIXOR_Dataset(Dataset):
       # assign to pixels
       box_labels, class_labels = self.boxes_in_pixels_2(pixor_boxes, corner_boxes, (IMAGE_SIZE, IMAGE_SIZE))
 
-      #ADD PLOTING 
-      im = Image.open(img_path)
-      im_arr = np.array(im)
-      f = plt.figure()
-      f.add_subplot(1, 2, 1)
-      plt.imshow(im_arr)
-      f.add_subplot(1, 2, 2)
-      plt.imshow(class_labels)
-      plt.show(block=True)
+      if self.is_plot:
+        #ADD PLOTING 
+        im = Image.open(img_path)
+        im_arr = np.array(im)
+        f = plt.figure()
+        f.add_subplot(1, 2, 1)
+        plt.imshow(im_arr)
+        f.add_subplot(1, 2, 2)
+        plt.imshow(class_labels)
+        plt.show(block=True)
 
 
       if i < math.floor(train*len(shuffled_img)):
