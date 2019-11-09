@@ -144,17 +144,12 @@ class PIXOR_Dataset(Dataset):
       #ADD PLOTING 
       im = Image.open(img_path)
       im_arr = np.array(im)
-
       f = plt.figure()
       f.add_subplot(1, 2, 1)
       plt.imshow(im_arr)
       f.add_subplot(1, 2, 2)
       plt.imshow(class_labels)
       plt.show(block=True)
-
-
-      #plt.imshow(class_labels)
-      #plt.show()
 
 
       if i < math.floor(train*len(shuffled_img)):
@@ -233,15 +228,11 @@ class PIXOR_Dataset(Dataset):
       for c in range(max(int(min(x_coords)), 0), min(int(max(x_coords)), 224)):
         for r in range(max(int(min(y_coords)), 0), min(int(max(y_coords)), 224)):
           pixel_xyform = (c, r)
-          # print('pixel_xyform', pixel_xyform)
           in_a_box = 0
           if self.inside_box(pixel_xyform, corner_boxes[bbox_index][1]):
             new_dx = -1*(pixel_xyform[0] - bboxes[bbox_index][0])
             new_dy = -1*(pixel_xyform[1] - bboxes[bbox_index][1])
             counter+=1
-            #print('counter', counter)  
-            #print('bbox_index', bbox_index)
-            # if(np.sqrt(new_dx**2 + new_dy**2) <= np.sqrt(dx**2 + dy**2)):
             sec_counter+=1
             dx = new_dx
             dy = new_dy
@@ -250,71 +241,11 @@ class PIXOR_Dataset(Dataset):
                 
           pixel_box_labels[r, c, :] = [int(dx), int(dy), np.sin(heading), np.cos(heading), int(width), int(length)]
           pixel_class_labels[r, c] = in_a_box
-    # logging.info("Things that got inside first if: " + str(counter))
-    # logging.info("Things that got inside second if: " + str(sec_counter))
     unique_boxes = self.extract_positive_labels(pixel_box_labels)
     
-    # print("len of unique_boxes: " + str(len(unique_boxes)))
     logging.info("len of unique_boxes: " + str(len(unique_boxes)))
     logging.info("unique boxes: ")
     logging.info(unique_boxes)
-    # print("end of unique boxes \n\n")
-    logging.info("end of unique boxes")
-    
-    return pixel_box_labels, pixel_class_labels
-
-
-     
-
-  def boxes_in_pixels(self, bboxes, corner_boxes, tile_shape):
-    
-    logging.info("len of boxes_within_tile: " + str(len(bboxes)))
-    
-    pixel_box_labels = np.zeros((228, 228, 6))
-    pixel_class_labels = np.zeros((228, 228, 1))
-
-    counter = 0
-    sec_counter = 0
-    
-    logging.info("boxes within tile: ")
-    logging.info(bboxes)
-    
-    for r in range(0, tile_shape[0]):
-        for c in range(0, tile_shape[1]):
-            dx = 228
-            dy = 228
-            heading = 0
-            width = 0
-            length = 0
-            in_a_box = 0
-            for bbox_index in range(0,len(bboxes)):
-
-                pixel_xyform = (c, r)
-                
-                if self.inside_box(pixel_xyform, corner_boxes[bbox_index][1]):
-                    new_dx = -1*(pixel_xyform[0] - bboxes[bbox_index][0])
-                    new_dy = -1*(pixel_xyform[1] - bboxes[bbox_index][1])
-                    counter+=1
-                        
-                    if(np.sqrt(new_dx**2 + new_dy**2) <= np.sqrt(dx**2 + dy**2)):
-                        sec_counter+=1
-                        dx = new_dx
-                        dy = new_dy
-                        heading, width, length = bboxes[bbox_index][2:]
-                        in_a_box = class_map[corner_boxes[bbox_index][0]]
-                
-            pixel_box_labels[r, c, :] = [int(dx), int(dy), np.sin(heading), np.cos(heading), int(width), int(length)]
-            pixel_class_labels[r, c] = in_a_box
-
-    # logging.info("Things that got inside first if: " + str(counter))
-    # logging.info("Things that got inside second if: " + str(sec_counter))
-    unique_boxes = self.extract_positive_labels(pixel_box_labels)
-    
-    # print("len of unique_boxes: " + str(len(unique_boxes)))
-    logging.info("len of unique_boxes: " + str(len(unique_boxes)))
-    logging.info("unique boxes: ")
-    logging.info(unique_boxes)
-    # print("end of unique boxes \n\n")
     logging.info("end of unique boxes")
     
     return pixel_box_labels, pixel_class_labels
