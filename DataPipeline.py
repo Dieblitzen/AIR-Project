@@ -5,7 +5,6 @@ import os
 import numpy as np
 import zipfile, io
 from ibmpairs import paw
-from osgeo import gdal
 from time import sleep
 import overpy
 import pickle 
@@ -84,21 +83,18 @@ def create_dataset(data_info, source="IBM"):
   create_directories(data_info)
 
   print("Querying raw image from PAIRS using coordinates given:\n")
-  query_PAIRS(query, data_info.raw_data_path)
+  images = query_PAIRS(query, data_info.raw_data_path)
 
   print("\nConverting raw image to numpy array.\nDeleting raw images, saving jpeg instead.")
-  im_arr = image_to_array(data_info.raw_data_path)
+  im_arr = image_to_array(data_info.raw_data_path, images)
 
   print("Querying raw bounding box data from OpenStreetMap using coordinates given. ")
   raw_OSM = query_OSM(coords, classes)
 
-  # Size of the image
-  im_size = im_arr.shape
-
   # Bounding box data in pixel format
+  im_size = im_arr.shape
   label_coords = coords_to_pixels(raw_OSM, coords, im_size, data_info.raw_data_path)
 
-  # Finally, tile the image and save it in the DATA_PATH
   print("Tiling image and saving .jpeg files (for tile) and .json files (for bounding boxes)")
   tile_image(label_coords, im_arr, im_size, data_info)
 
@@ -159,57 +155,64 @@ def query_PAIRS(query_json, raw_data_path, path_to_credentials='./ibmpairspass.t
   query.download()
   query.create_layers()
 
-  # Extract from zip file, and then delete the zip file.
+  # Sort in reverse to get channels in R, G, B order.
+  data_keys = sorted(query.data.keys(), reverse=True)
+  images = [query.data[k] for k in data_keys]
+
+  # Delete the zip file.
   zip_file_path = os.path.join(raw_data_path, query.zipFilePath)
-  with zipfile.ZipFile(zip_file_path, 'r') as zip_ref:
-    zip_ref.extractall(raw_data_path)
   os.remove(zip_file_path)
+
+  return images
     
 
-def image_to_array(raw_data_path):
+def image_to_array(raw_data_path, images):
   """
-  Takes the image(s) downloaded in RAW_DATA_PATH and converts them into an 
-  np array. Deletes the raw images in the process.
+  Takes the list of raw image(s) downloaded from the query in RGB order, and converts 
+  them to an np array. Stores the entire area's image in raw_data_path.
 
   Returns: 
   A numpy array of the entire image.
   """
+  # If query doesn't return list of images, then extract images from download folder.
+  if images is None or images == []:
+    images = []
+    file_names = sorted(os.listdir(raw_data_path), reverse=True)
 
-  # Fetches images from download folder
-  images_arr = []
-  # Loop through files in downloads directory (if multiple)
-  file_names = os.listdir(raw_data_path)
-  file_names.sort(reverse=True)
-  for filename in file_names:
+    # Import gdal for .tiff images.
+    from osgeo import gdal
 
-    # Remove output.info
-    if filename.endswith(".info"):
-      path_to_file = os.path.join(raw_data_path, filename)
-      os.remove(path_to_file)
+    for filename in file_names:
+      # Remove output.info
+      if filename.endswith(".info"):
+        path_to_file = os.path.join(raw_data_path, filename)
+        os.remove(path_to_file)
 
-    if filename.endswith(".tiff"):
-      path_to_file = os.path.join(raw_data_path, filename)
-      dataset = gdal.Open(path_to_file)
-      raw_array = np.array(dataset.GetRasterBand(1).ReadAsArray())
+      if filename.endswith(".tiff"):
+        path_to_file = os.path.join(raw_data_path, filename)
+        dataset = gdal.Open(path_to_file)
+        raw_array = np.array(dataset.GetRasterBand(1).ReadAsArray())
+        images.append(raw_array)
 
-      # Remove masked rows and transpose so we can do the same to cols
-      row_mask = (raw_array > -128).any(axis=1)
-      arr_clean_rows = raw_array[row_mask].T
-      col_mask = (arr_clean_rows > -128).any(axis=1)
-      clean_array = (arr_clean_rows[col_mask]).T
-
-      # Append clean image array 
-      images_arr.append(clean_array.astype(np.uint8))
-      
-      # Remove the raw .tiff image
-      os.remove(path_to_file)
-      os.remove(path_to_file + '.json')
-
+        # Remove the raw .tiff image
+        os.remove(path_to_file)
+        os.remove(path_to_file + '.json')
+  
   # Return rgb image in np array format
-  im_arr = np.dstack(images_arr)
+  im_arr = np.dstack(images)
+  
+  # Clean the image of invalid values. 
+  # We use Red channel (0 index) to find -128 values (shouldn't matter which channel)
+  im_arr[np.isnan(im_arr)] = -128
+  row_mask = (im_arr[..., 0] > -128).any(axis=1)
+  clean_arr = im_arr[row_mask, :, :]
+  col_mask = (clean_arr[..., 0] > -128).any(axis=0)
+  clean_arr = clean_arr[:, col_mask, :]
+ 
+  # Add 128 to make all values positive.
+  im_arr = (clean_arr + 128).astype(np.uint8)
 
-  # Turns np array into jpg and saves into RAW_DATA_PATH
-  filename = os.path.join(raw_data_path,'Entire_Area.jpg')
+  filename = os.path.join(raw_data_path, 'Entire_Area.jpg')
   im = Image.fromarray(im_arr)
   im.save(filename)
 

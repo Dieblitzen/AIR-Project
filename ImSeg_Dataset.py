@@ -218,18 +218,32 @@ class ImSeg_Dataset(Dataset):
     all_pix = np.vstack((x, y)).T
 
     # Single, (C, w*h) 1d array of empty mask for all pixels in image, for each class, initialised
-    # to 0s. This will accumulate annotation markings for each building. 
-    pixel_annotations = np.zeros((C, w*h), dtype=bool)
+    # to 0s. This will accumulate annotation markings for each building by ORing the pixels.
+    pixel_annotations = np.zeros((C, h*w), dtype=bool)
     for super_class, sub_class_labels in labels_in_tile.items():
       for sub_class, labels in sub_class_labels.items():
         for label_nodes in labels:
-          p = Path(label_nodes)
-          one_building_pixels = p.contains_points(all_pix)
+          
+          one_label_pixels = []
+          if super_class == "highway":
+            # Draw the road as a thick line on a blank mask.
+            label_nodes = [tuple(point) for point in label_nodes]
+            road_mask = Image.fromarray(np.zeros((h, w)).astype(np.uint8))
+            drawer = ImageDraw.Draw(road_mask)
+            drawer.line(label_nodes, fill=1, width=3)
+
+            one_label_pixels = np.array(road_mask).astype(np.bool).flatten()
+
+          elif super_class == "building":
+            # Create a path enclosing the nodes, and then fill in a blank mask for building's mask
+            p = Path(label_nodes)
+            one_label_pixels = p.contains_points(all_pix)
+          else:
+            raise NotImplementedError("Only support roads and buildings currently.")
 
           # Index of label's class name in list of ordered seg_classes
           seg_class = self.seg_classes.index(self.get_seg_class_name(super_class, sub_class))
-          pixel_annotations[seg_class] = np.logical_or(pixel_annotations[seg_class], one_building_pixels)
-          # pixel_annotations = np.array(pixel_annotations)
+          pixel_annotations[seg_class] = np.logical_or(pixel_annotations[seg_class], one_label_pixels)
 
     pixel_annotations = pixel_annotations.astype(np.uint8).reshape((C, h, w))
 
@@ -317,6 +331,8 @@ class ImSeg_Dataset(Dataset):
     """
     Provides a visualization of the tile and its corresponding annotation/ label in one
     of the train/test/val directories as specified. 
+    Requires:
+      index: A valid index in one of train/test/val
     """
 
     path = self.train_path
@@ -382,8 +398,8 @@ if __name__ == "__main__":
   # Create dataset.
   if ds.data_sizes[0] == 0:
     ds.build_dataset()
-
   print(ds.seg_classes)
+
   # Visualize tiles.
   if args.tile:
     inds = random.sample(range(ds.data_sizes[0]), 20)
