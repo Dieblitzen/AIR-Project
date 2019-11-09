@@ -369,7 +369,7 @@ if __name__ == "__main__":
   
   ## Get the data
   data_path = input("Input the data_path directory (eg: data_path_white_plains): ")
-  data_path = '../' + data_path.strip()
+  data_path = './' + data_path.strip()
   data = Data(data_path)
   if not os.path.isdir(data_path):
     data = Data.build_dataset()
