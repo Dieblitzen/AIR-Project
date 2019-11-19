@@ -5,7 +5,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import numpy as np
 import json
 import tensorflow.compat.v1 as tf
-tf.disable_v2_behaviour()
+tf.disable_v2_behavior()
 import scipy.misc
 from ImSeg_Dataset import ImSeg_Dataset as Data
 import FCN.preprocess as preprocess
