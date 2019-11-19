@@ -4,7 +4,7 @@ import os, sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import numpy as np
 import json
-import tensorflow as tf
+import tensorflow.compat.v1 as tf
 import scipy.misc
 from ImSeg_Dataset import ImSeg_Dataset as Data
 import FCN.preprocess as preprocess
