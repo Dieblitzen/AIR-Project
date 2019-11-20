@@ -131,8 +131,9 @@ class PixorModel(object):
 
     # alpha is the weight of the less frequent class
     def custom_cross_entropy(self, class_labels, unnormalized_class_preds, class_weights, alpha=0.25, gamma=2.0):   
-        ce = tf.nn.sigmoid_cross_entropy_with_logits(labels=class_labels , logits=unnormalized_class_preds)
-        return tf.reduce_mean(ce)
+        loss = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=unnormalized_class_preds, labels=class_labels)
+        classify_loss = tf.reduce_mean(loss)
+        return classify_loss
 
 
     """ Standard transposed convolutional layer."""
