@@ -70,7 +70,7 @@ class ImSeg_Dataset(Dataset):
 
     # Create train, validation, test directories, each with an images and
     # annotations sub-directories
-    for i, directory in enumerate([self.train_path, self.val_path, self.test_path, self.out_path]):
+    for i, directory in enumerate([self.train_path, self.val_path, self.test_path]):
       if not os.path.isdir(directory):
         os.mkdir(directory)
 
@@ -83,6 +83,32 @@ class ImSeg_Dataset(Dataset):
       # Size of each training, val and test directories  
       num_samples = len([name for name in os.listdir(os.path.join(directory, 'images')) if name.endswith('.jpg')])
       self.data_sizes[i] = num_samples
+  
+
+  def create_model_out_dir(self, model_name):
+    """
+    Creates directories for metrics, ouput images and annotations for a
+    given model during training.
+    """
+    assert getattr(self, "model_path", default=None) == None,\
+      "Model name already set for this instance"
+
+    if not os.path.isdir(self.out_path):
+      os.mkdir(self.out_path)
+    
+    self.model_path = os.path.join(self.out_path, model_name)
+    if not os.path.isdir(self.model_path):
+      os.mkdir(self.model_path)
+    
+    self.metrics_path = os.path.join(self.model_path, 'metrics')
+    if not os.path.isdir(self.metrics_path):
+      os.mkdir(self.metrics_path)
+    
+    if not os.path.isdir(os.path.join(self.model_path, 'images')):
+      os.mkdir(os.path.join(self.model_path, 'images'))
+
+    if not os.path.isdir(os.path.join(self.model_path, 'annotations')):
+      os.mkdir(os.path.join(self.model_path, 'annotations'))
 
   
   def get_seg_class_name(self, super_class_name, sub_class_name, delim=':'):
