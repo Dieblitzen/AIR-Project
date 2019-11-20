@@ -1,7 +1,7 @@
 import tensorflow as tf
 import numpy as np
 
-
+TILE_SIZE = 224
 """ Implements smooth L1 on each dimension. Erases loss for negative pixel locations. """
 def smooth_L1(box_labels, box_preds, class_labels):
   difference = tf.subtract(box_preds, box_labels)
@@ -17,9 +17,9 @@ def decode_smooth_L1(box_labels, box_preds, class_labels):
   result = tf.where(tf.abs(difference) < 1, tf.multiply(0.5, tf.square(difference)), tf.abs(difference) - 0.5)
   
   # only compute bbox loss over positive ground truth boxes
-  reshaped_result = tf.reshape(result, [-1, 228, 228, 8])
+  reshaped_result = tf.reshape(result, [-1, TILE_SIZE, TILE_SIZE, 8])
   processed_result = tf.multiply(reshaped_result, class_labels)
-  reshaped_processed = tf.reshape(processed_result, [-1, 228, 228, 4, 2])
+  reshaped_processed = tf.reshape(processed_result, [-1, TILE_SIZE, TILE_SIZE, 4, 2])
 
   return tf.reduce_mean(reshaped_processed)
 

@@ -47,7 +47,7 @@ class PIXOR_Dataset(Dataset):
   by the PIXOR architecture 
   """
 
-  def __init__(self, data_path, train_val_test=(0.8, 0.1, 0.1), is_plot=False):
+  def __init__(self, data_path, train_val_test=(0.8, 0.1, 0.1), is_plot=True):
     """
     Initialises a 'PIXOR_Dataset' object by calling the superclass initialiser.
 
@@ -128,19 +128,16 @@ class PIXOR_Dataset(Dataset):
         for sub_class, labels in sub_class_labels.items(): #labels is all building
           if super_class == 'building':
             for label in labels: 
-              #each label is one set of points for a particular building
+              #each label is set of points for a particular building
               buildings_list.append((sub_class, label))
-              #print(m)
-    
-
+  
       # convert each node set to a (bbox as 4 corners)
-      # corner_boxes contains class label
       corner_boxes = self.get_rects(buildings_list)
 
       # convert each (bbox as 4 corners) to a PIXOR box
       pixor_boxes = self.create_pixor_labels(corner_boxes)
       # assign to pixels
-      box_labels, class_labels = self.boxes_in_pixels_2(pixor_boxes, corner_boxes, (IMAGE_SIZE, IMAGE_SIZE))
+      box_labels, class_labels = self.boxes_in_pixels(pixor_boxes, corner_boxes, (IMAGE_SIZE, IMAGE_SIZE))
 
       if self.is_plot:
         #ADD PLOTING 
@@ -180,9 +177,6 @@ class PIXOR_Dataset(Dataset):
         np.save(self.test_path + "/box_annotations/" + str(ind), box_labels)
         np.save(self.test_path + "/class_annotations/" + str(ind), class_labels)
       
-      
-
-  
   def create_pixor_labels(self, corner_labels):
     """ Input: Set of bounding boxes, where each box is repped as 4 corners.
         Output: Set of bounding boxes, where each box is repped PIXOR-style. """
@@ -195,11 +189,16 @@ class PIXOR_Dataset(Dataset):
     return bb_pixels
 
  
-# boxes_in_pixels_2: 
-# for every boundingbox with corners (x1, y1), (x2, y2), (x3, y3), (x4, y4), take the pixels (x, y) inbetween these four points
-# check if this pixel (x, y) using `inside_box`, if yes, then calculate pixel_box_labels and class label etc. If not, leave it alone.
-# set the pixel_box_labels of the pixels not in a box to some default value
-  def boxes_in_pixels_2(self, bboxes, corner_boxes, tile_shape):
+  def boxes_in_pixels(self, bboxes, corner_boxes, tile_shape):
+    """
+      Function that returns the class and bounding box label annotation for the given tile
+      Input: list of PIXOR-box annotation for the buildings, 
+             list of the 4 corners of each building,  
+             tupple that gives the shapce of each tile 
+      Output: numpy array with PIXOR box labels for each pixel in the tile
+              numpy array with class lables for each pixel in the tile
+
+    """
     logging.info("len of boxes_within_tile: " + str(len(bboxes)))
     
     pixel_box_labels = np.zeros((IMAGE_SIZE, IMAGE_SIZE, 6))
@@ -226,7 +225,6 @@ class PIXOR_Dataset(Dataset):
       print('x_coords', x_coords)
       print('y_coords', y_coords)
       
-
       for c in range(max(int(min(x_coords)), 0), min(int(max(x_coords)), 224)):
         for r in range(max(int(min(y_coords)), 0), min(int(max(y_coords)), 224)):
           pixel_xyform = (c, r)
@@ -297,8 +295,6 @@ class PIXOR_Dataset(Dataset):
   # 3. of the two remaining points, the closer one is the width vector, the farthest is length
   def get_two_closest_points(self, bbox):
       points = np.array(bbox[0:4])
-      # angles = [(i, calculate_angle(point, [p for p in points if not np.array_equal(p,point)])) for i, point in enumerate(points)]
-      # sorted_angles = sorted(angles, key= lambda pair: pair[1])
       corner = points[0]
 
       distances = [(i,np.linalg.norm(corner-c)) for i, c in enumerate(points)]

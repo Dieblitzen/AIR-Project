@@ -13,3 +13,5 @@ WhitePlains_data/
 **/*.xml
 **/*.png
 **/*.log
+pixor/*.npy
+*logfile
