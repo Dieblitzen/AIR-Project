@@ -181,6 +181,7 @@ if __name__ == "__main__":
           dataset.get_batch(indices[batch*batch_size : (batch+1)*batch_size], phase)
         
         # Feed inputs to model
+        img_input = np.array(img_input, dtype=np.float32)
         loss, preds = feed_model(model, loss_function, mean_loss, optimizer, img_input, label_masks)
         
         # Get metrics
@@ -205,8 +206,9 @@ if __name__ == "__main__":
                       'mean_recall':np.mean(epoch_recall)}
 
       # Break down IoU, precision and recall by class
-      for i, class_name in dataset.seg_classes:
-        for metric_type, metrics in {'iou':epoch_ious, 'prec':epoch_prec, 'recall':epoch_recall}:
+      for i, class_name in enumerate(dataset.seg_classes):
+        sub_metric_dict = {'iou':epoch_ious, 'prec':epoch_prec, 'recall':epoch_recall}
+        for metric_type, metrics in sub_metric_dict.items():
           class_metric_name = f'class_{class_name}_{metric_type}'
           class_metric = metrics[i]
           metrics_dict[class_metric_name] = class_metric
