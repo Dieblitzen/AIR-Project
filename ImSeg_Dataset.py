@@ -90,7 +90,7 @@ class ImSeg_Dataset(Dataset):
     Creates directories for metrics, ouput images and annotations for a
     given model during training.
     """
-    assert getattr(self, "model_path", default=None) == None,\
+    assert getattr(self, "model_path") == None,\
       "Model name already set for this instance"
 
     if not os.path.isdir(self.out_path):
