@@ -90,8 +90,11 @@ class ImSeg_Dataset(Dataset):
     Creates directories for metrics, ouput images and annotations for a
     given model during training.
     """
-    assert getattr(self, "model_path") == None,\
-      "Model name already set for this instance"
+    try:
+      getattr(self, "model_path")
+      raise AttributeError("Attribute model_path already created")
+    except AttributeError as e:
+      pass
 
     if not os.path.isdir(self.out_path):
       os.mkdir(self.out_path)
