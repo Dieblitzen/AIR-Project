@@ -190,24 +190,12 @@ def image_meanAP(predictions, truth, threshold):
             ratios = poly_compare(box, truth, truth_areas)
             best_index = np.argsort(ratios)[-1]
             best_IoU = ratios[best_index]
-    #         print("best_IoU")
-    #         print(best_IoU)
             if best_IoU >= threshold:
                 true_pos += 1
                 del truth[best_index]
             else:
-    #             print("false box")
-    #             print(box)
-    #             print(truth)
                 false_pos += 1
-#     print("num of true pos")
-#     print(true_pos)
-#     print("num of false pos")
-#     print(false_pos)
+
     print("len of truth")
     print(len(truth))
     return true_pos, false_pos
-#     meanAP = (true_pos)/(true_pos+false_pos) if (false_pos + true_pos) != 0. else 0  
-        
-    
-#     return meanAP

@@ -54,46 +54,9 @@ def pixor_to_corners_tf(box):
 
 
 
-def get_tile_and_label(index, base_path, mean, std, train_mean, train_std, norm):
-    """
-    Method 2)
-    Gets the tile and label associated with data index.
-
-    Returns:
-    (tile_array, dictionary_of_buildings)
-    """
-
-    # Open the jpeg image and save as numpy array
-    im = Image.open(base_path + '/images/' + str(index) + '.jpg')
-    im_arr = np.array(im)
-    im_arr = (im_arr - mean) / std
-    
-    class_annotation = np.load(base_path + '/class_annotations/' + str(index) + '.npy')
-    
-    # Open the json file and parse into dictionary of index -> buildings pairs
-    box_annotation = np.load(base_path + '/box_annotations/' + str(index) + '.npy')
-    # normalizing the positive labels if norm=True
-    if norm:
-        box_annotation = np.where(not class_annotation, (box_annotation - train_mean)/train_std, box_annotation)
-    
-    return im_arr, box_annotation, class_annotation
 
 
-def get_batch(start_index, batch_size, batch_indices, base_path, mean, std, train_mean, train_std, norm=True):
-    """
-    Method 3)
-    Gets batch of tiles and labels associated with data start_index.
 
-    Returns:
-    [(tile_array, list_of_buildings), ...]
-    """
-    batch_images = np.zeros((batch_size, TILE_SIZE, TILE_SIZE, 3))
-    batch_boxes = np.zeros((batch_size, TILE_SIZE, TILE_SIZE, 6))
-    batch_classes = np.zeros((batch_size, TILE_SIZE, TILE_SIZE, 1))
-    for i in range(start_index, start_index + batch_size):
-      batch_images[i % batch_size], batch_boxes[i % batch_size], batch_classes[i % batch_size] = get_tile_and_label(batch_indices[i], base_path, mean, std, train_mean, train_std, norm)
-
-    return batch_images, batch_boxes, batch_classes
 
 def find_angle(box):
     try:
@@ -230,17 +193,10 @@ if __name__ == "__main__":
     
     #A step to minimize our cost function
     model = PixorModel()
-    box_loss, pixor_loss, decode_loss, decode_pixor_loss = model.get_loss()
-    print('decode_loss.shape', decode_loss.shape)
+    # box_loss, pixor_loss, decode_loss, decode_pixor_loss = model.get_loss()
+    # print('decode_loss.shape', decode_loss.shape)
 
-    train_step = tf.train.AdamOptimizer(1e-4).minimize(pixor_loss)
-    decode_train_step = tf.train.AdamOptimizer(1e-4).minimize(decode_pixor_loss)
     
-    mean = np.load('train_mean.npy')
-    std = np.load('train_std.npy')
-    train_mean = np.load('train_mean.npy')
-    train_std = np.load('train_std.npy')
-
     # RUN THINGS
     saver = tf.train.Saver()
     with tf.Session() as sess:
@@ -250,46 +206,11 @@ if __name__ == "__main__":
         per_epoch_train_loss = 0
         lowest_val_loss = np.inf
 
-        batch_indices = np.arange(TRAIN_LEN)
-        val_batch_indices = np.arange(VAL_LEN)
+        
 
         mAP = 0.
         for epoch in range(NUM_EPOCHS):
-            per_epoch_train_loss = 0
-            per_epoch_box_loss = 0
-            per_epoch_class_loss = 0
-            
-            logging.info("\nepoch " + str(epoch))
-            print("\nepoch " + str(epoch))
-
-            np.random.shuffle(batch_indices)
-            
-            # RIGHT NOW IF DOESN'T PERFECTLY DIVIDE IT DOESN'T COVER REMAINING, MIGHT WANT TO CHANGE THIS
-            num_batches = TRAIN_LEN // BATCH_SIZE
-            
-            for batch_number in range(0, num_batches):
-                start_idx = batch_number * BATCH_SIZE
-                end_idx = start_idx + BATCH_SIZE
-                batch_images, batch_boxes, batch_classes = get_batch(start_idx, BATCH_SIZE, batch_indices, TRAIN_BASE_PATH, mean, std, train_mean, train_std)
-
-                # train on the batch
-                if epoch <= -1: 
-                    _, b_loss, c_loss, batch_train_loss= sess.run([train_step, box_loss, class_loss, pixor_loss],
-                    feed_dict =
-                        {x: batch_images,
-                        y_box: batch_boxes,
-                        y_class: batch_classes})
-                else:
-                    _, b_loss, c_loss, batch_train_loss= sess.run([decode_train_step, decode_loss, class_loss, decode_pixor_loss], 
-                    feed_dict =
-                        {x: batch_images,
-                        y_box: batch_boxes,
-                        y_class: batch_classes})
-
-                per_epoch_train_loss += batch_train_loss
-                per_epoch_box_loss += b_loss
-                per_epoch_class_loss += c_loss
-
+            box_preds, unnorm_class_preds, per_epoch_train_loss, per_epoch_box_loss, per_epoch_class_loss = model.train_one_epoch(epoch)
             # # at each epoch, print training and validation loss
             # val_images, val_boxes, val_classes = get_batch(0, VAL_LEN, val_batch_indices, VAL_BASE_PATH, mean, std, train_mean, train_std)
             # if epoch <= -1:

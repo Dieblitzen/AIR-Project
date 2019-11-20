@@ -6,7 +6,7 @@ TILE_SIZE = 224
 def smooth_L1(box_labels, box_preds, class_labels):
 	difference = tf.subtract(box_preds, box_labels)
 	result = tf.where(tf.abs(difference) < 1, tf.multiply(0.5, tf.square(difference)), tf.abs(difference) - 0.5)
-	class_label = tf.clip_by_value(class_label, clip_value_min=0, clip_value_max=1)
+	class_labels = tf.cast(tf.clip_by_value(class_labels, clip_value_min=0, clip_value_max=1), dtype=tf.float32)
 	# only compute bbox loss over positive ground truth boxes
 	processed_result = tf.multiply(result, class_labels)
 
@@ -18,7 +18,8 @@ def decode_smooth_L1(box_labels, box_preds, class_labels):
 	
 	# only compute bbox loss over positive ground truth boxes
 	reshaped_result = tf.reshape(result, [-1, TILE_SIZE, TILE_SIZE, 8])
-	class_label = tf.clip_by_value(class_label, clip_value_min=0, clip_value_max=1)
+	class_labels = tf.cast(tf.clip_by_value(class_labels, clip_value_min=0, clip_value_max=1), dtype=tf.float32)
+
 
 	processed_result = tf.multiply(reshaped_result, class_labels)
 	reshaped_processed = tf.reshape(processed_result, [-1, TILE_SIZE, TILE_SIZE, 4, 2])
