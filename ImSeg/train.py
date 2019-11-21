@@ -27,9 +27,13 @@ def calculate_iou_prec_recall(preds, label_masks, pred_threshold=0.5):
   intersection = np.logical_and(preds, label_masks)
   union = np.logical_or(preds, label_masks)
   iou_scores = np.sum(intersection, axis=0) / np.sum(union, axis=0)
+  iou_scores[np.isnan(iou_scores)] = 0.0
 
   precision = np.sum(intersection, axis=0)/np.sum(preds, axis=0)
+  precision[np.isnan(precision)] = 0.0
+
   recall = np.sum(intersection, axis=0)/np.sum(label_masks, axis=0)
+  recall[np.isnan(recall)] = 0.0
 
   return iou_scores, precision, recall
 
@@ -48,6 +52,7 @@ def log_metrics(metrics_dict, writer, epoch, phase):
     for metric_name, metric_value in metrics_dict.items():
       tf.summary.scalar(metric_name, metric_value, step=epoch+1)
 
+  print(f"Phase: {phase}")
   for metric_name, metric_value in metrics_dict.items():
     logging.info(f"Epoch {epoch+1}, Phase {phase}, {metric_name}: {metric_value}")
     
@@ -94,9 +99,9 @@ def train_step(model, loss_function, train_loss, optimizer, images, labels):
   gradients = tape.gradient(loss, model.trainable_variables)
   optimizer.apply_gradients(zip(gradients, model.trainable_variables))
 
-  loss = train_loss(loss)
+  train_loss(loss)
 
-  return loss, preds
+  return preds
 
 """
 Performs one validation step over a batch.
@@ -106,9 +111,9 @@ def val_step(model, loss_function, val_loss, optimizer, images, labels):
   preds = model(images)
   loss = loss_function(labels, preds)
 
-  loss = val_loss(loss)
+  val_loss(loss)
 
-  return loss, preds
+  return preds
 
 
 if __name__ == "__main__":
@@ -164,15 +169,15 @@ if __name__ == "__main__":
       if phase == "train":
         num_batches, indices = num_train_batches, train_indices
         writer = train_summary_writer
-        mean_loss = train_loss 
+        epoch_loss = train_loss 
         feed_model = train_step 
       else:
         num_batches, indices = num_val_batches, val_indices
         writer = val_summary_writer
-        mean_loss = val_loss
+        epoch_loss = val_loss
         feed_model = val_step
 
-      epoch_loss = 0.0
+      # Initialise non loss metrics
       epoch_ious = epoch_prec = epoch_recall = np.zeros((num_classes))
 
       # Actual train/val over all batches.
@@ -182,25 +187,23 @@ if __name__ == "__main__":
         
         # Feed inputs to model
         img_input = np.array(img_input, dtype=np.float32)
-        loss, preds = feed_model(model, loss_function, mean_loss, optimizer, img_input, label_masks)
+        preds = feed_model(model, loss_function, epoch_loss, optimizer, img_input, label_masks)
         
         # Get metrics
         preds = preds.numpy()
         ious, prec, recall = calculate_iou_prec_recall(preds, label_masks, pred_threshold=0.5)
 
         # Update epoch metrics
-        epoch_loss += loss.numpy()
         epoch_ious += ious
         epoch_prec += prec
         epoch_recall += recall
       
-      epoch_loss = epoch_loss/num_batches
       epoch_ious = epoch_ious/num_batches
       epoch_prec = epoch_prec/num_batches
       epoch_recall = epoch_recall/num_batches
 
       # Add loss to metrics 
-      metrics_dict = {'epoch_loss':epoch_loss, 
+      metrics_dict = {'epoch_loss':epoch_loss.result(), 
                       'mean_iou':np.mean(epoch_ious),
                       'mean_prec':np.mean(epoch_prec), 
                       'mean_recall':np.mean(epoch_recall)}
@@ -217,9 +220,12 @@ if __name__ == "__main__":
       log_metrics(metrics_dict, writer, epoch, phase)
 
       # Checkpoint model weights if loss is good
-      if phase == 'val' and epoch_loss < best_val_loss:
-        best_val_loss = epoch_loss
+      if phase == 'val' and epoch_loss.result() < best_val_loss:
+        best_val_loss = epoch_loss.result()
         model.save_weights(os.path.join(dataset.model_path, model_name+'.ckpt'))
 
+    # End of epoch, reset loss.
+    train_loss.reset_states()
+    val_loss.reset_states()
     print("\n")
 
