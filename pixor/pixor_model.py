@@ -118,10 +118,6 @@ class PixorModel(object):
         self.train_step = tf.train.AdamOptimizer(1e-4).minimize(self.pixor_loss)
         self.decode_train_step = tf.train.AdamOptimizer(1e-4).minimize(self.decode_pixor_loss)
 
-        self.mean = np.load('mean.npy')
-        self.std = np.load('std.npy')
-        self.train_mean = np.load('train_mean.npy')
-        self.train_std = np.load('train_std.npy')
 
     def get_loss(self):
         pos_weight = 1
@@ -154,7 +150,7 @@ class PixorModel(object):
         return tf.layers.conv2d_transpose(inputs=input, filters=out_channels,
             kernel_size=filter_size, strides=stride, padding='same', activation=activation) 
 
-    def train_one_epoch(self, epoch, sess):
+    def train_one_epoch(self, epoch, sess, train_path):
         per_epoch_train_loss = 0
         per_epoch_box_loss = 0
         per_epoch_class_loss = 0
@@ -172,7 +168,7 @@ class PixorModel(object):
         for batch_number in range(0, num_batches):
             start_idx = batch_number * BATCH_SIZE
             end_idx = start_idx + BATCH_SIZE
-            batch_images, batch_boxes, batch_classes = self.get_batch(start_idx, batch_indices)
+            batch_images, batch_boxes, batch_classes = get_batch(start_idx, TRAIN_BASE_PATH)
 
             _, b_loss, c_loss, batch_train_loss, box_preds, unnorm_class_preds = \
             sess.run([self.decode_train_step, self.decode_loss, self.class_loss, self.decode_pixor_loss, self.output_box, self.output_class], 
@@ -188,43 +184,53 @@ class PixorModel(object):
         
         return box_preds, unnorm_class_preds, per_epoch_train_loss, per_epoch_box_loss, per_epoch_class_loss
 
-    def get_batch(self, start_index, batch_indices, norm=True):
-        """
-        Method 3)
-        Gets batch of tiles and labels associated with data start_index.
+    def evaluate(self, sess, val_base_path):
+        val_images, val_boxes, val_classes = get_batch(0, val_base_path)
+        val_loss, box_preds, unnorm_class_preds = sess.run([self.decode_pixor_loss, self.output_box, self.output_class], feed_dict = {self.x: val_images, self.y_box: val_boxes, self.y_class: val_classes})
+        return val_loss, box_preds, unnorm_class_preds
+   
+def get_tile_and_label(index, norm, path=TRAIN_BASE_PATH):
+    """
+    Method 2)
+    Gets the tile and label associated with data index.
 
-        Returns:
-        [(tile_array, list_of_buildings), ...]
-        """
-        batch_images = np.zeros((BATCH_SIZE, TILE_SIZE, TILE_SIZE, 3))
-        batch_boxes = np.zeros((BATCH_SIZE, TILE_SIZE, TILE_SIZE, 6))
-        batch_classes = np.zeros((BATCH_SIZE, TILE_SIZE, TILE_SIZE, 1))
-        for i in range(start_index, start_index + BATCH_SIZE):
-            batch_images[i % BATCH_SIZE], batch_boxes[i % BATCH_SIZE], batch_classes[i % BATCH_SIZE] = self.get_tile_and_label(batch_indices[i], norm)
+    Returns:
+    (tile_array, dictionary_of_buildings)
+    """
+    mean = np.load('mean.npy')
+    std = np.load('std.npy')
+    train_mean = np.load('train_mean.npy')
+    train_std = np.load('train_std.npy')
 
-        return batch_images, batch_boxes, batch_classes
+    # Open the jpeg image and save as numpy array
+    im = Image.open(osp.join(path, f'/images/{index}.jpg')
+    im_arr = np.array(im)
+    im_arr = (im_arr - mean) / std
+    
+    class_annotation = np.load(osp.join(path, f'/class_annotations/{index}.npy'))
+    # Open the json file and parse into dictionary of index -> buildings pairs
+    box_annotation = np.load(osp.join(path, f'/box_annotations/{index}.npy'))
+    # normalizing the positive labels if norm=True
+    if norm:
+        clipped = np.clip(class_annotation, 0, 1)
+        box_annotation = clipped * (box_annotation - train_mean)/train_std + (1 - clipped) * box_annotation
+    return im_arr, box_annotation, class_annotation
 
-    def get_tile_and_label(self, index, norm):
-        """
-        Method 2)
-        Gets the tile and label associated with data index.
+def get_batch(start_index, path=TRAIN_BASE_PATH, norm=True):
+    """
+    Method 3)
+    Gets batch of tiles and labels associated with data start_index.
 
-        Returns:
-        (tile_array, dictionary_of_buildings)
-        """
+    Returns:
+    [(tile_array, list_of_buildings), ...]
+    """
+    length = len(os.listdir(osp.join(path, 'images')))
+    batch_indices = np.arange(length)
 
-        # Open the jpeg image and save as numpy array
-        im = Image.open(TRAIN_BASE_PATH + '/images/' + str(index) + '.jpg')
-        im_arr = np.array(im)
-        im_arr = (im_arr - self.mean) / self.std
-        
-        class_annotation = np.load(TRAIN_BASE_PATH + '/class_annotations/' + str(index) + '.npy')
-        class_annotation = np.expand_dims(class_annotation, -1)
-        # Open the json file and parse into dictionary of index -> buildings pairs
-        box_annotation = np.load(TRAIN_BASE_PATH + '/box_annotations/' + str(index) + '.npy')
+    batch_images = np.zeros((BATCH_SIZE, TILE_SIZE, TILE_SIZE, 3))
+    batch_boxes = np.zeros((BATCH_SIZE, TILE_SIZE, TILE_SIZE, 6))
+    batch_classes = np.zeros((BATCH_SIZE, TILE_SIZE, TILE_SIZE, 1))
+    for i in range(start_index, start_index + BATCH_SIZE):
+        batch_images[i % BATCH_SIZE], batch_boxes[i % BATCH_SIZE], batch_classes[i % BATCH_SIZE] = get_tile_and_label(batch_indices[i], norm, path)
 
-        # normalizing the positive labels if norm=True
-        if norm:
-            clipped = np.clip(class_annotation, 0, 1)
-            box_annotation = clipped * (box_annotation - self.train_mean)/self.train_std + (1 - clipped) * box_annotation
-        return im_arr, box_annotation, class_annotation
+    return batch_images, batch_boxes, batch_classes

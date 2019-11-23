@@ -23,9 +23,8 @@ TILE_SIZE = 224
 IMAGE_SIZE = (TILE_SIZE, TILE_SIZE, 3)
 LOGFILE_NAME = "PIXOR_logfile"
 
-TRAIN_BASE_PATH = '../data_path/pixor/train'
-VAL_BASE_PATH = '../data_path/pixor/train'
-TRAIN_LEN = len(os.listdir(TRAIN_BASE_PATH))
+TRAIN_BASE_PATH = os.join.path('..', 'data_path', 'pixor', 'train')
+VAL_BASE_PATH = os.join.path('..', 'data_path', 'pixor', 'train')
 VAL_LEN = len(os.listdir(VAL_BASE_PATH))
 ##### End of SETTINGS #####
 
@@ -203,11 +202,10 @@ if __name__ == "__main__":
 
         mAP = 0.
         for epoch in range(NUM_EPOCHS):
-            box_preds, unnorm_class_preds, per_epoch_train_loss, per_epoch_box_loss, per_epoch_class_loss = model.train_one_epoch(epoch, sess)
+            box_preds, unnorm_class_preds, per_epoch_train_loss, per_epoch_box_loss, per_epoch_class_loss = model.train_one_epoch(epoch, sess, TRAIN_BASE_PATH)
             # # at each epoch, print training and validation loss
-            # val_images, val_boxes, val_classes = get_batch(0, VAL_LEN, val_batch_indices, VAL_BASE_PATH, mean, std, train_mean, train_std)
-            # val_loss, box_preds, unnorm_class_preds = sess.run([decode_pixor_loss, output_box, output_class], feed_dict = {x: val_images, y_box: val_boxes, y_class: val_classes})
-            
+            val_loss, box_preds, unnorm_class_preds = model.evaluate(sess, VAL_BASE_PATH)
+
             # logging.info('epoch %d, training loss %g' % (epoch, per_epoch_train_loss))
             # logging.info('epoch %d, training class loss %g' % (epoch, per_epoch_class_loss))
             # logging.info('epoch %d, training box loss %g' % (epoch, per_epoch_box_loss))
