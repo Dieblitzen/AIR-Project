@@ -132,8 +132,8 @@ if __name__ == "__main__":
 
   ## Summary writers for training/validation
   dataset.create_model_out_dir(model_name)
-  train_summary_writer = tf.summary.create_file_writer(os.path.join(dataset.metrics_path), name='train')
-  val_summary_writer = tf.summary.create_file_writer(os.path.join(dataset.metrics_path), name='val')
+  train_summary_writer = tf.summary.create_file_writer(os.path.join(dataset.metrics_path, 'train'))
+  val_summary_writer = tf.summary.create_file_writer(os.path.join(dataset.metrics_path, 'val'))
   # Set up Logger
   logging.basicConfig(filename=os.path.join(dataset.metrics_path, f"{model_name}.log"), level=logging.INFO)
 
