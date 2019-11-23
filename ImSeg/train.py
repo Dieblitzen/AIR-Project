@@ -157,7 +157,7 @@ if __name__ == "__main__":
 
   best_val_loss = float('inf')
   for epoch in range(epochs):
-    print(f"Epoch {epoch+1}")
+    print(f"\nEpoch {epoch+1}")
 
     train_indices, val_indices = list(range(num_train)), list(range(num_val))
     np.random.shuffle(train_indices)
