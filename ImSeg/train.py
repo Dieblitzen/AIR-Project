@@ -222,7 +222,7 @@ if __name__ == "__main__":
       # Checkpoint model weights if loss is good
       if phase == 'val' and epoch_loss.result() < best_val_loss:
         best_val_loss = epoch_loss.result()
-        model.save_weights(os.path.join(dataset.model_path, model_name+'.ckpt'))
+        model.save_weights(os.path.join(dataset.model_path, model_name))
 
     # End of epoch, reset loss.
     train_loss.reset_states()
