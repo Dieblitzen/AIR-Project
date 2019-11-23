@@ -215,5 +215,6 @@ def create_refine_net(backbone, refine_net_blocks, num_classes, input_shape=(Non
   # Reduce number of channels in final convolution, and then resize to original resolution.
   x = layers.Conv2D(num_classes, (1,1), strides=(1,1), padding='same')(prev_refine_net_out)
   x = tf.image.resize(x, size=(input_shape[0], input_shape[1]))
+  x = layers.Conv2D(num_classes, (1,1), strides=(1,1), padding='same')(x)
   
   return Model(inputs=img_input, outputs=x)
