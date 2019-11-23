@@ -5,11 +5,13 @@ import numpy as np
 DATA_GEN_X =ImageDataGenerator(rotation_range=90,
                                horizontal_flip=True,
                                vertical_flip=True,
+                               channel_shift_range=64,
                                fill_mode='constant',
                                cval=0)
 DATA_GEN_Y = ImageDataGenerator(rotation_range=90,
                                horizontal_flip=True,
                                vertical_flip=True,
+                               channel_shift_range=1e-10,
                                fill_mode='constant', 
                                cval=0)
 
