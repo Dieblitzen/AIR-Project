@@ -53,11 +53,6 @@ def pixor_to_corners_tf(box):
     return rotated_corners
 
 
-
-
-
-
-
 def find_angle(box):
     try:
         angle = np.arccos(box[2])
@@ -206,11 +201,9 @@ if __name__ == "__main__":
         per_epoch_train_loss = 0
         lowest_val_loss = np.inf
 
-        
-
         mAP = 0.
         for epoch in range(NUM_EPOCHS):
-            box_preds, unnorm_class_preds, per_epoch_train_loss, per_epoch_box_loss, per_epoch_class_loss = model.train_one_epoch(epoch)
+            box_preds, unnorm_class_preds, per_epoch_train_loss, per_epoch_box_loss, per_epoch_class_loss = model.train_one_epoch(epoch, sess)
             # # at each epoch, print training and validation loss
             # val_images, val_boxes, val_classes = get_batch(0, VAL_LEN, val_batch_indices, VAL_BASE_PATH, mean, std, train_mean, train_std)
             # if epoch <= -1:
@@ -219,9 +212,9 @@ if __name__ == "__main__":
             # else:
             #     val_loss, box_preds, unnorm_class_preds = sess.run([decode_pixor_loss, output_box, output_class], feed_dict = {x: val_images, y_box: val_boxes, y_class: val_classes})
             
-            logging.info('epoch %d, training loss %g' % (epoch, per_epoch_train_loss))
-            logging.info('epoch %d, training class loss %g' % (epoch, per_epoch_class_loss))
-            logging.info('epoch %d, training box loss %g' % (epoch, per_epoch_box_loss))
+            # logging.info('epoch %d, training loss %g' % (epoch, per_epoch_train_loss))
+            # logging.info('epoch %d, training class loss %g' % (epoch, per_epoch_class_loss))
+            # logging.info('epoch %d, training box loss %g' % (epoch, per_epoch_box_loss))
             # logging.info('epoch %d, validation loss %g' % (epoch, val_loss))
             
             print('epoch %d, training loss %g' % (epoch, per_epoch_train_loss))
@@ -236,20 +229,20 @@ if __name__ == "__main__":
             pos_indices = pos_indices[:-1]
                     
             # checkpoint model if best so far
-            if val_loss < lowest_val_loss:
-                lowest_val_loss = val_loss
-                saver.save(sess, 'ckpt/', global_step=epoch)
+            # if val_loss < lowest_val_loss:
+            #     lowest_val_loss = val_loss
+            #     saver.save(sess, 'ckpt/', global_step=epoch)
 
-        ap = average_precision_score(val_classes.flatten(), class_preds.flatten())
-        precision = precision_score(val_classes.flatten(), np.round(class_preds.flatten()))
-        recall = recall_score(val_classes.flatten(), np.round(class_preds.flatten()))
-        print("ap: " + str(ap))
-        print("precision: " + str(precision))
-        print("recall: " + str(recall))
+        # ap = average_precision_score(val_classes.flatten(), class_preds.flatten())
+        # precision = precision_score(val_classes.flatten(), np.round(class_preds.flatten()))
+        # recall = recall_score(val_classes.flatten(), np.round(class_preds.flatten()))
+        # print("ap: " + str(ap))
+        # print("precision: " + str(precision))
+        # print("recall: " + str(recall))
         
-        logging.info("ap: " + str(ap))
-        logging.info("precision: " + str(precision))
-        logging.info("recall: " + str(recall))
+        # logging.info("ap: " + str(ap))
+        # logging.info("precision: " + str(precision))
+        # logging.info("recall: " + str(recall))
             
     #save outputs for visualizing/calculate MAP (skipping eval.py)
         if epoch % 25 == 0 and epoch != 0 and epoch != 25:

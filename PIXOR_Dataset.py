@@ -147,7 +147,7 @@ class PIXOR_Dataset(Dataset):
         f.add_subplot(1, 2, 1)
         plt.imshow(im_arr)
         f.add_subplot(1, 2, 2)
-        plt.imshow(class_labels)
+        plt.imshow(np.squeeze(class_labels))
         plt.show(block=True)
 
 
@@ -202,7 +202,7 @@ class PIXOR_Dataset(Dataset):
     logging.info("len of boxes_within_tile: " + str(len(bboxes)))
     
     pixel_box_labels = np.zeros((IMAGE_SIZE, IMAGE_SIZE, 6))
-    pixel_class_labels = np.zeros((IMAGE_SIZE, IMAGE_SIZE))
+    pixel_class_labels = np.zeros((IMAGE_SIZE, IMAGE_SIZE, 1))
 
     counter = 0
     sec_counter = 0
@@ -212,8 +212,8 @@ class PIXOR_Dataset(Dataset):
 
     print("Bboxes:", len(bboxes))
     for bbox_index in range(0, len(bboxes)):
-      dx = IMAGE_SIZE
-      dy = IMAGE_SIZE
+      dx = 0
+      dy = 0
       heading = 0
       width = 0
       length = 0

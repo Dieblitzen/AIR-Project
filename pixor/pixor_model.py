@@ -15,11 +15,10 @@ import os.path as osp
 from smooth_L1 import smooth_L1, decode_smooth_L1
 
 TILE_SIZE = 224
-NUM_CLASSES = 3
-BATCH_SIZE = 32
+NUM_CLASSES = 6
+BATCH_SIZE = 1
 TRAIN_BASE_PATH = '../data_path/pixor/train'
 TRAIN_LEN = len(os.listdir(osp.join(TRAIN_BASE_PATH, 'images')))
-print('TRAIN_LEN', TRAIN_LEN)
 
 class PixorModel(object):
 
@@ -128,7 +127,7 @@ class PixorModel(object):
         pos_weight = 1
         neg_weight = 1
         class_loss_result = self.custom_cross_entropy(class_labels=self.y_class, unnormalized_class_preds=self.output_class, class_weights=(pos_weight, neg_weight))
-        class_loss = 10 * class_loss_result
+        self.class_loss = 10 * class_loss_result
         smooth_L1_loss = 100 * smooth_L1(box_labels=self.y_box, box_preds=self.output_box, class_labels=self.y_class)
         
         self.decoded_output = visualize_data.tf_pixor_to_corners(self.output_box)
@@ -137,8 +136,8 @@ class PixorModel(object):
         self.decode_loss = 100 * decode_smooth_L1(box_labels=self.decoded_labels, box_preds=self.decoded_output, class_labels=self.y_class)
         
         self.box_loss = smooth_L1_loss
-        self.pixor_loss = class_loss + self.box_loss
-        self.decode_pixor_loss = class_loss + self.decode_loss
+        self.pixor_loss = self.class_loss + self.box_loss
+        self.decode_pixor_loss = self.class_loss + self.decode_loss
 
         # return self.box_loss, self.pixor_loss, decode_loss, decode_pixor_loss
 
@@ -147,6 +146,7 @@ class PixorModel(object):
         squeezed_y = tf.squeeze(class_labels, -1) 
         loss = tf.nn.sparse_softmax_cross_entropy_with_logits(logits=unnormalized_class_preds, labels=squeezed_y)
         classify_loss = tf.reduce_mean(loss)
+
         return classify_loss
 
     """ Standard transposed convolutional layer."""
@@ -154,7 +154,7 @@ class PixorModel(object):
         return tf.layers.conv2d_transpose(inputs=input, filters=out_channels,
             kernel_size=filter_size, strides=stride, padding='same', activation=activation) 
 
-    def train_one_epoch(self, epoch):
+    def train_one_epoch(self, epoch, sess):
         per_epoch_train_loss = 0
         per_epoch_box_loss = 0
         per_epoch_class_loss = 0
@@ -167,20 +167,13 @@ class PixorModel(object):
         np.random.shuffle(batch_indices)
         
         # RIGHT NOW IF DOESN'T PERFECTLY DIVIDE IT DOESN'T COVER REMAINING, MIGHT WANT TO CHANGE THIS
-        num_batches = TRAIN_LEN // BATCH_SIZE
+        # num_batches = TRAIN_LEN // BATCH_SIZE
+        num_batches = 1
         for batch_number in range(0, num_batches):
             start_idx = batch_number * BATCH_SIZE
             end_idx = start_idx + BATCH_SIZE
             batch_images, batch_boxes, batch_classes = self.get_batch(start_idx, batch_indices)
 
-            # # train on the batch
-            # if epoch <= -1: 
-            #     _, b_loss, c_loss, batch_train_loss= sess.run([self.train_step, self.box_loss, self.class_loss, self.pixor_loss],\
-            #     feed_dict =
-            #         {self.x: batch_images,
-            #         self.y_box: batch_boxes,
-            #         self.y_class: batch_classes})
-            # else:
             _, b_loss, c_loss, batch_train_loss, box_preds, unnorm_class_preds = \
             sess.run([self.decode_train_step, self.decode_loss, self.class_loss, self.decode_pixor_loss, self.output_box, self.output_class], 
             feed_dict =
@@ -191,6 +184,7 @@ class PixorModel(object):
             per_epoch_train_loss += batch_train_loss
             per_epoch_box_loss += b_loss
             per_epoch_class_loss += c_loss
+
         
         return box_preds, unnorm_class_preds, per_epoch_train_loss, per_epoch_box_loss, per_epoch_class_loss
 
