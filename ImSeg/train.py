@@ -99,7 +99,7 @@ def train_step(model, loss_function, train_loss, optimizer, images, labels):
   gradients = tape.gradient(loss, model.trainable_variables)
   optimizer.apply_gradients(zip(gradients, model.trainable_variables))
 
-  train_loss(loss)
+  train_loss.update_state(loss)
 
   return preds
 
@@ -111,7 +111,7 @@ def val_step(model, loss_function, val_loss, optimizer, images, labels):
   preds = model(images)
   loss = loss_function(labels, preds)
 
-  val_loss(loss)
+  val_loss.update_state(loss)
 
   return preds
 
@@ -178,8 +178,9 @@ if __name__ == "__main__":
         feed_model = val_step
 
       # Initialise non loss metrics
-      epoch_ious = np.zeros((num_classes))
-      epoch_prec, epoch_recall = np.zeros((num_classes)), np.zeros((num_classes))
+      epoch_ious = tf.keras.metrics.MeanTensor()
+      epoch_prec = tf.keras.metrics.MeanTensor()
+      epoch_recall = tf.keras.metrics.MeanTensor()
 
       # Actual train/val over all batches.
       for batch in range(num_batches):
@@ -195,26 +196,22 @@ if __name__ == "__main__":
         ious, prec, recall = calculate_iou_prec_recall(preds, label_masks, pred_threshold=0.5)
 
         # Update epoch metrics
-        epoch_ious += ious
-        epoch_prec += prec
-        epoch_recall += recall
+        epoch_ious.update_state(ious)
+        epoch_prec.update_state(prec)
+        epoch_recall.update_state(recall)
       
-      epoch_ious = epoch_ious/num_batches
-      epoch_prec = epoch_prec/num_batches
-      epoch_recall = epoch_recall/num_batches
-
       # Add loss to metrics 
       metrics_dict = {'epoch_loss':epoch_loss.result(), 
-                      'mean_iou':np.mean(epoch_ious),
-                      'mean_prec':np.mean(epoch_prec), 
-                      'mean_recall':np.mean(epoch_recall)}
+                      'mean_iou':np.mean(epoch_ious.result().numpy()),
+                      'mean_prec':np.mean(epoch_prec.result().numpy()), 
+                      'mean_recall':np.mean(epoch_recall.result().numpy())}
 
       # Break down IoU, precision and recall by class
       for i, class_name in enumerate(dataset.seg_classes):
         sub_metric_dict = {'iou':epoch_ious, 'prec':epoch_prec, 'recall':epoch_recall}
         for metric_type, metrics in sub_metric_dict.items():
           class_metric_name = f'class_{class_name}_{metric_type}'
-          class_metric = metrics[i]
+          class_metric = metrics[i].result().numpy()
           metrics_dict[class_metric_name] = class_metric
       
       # Log metrics, print metrics, write metrics to summary_writer
@@ -225,8 +222,11 @@ if __name__ == "__main__":
         best_val_loss = epoch_loss.result()
         model.save_weights(os.path.join(dataset.checkpoint_path, model_name))
 
-    # End of epoch, reset loss.
-    train_loss.reset_states()
-    val_loss.reset_states()
+      # End of epoch, reset metrics
+      epoch_loss.reset_states()
+      epoch_ious.reset_states()
+      epoch_prec.reset_states()
+      epoch_recall.reset_states()
+
     print("\n")
 
