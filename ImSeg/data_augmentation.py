@@ -1,21 +1,52 @@
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 import tensorflow as tf
+import numpy as np
 
-datagenX = ImageDataGenerator(featurewise_center=True,
-                              rotation_range=90,
-                              channel_shift_range=150.0,
-                              horizontal_flip=True,
-                              vertical_flip=True,
-                              fill_mode='constant', 
-                              cval=190)
-datagenY = ImageDataGenerator(rotation_range=90,
-                              channel_shift_range=150.0,
-                              horizontal_flip=True,
-                              vertical_flip=True,
-                              fill_mode='constant', 
-                              cval=190)
+DATA_GEN_X =ImageDataGenerator(rotation_range=90,
+                               horizontal_flip=True,
+                               vertical_flip=True,
+                               fill_mode='constant',
+                               cval=0)
+DATA_GEN_Y = ImageDataGenerator(rotation_range=90,
+                               horizontal_flip=True,
+                               vertical_flip=True,
+                               fill_mode='constant', 
+                               cval=0)
 
-seed = tf.random.uniform(1e6)
-for xBatch, yBatch in (datagenX.flow(Xs, batch_size=1, seed=seed),
-                       datagenY.flow(Ys, batch_size=1, seed=seed)):
-    # stuff
+def augment_data(images, annotations, multiplier=1, seed=0):
+  """
+  Augments images and label masks
+  Requires:
+    images: n x IMAGE_SIZE x IMAGE_SIZE x 3 numpy arrays of images
+    annotations: n x IMAGE_SIZE x IMAGE_SIZE x c numpy array of masks
+      where c is the number of classes 
+  Optional:
+  -multiplier (default 1): number of times each image should be augmented
+  -seed (default 0): seed for random image augmentation
+  Returns:
+    aug_images: (multiplier * n) x IMAGE_SIZE x IMAGE_SIZE x 3
+      of numpy arrays of augmented images
+    aug_annotations: (multiplier * n) x IMAGE_SIZE x IMAGE_SIZE x c
+      numpy array of masks where c is the number of classes 
+  """
+  batch_size = images.shape[0]
+  imageGen = DATA_GEN_X.flow(images, batch_size=batch_size, seed=seed)
+  labelGens = []
+  
+  for i in range(annotations.shape[3]):
+    labelGens.append(DATA_GEN_Y.flow(annotations[:,:,:,i:i + 1], batch_size=batch_size, seed=seed))
+
+  for i in range(multiplier):
+    aug_images = imageGen.next()
+
+    aug_labels = [] # (c length list of n x IMAGE_SIZE x IMAGE_SIZE x 1) -> list of n x IMAGE_SIZE x IMAGE_SIZE x c
+    for classLabelGen in labelGens:
+      aug_labels.append(classLabelGen.next())
+
+    aug_labels = np.array(aug_labels) # c x n x Img x Img x 1
+    aug_labels = np.moveaxis(aug_labels[:,:,:,:, 0], 0, -1)
+    
+    images = np.concatenate((images, aug_images))
+    annotations = np.concatenate((annotations, aug_labels))
+
+  return images, annotations

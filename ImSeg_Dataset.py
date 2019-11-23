@@ -7,6 +7,7 @@ import numpy as np
 from PIL import Image, ImageDraw
 from shutil import copyfile
 from Dataset import Dataset
+from ImSeg.data_augmentation import augment_data
 
 # Visualising
 import matplotlib.pyplot as plt
@@ -276,7 +277,7 @@ class ImSeg_Dataset(Dataset):
     return {"annotation": pixel_annotations.tolist()}
 
 
-  def get_batch(self, indices, train_val_test):
+  def get_batch(self, indices, train_val_test, is_augment=True, augment_data_seed=0):
     """
     Returns the batch of images and labels associated with the images,
     based on the list of indicies to look up.
@@ -304,13 +305,20 @@ class ImSeg_Dataset(Dataset):
 
       # Reshape to (h,w,C) dimensions
       with open(os.path.join(path, 'annotations', f'{i}.json'), 'r') as ann:
-        annotation = np.array(json.load(ann)['annotation']).T
+        annotation = np.moveaxis(np.array(json.load(ann)['annotation']), 0, -1)
 
       images.append(image)
       annotations.append(annotation)
 
     # Return tuple by stacking them into blocks
-    return (np.stack(images), np.stack(annotations))
+    images, annotations = np.stack(images), np.stack(annotations)
+
+    if is_augment:
+      # call function from data_augmentation.pyplot
+      images, annotations = augment_data(images, annotations, seed=augment_data_seed)
+
+    # TODO: Normalize images
+    return images, annotations
 
 
   def save_preds(self, image_indices, preds, image_dir="val"):
