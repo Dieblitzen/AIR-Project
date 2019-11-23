@@ -76,11 +76,11 @@ def passed_arguments():
                       help='Path to directory where extracted dataset is stored.')
   parser.add_argument('--epochs',
                       type=int,
-                      default=100,
+                      default=200,
                       help='Number of epochs to train the model.')
   parser.add_argument('--batch_size',
                       type=int,
-                      default=32,
+                      default=16,
                       help='Size of batches to feed into model.')
   args = parser.parse_args()
   return args
@@ -210,8 +210,9 @@ if __name__ == "__main__":
       for i, class_name in enumerate(dataset.seg_classes):
         sub_metric_dict = {'iou':epoch_ious, 'prec':epoch_prec, 'recall':epoch_recall}
         for metric_type, metrics in sub_metric_dict.items():
+          metrics = metrics.result().numpy()
           class_metric_name = f'class_{class_name}_{metric_type}'
-          class_metric = metrics[i].result().numpy()
+          class_metric = metrics[i]
           metrics_dict[class_metric_name] = class_metric
       
       # Log metrics, print metrics, write metrics to summary_writer
