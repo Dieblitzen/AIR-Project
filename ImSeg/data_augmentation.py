@@ -24,10 +24,12 @@ def augment_data(images, annotations, multiplier=1, seed=0):
   -multiplier (default 1): number of times each image should be augmented
   -seed (default 0): seed for random image augmentation
   Returns:
-    aug_images: (multiplier * n) x IMAGE_SIZE x IMAGE_SIZE x 3
+    Returns a batch of the origial images (n images)
+       and augmented images (multiplier * n images)
+    aug_images: ((multiplier + 1) * n) x IMAGE_SIZE x IMAGE_SIZE x 3
       of numpy arrays of augmented images
-    aug_annotations: (multiplier * n) x IMAGE_SIZE x IMAGE_SIZE x c
-      numpy array of masks where c is the number of classes 
+    aug_annotations: ((multiplier + 1) * n) x IMAGE_SIZE x IMAGE_SIZE x c
+      numpy array of masks where c is the number of classes
   """
   batch_size = images.shape[0]
   imageGen = DATA_GEN_X.flow(images, batch_size=batch_size, seed=seed)
