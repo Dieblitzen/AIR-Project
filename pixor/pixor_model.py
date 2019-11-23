@@ -161,7 +161,7 @@ class PixorModel(object):
 
         batch_indices = np.arange(TRAIN_LEN)
         
-        # logging.info("\nepoch " + str(epoch))
+        # logging.info("\nepoch " + stdr(epoch))
         print("\nepoch " + str(epoch))
 
         np.random.shuffle(batch_indices)

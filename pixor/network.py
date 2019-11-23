@@ -206,11 +206,7 @@ if __name__ == "__main__":
             box_preds, unnorm_class_preds, per_epoch_train_loss, per_epoch_box_loss, per_epoch_class_loss = model.train_one_epoch(epoch, sess)
             # # at each epoch, print training and validation loss
             # val_images, val_boxes, val_classes = get_batch(0, VAL_LEN, val_batch_indices, VAL_BASE_PATH, mean, std, train_mean, train_std)
-            # if epoch <= -1:
-            #     val_loss, box_preds, unnorm_class_preds = sess.run([pixor_loss, output_box, output_class], feed_dict = {x: val_images,
-            #     y_box: val_boxes, y_class: val_classes})
-            # else:
-            #     val_loss, box_preds, unnorm_class_preds = sess.run([decode_pixor_loss, output_box, output_class], feed_dict = {x: val_images, y_box: val_boxes, y_class: val_classes})
+            # val_loss, box_preds, unnorm_class_preds = sess.run([decode_pixor_loss, output_box, output_class], feed_dict = {x: val_images, y_box: val_boxes, y_class: val_classes})
             
             # logging.info('epoch %d, training loss %g' % (epoch, per_epoch_train_loss))
             # logging.info('epoch %d, training class loss %g' % (epoch, per_epoch_class_loss))
