@@ -132,8 +132,8 @@ if __name__ == "__main__":
 
   ## Summary writers for training/validation
   dataset.create_model_out_dir(model_name)
-  train_summary_writer = tf.summary.create_file_writer(os.path.join(dataset.metrics_path, 'train'))
-  val_summary_writer = tf.summary.create_file_writer(os.path.join(dataset.metrics_path, 'val'))
+  train_summary_writer = tf.summary.create_file_writer(os.path.join(dataset.metrics_path), name='train')
+  val_summary_writer = tf.summary.create_file_writer(os.path.join(dataset.metrics_path), name='val')
   # Set up Logger
   logging.basicConfig(filename=os.path.join(dataset.metrics_path, f"{model_name}.log"), level=logging.INFO)
 
@@ -178,7 +178,8 @@ if __name__ == "__main__":
         feed_model = val_step
 
       # Initialise non loss metrics
-      epoch_ious = epoch_prec = epoch_recall = np.zeros((num_classes))
+      epoch_ious = np.zeros((num_classes))
+      epoch_prec, epoch_recall = np.zeros((num_classes)), np.zeros((num_classes))
 
       # Actual train/val over all batches.
       for batch in range(num_batches):
@@ -222,7 +223,7 @@ if __name__ == "__main__":
       # Checkpoint model weights if loss is good
       if phase == 'val' and epoch_loss.result() < best_val_loss:
         best_val_loss = epoch_loss.result()
-        model.save_weights(os.path.join(dataset.model_path, model_name))
+        model.save_weights(os.path.join(dataset.checkpoint_path, model_name))
 
     # End of epoch, reset loss.
     train_loss.reset_states()
