@@ -1,5 +1,6 @@
 import tensorflow as tf
 import numpy as np
+from numpy import newaxis
 from PIL import Image
 import sys
 import logging
@@ -16,8 +17,8 @@ from smooth_L1 import smooth_L1, decode_smooth_L1
 
 TILE_SIZE = 224
 NUM_CLASSES = 6
-BATCH_SIZE = 1
-TRAIN_BASE_PATH = '../data_path/pixor/train'
+BATCH_SIZE = 30
+TRAIN_BASE_PATH = osp.join('..', 'data_pathN', 'pixor', 'train')
 TRAIN_LEN = len(os.listdir(osp.join(TRAIN_BASE_PATH, 'images')))
 
 class PixorModel(object):
@@ -197,24 +198,31 @@ def get_tile_and_label(index, norm, path=TRAIN_BASE_PATH):
     Returns:
     (tile_array, dictionary_of_buildings)
     """
+    
     mean = np.load('mean.npy')
     std = np.load('std.npy')
     train_mean = np.load('train_mean.npy')
     train_std = np.load('train_std.npy')
 
     # Open the jpeg image and save as numpy array
-    im = Image.open(osp.join(path, f'/images/{index}.jpg')
+
+    p = osp.join(path, 'images', f'{index}.jpg')
+    im = Image.open(p)
     im_arr = np.array(im)
     im_arr = (im_arr - mean) / std
+
     
-    class_annotation = np.load(osp.join(path, f'/class_annotations/{index}.npy'))
+    class_annotation = np.load(osp.join(path, 'class_annotations', f'{index}.npy'))
     # Open the json file and parse into dictionary of index -> buildings pairs
-    box_annotation = np.load(osp.join(path, f'/box_annotations/{index}.npy'))
+    box_annotation = np.load(osp.join(path, 'box_annotations', f'{index}.npy'))
     # normalizing the positive labels if norm=True
     if norm:
+        if(len(class_annotation.shape) == 2):
+            class_annotation = class_annotation[:,:,newaxis]
         clipped = np.clip(class_annotation, 0, 1)
         box_annotation = clipped * (box_annotation - train_mean)/train_std + (1 - clipped) * box_annotation
     return im_arr, box_annotation, class_annotation
+
 
 def get_batch(start_index, path=TRAIN_BASE_PATH, norm=True):
     """
@@ -224,7 +232,8 @@ def get_batch(start_index, path=TRAIN_BASE_PATH, norm=True):
     Returns:
     [(tile_array, list_of_buildings), ...]
     """
-    length = len(os.listdir(osp.join(path, 'images')))
+    p = osp.join(path, 'images')
+    length = len(os.listdir(p))
     batch_indices = np.arange(length)
 
     batch_images = np.zeros((BATCH_SIZE, TILE_SIZE, TILE_SIZE, 3))

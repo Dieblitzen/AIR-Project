@@ -23,8 +23,8 @@ TILE_SIZE = 224
 IMAGE_SIZE = (TILE_SIZE, TILE_SIZE, 3)
 LOGFILE_NAME = "PIXOR_logfile"
 
-TRAIN_BASE_PATH = os.join.path('..', 'data_path', 'pixor', 'train')
-VAL_BASE_PATH = os.join.path('..', 'data_path', 'pixor', 'train')
+TRAIN_BASE_PATH = os.path.join('..', 'data_pathN', 'pixor', 'train')
+VAL_BASE_PATH = os.path.join('..', 'data_pathN', 'pixor', 'train')
 VAL_LEN = len(os.listdir(VAL_BASE_PATH))
 ##### End of SETTINGS #####
 
