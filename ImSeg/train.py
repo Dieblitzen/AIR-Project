@@ -120,7 +120,7 @@ if __name__ == "__main__":
   batch_size = config["batch_size"]
   model_name = config["name"]
   augment_kwargs = config["augment"]
-  classes = config["classes"]
+  interest_classes = config["classes"]
 
   ## Set up dataset, number of training/validation samples and number of batches
   dataset = ImSeg_Dataset(data_path=args.data_path, classes_path=args.classes_path)
@@ -188,7 +188,7 @@ if __name__ == "__main__":
       for batch in range(num_batches):
         img_input, label_masks =\
           dataset.get_batch(indices[batch*batch_size : (batch+1)*batch_size], phase, 
-                            classes_of_interset=classes, augment=augment_kwargs)
+                            classes_of_interset=interest_classes, augment=augment_kwargs)
         
         # Feed inputs to model
         img_input = np.array(img_input, dtype=np.float32)
@@ -210,7 +210,7 @@ if __name__ == "__main__":
                       'mean_recall':np.mean(epoch_recall.result().numpy())}
 
       # Break down IoU, precision and recall by class
-      for i, class_name in enumerate(dataset.seg_classes):
+      for i, class_name in enumerate(interest_classes):
         sub_metric_dict = {'iou':epoch_ious, 'prec':epoch_prec, 'recall':epoch_recall}
         for metric_type, metrics in sub_metric_dict.items():
           metrics = metrics.result().numpy()
