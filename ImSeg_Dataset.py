@@ -327,8 +327,8 @@ class ImSeg_Dataset(Dataset):
 
       # Filter out classes we don't want then reshape to (h,w,C) dimensions
       with open(os.path.join(path, 'annotations', f'{i}.json'), 'r') as ann:
-        annotation = annotation[indices_of_interest]
-        annotation = np.moveaxis(np.array(json.load(ann)['annotation']), 0, -1)
+        annotation = np.array(json.load(ann)['annotation'])
+        annotation = np.moveaxis(annotation[indices_of_interest], 0, -1)
 
       images.append(image)
       annotations.append(annotation)
