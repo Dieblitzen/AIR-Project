@@ -50,7 +50,7 @@ def augment_data(images, annotations, multiplier=1, seed=0):
     aug_labels = np.array(aug_labels) # c x n x Img x Img x 1
     aug_labels = np.moveaxis(aug_labels[:,:,:,:, 0], 0, -1)
     
-    images = np.concatenate((images, aug_images))
-    annotations = np.concatenate((annotations, aug_labels))
+    images = np.concatenate((images, aug_images)).astype(np.uint8)
+    annotations = np.concatenate((annotations, aug_labels)).astype(np.uint8)
 
   return images, annotations
