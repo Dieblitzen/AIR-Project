@@ -1,14 +1,18 @@
+ibmpairspass.txt
 data_path*/
 data_path*
-<<<<<<< HEAD
 data_path/
 data_path_white_plains/
 data_path_dallas/
 WhitePlains_data/
 **/data_acknowledgement.txt
-**/*.DS_Store
+**/.DS_Store
+**/.vscode
+**/__pycache__/
 **/*.jpg
 **/annotations/*.json
 **/*.xml
 **/*.png
 **/*.log
+**/*.ipynb
+pixor/*.npy

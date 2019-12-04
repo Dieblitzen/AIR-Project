@@ -1,15 +1,16 @@
 import os
 import numpy as np
-import scipy.misc
-import math
 from PIL import Image
 import json
 import pickle
 import re
+import argparse
+import random
 
 # Visualising
 import matplotlib.pyplot as plt
 import matplotlib.ticker as plticker
+from matplotlib import collections as mc
 from shapely.geometry.polygon import Polygon
 
 
@@ -22,9 +23,10 @@ class Dataset:
 
   Attributes:
   1) The path to the dataset, images and annotations.
-  2) A sorted list of image file names
-  3) A sorted list of annotation/ building label file names
-  4) The length of the dataset.
+  2) The dictionary of classes defined for the dataset.
+  3) A sorted list of image file names
+  4) A sorted list of annotation/ building label file names
+  5) The length of the dataset.
 
   Methods:
   1) Getting the size of each image in the dataset (assumed to be the same for all images)
@@ -39,7 +41,7 @@ class Dataset:
 
   """
 
-  def __init__(self, data_path):
+  def __init__(self, data_path, classes_path='./classes.json'):
     """
     Initializes a dataset object using the data in data_path. 
     """
@@ -48,14 +50,18 @@ class Dataset:
     self.data_path = data_path
     self.images_path = f'{data_path}/images'
     self.annotations_path = f'{data_path}/annotations'
-      
+
     # Attribute 2)
+    with open(classes_path, 'r') as f:
+      self.classes = json.load(f)
+      
+    # Attribute 3)
     self.img_list = sorted(os.listdir(self.images_path), key = self.sort_key)
 
-    # Attritbute 3)
+    # Attritbute 4)
     self.annotation_list = sorted(os.listdir(self.annotations_path), key = self.sort_key)
 
-    # Attribute 4)
+    # Attribute 5)
     self.length = len(self.img_list)
 
   def sort_key(self, file_name):
@@ -155,21 +161,28 @@ class Dataset:
     im = Image.open(f'{self.images_path}/{self.img_list[index]}')
     im_arr = np.array(im)
     mng = plt.get_current_fig_manager()
-    mng.window.showMaximized()
+    # mng.window.state('zoomed')
     plt.imshow(im_arr)
 
     # Open the json file and parse into dictionary of index -> buildings pairs
-    buildings_in_tile = {}
+    labels_in_tile = {}
     with open(f'{self.annotations_path}/{self.annotation_list[index]}', 'r') as filename:
       try: 
-        buildings_in_tile = json.load(filename)
+        labels_in_tile = json.load(filename)
       except ValueError:
-        buildings_in_tile = {}
+        labels_in_tile = {}
 
-    for building_coords in buildings_in_tile.values():
-      poly = Polygon(building_coords)
-      x, y = poly.exterior.xy
-      plt.plot(x, y)
+    for super_class, sub_class_labels in labels_in_tile.items():
+      for sub_class, labels in sub_class_labels.items():
+        sub_class_colour = list(np.random.choice(range(256), size=3)/256)
+        if super_class == 'building':
+          for label in labels:
+            poly = Polygon(label)
+            x, y = poly.exterior.xy
+            plt.plot(x, y, c=sub_class_colour)
+        elif super_class == 'highway':
+          lines = mc.LineCollection(labels, colors=sub_class_colour)
+          plt.gca().add_collection(lines)
 
     # TODO: Visualize bounding boxes from json format.
 
@@ -199,19 +212,26 @@ class Dataset:
     The OSM data should be in a pickle file, and the entire image area should be in 
     a jpeg file.
     """
-    bboxes = []
+    label_coords = {}
     # Open pickle file with osm data
     with open(f"{self.data_path}/raw_data/annotations.pkl", "rb") as filename:
-      bboxes = pickle.load(filename)
+      label_coords = pickle.load(filename)
 
     im = Image.open(f"{self.data_path}/raw_data/Entire_Area.jpg")
     im_arr = np.array(im)
 
     plt.imshow(im_arr)
-    for building_coords in bboxes:
-      poly = Polygon(building_coords)
-      x, y = poly.exterior.xy
-      plt.plot(x, y)
+    for super_class, sub_class_labels in label_coords.items():
+      for sub_class, labels in sub_class_labels.items():
+        sub_class_colour = list(np.random.choice(range(256), size=3)/256)
+        if super_class == 'building':
+          for label in labels:
+            poly = Polygon(label)
+            x, y = poly.exterior.xy
+            plt.plot(x, y, c=sub_class_colour)
+        elif super_class == 'highway':
+          lines = mc.LineCollection(labels, colors=sub_class_colour)
+          plt.gca().add_collection(lines)
     
     # # Add the grid
     # ax.grid(which='major', axis='both', linestyle='-')
@@ -220,3 +240,33 @@ class Dataset:
     # plt.xticks(np.arange(0, 6000, 228), range(0, 23))
     # plt.yticks(np.arange(0, 6000, 228), range(0, 23))
     plt.show()
+
+
+def passed_arguments():
+  parser = argparse.ArgumentParser(description="Script to visualize labels on entire queried area.")
+  parser.add_argument('--data_path',\
+                      type=str,
+                      required=True,
+                      help='Path to directory where extracted dataset is stored.')
+  parser.add_argument('--classes_path',\
+                      type=str,
+                      default='./classes.json',
+                      help='Path to directory where extracted dataset is stored.')
+  parser.add_argument('--tile',\
+                      action='store_true',
+                      default=False,
+                      help='Visualize a random sequence of 20 tiles in the dataset.')
+  args = parser.parse_args()
+  return args
+
+
+if __name__ == "__main__":
+  args = passed_arguments()
+  ds = Dataset(args.data_path, args.classes_path)
+  
+  if args.tile:
+    inds = random.sample(range(ds.length), 20)
+    for i in inds:
+      ds.visualize_tile(i)
+  else:
+    ds.visualize_dataset()

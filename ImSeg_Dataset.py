@@ -1,21 +1,21 @@
-from Dataset import Dataset
 import os
-import numpy as np
 import math
-from PIL import Image
 import json
 import random
+import argparse
+import numpy as np
+from PIL import Image, ImageDraw
 from shutil import copyfile
-import scipy.misc 
+from Dataset import Dataset
+from ImSeg.data_augmentation import augment_data
 
 # Visualising
 import matplotlib.pyplot as plt
 import matplotlib.ticker as plticker
+import matplotlib.colors as colors
 from shapely.geometry.polygon import Polygon
 from matplotlib.path import Path
 
-## Size of image that the old tiles will be resized to when building the data set.
-IMAGE_SIZE = 224
 
 class ImSeg_Dataset(Dataset):
   """
@@ -25,7 +25,7 @@ class ImSeg_Dataset(Dataset):
 
   """
 
-  def __init__(self, data_path, train_val_test=(0.8, 0.1, 0.1)):
+  def __init__(self, data_path, classes_path='./classes.json', train_val_test=(0.8, 0.1, 0.1), image_resize=None):
     """
     Initialises a ImSeg_Dataset object by calling the superclass initialiser.
 
@@ -38,34 +38,107 @@ class ImSeg_Dataset(Dataset):
     assert train_val_test[0] > 0 and train_val_test[1] > 0 and train_val_test[
         2] > 0, 'Train, val and test percentages should be non-negative'
 
-    Dataset.__init__(self, data_path)
+    Dataset.__init__(self, data_path, classes_path=classes_path)
+
+    self.image_size = image_resize if image_resize else self.get_img_size()
+    self.seg_classes = self.sorted_classes(self.classes)
+    self.class_colors = [] #[colors.ListedColormap(np.random.rand(256,3)) for _ in self.seg_classes]
+    # power set of colors across RBG for visualizing
+    for i in range(2**3):
+      c = [((i >> s) % 2) * 255 for s in range(2, -1, -1)]
+      self.class_colors.append(tuple(c))
 
     self.train_val_test = train_val_test
-    self.train_path = self.data_path + '/im_seg/train'
-    self.val_path = self.data_path + '/im_seg/val'
-    self.test_path = self.data_path + '/im_seg/test'
-    self.out_path = self.data_path + '/im_seg/out'
-    self.data_sizes = [] # [train_size, val_size, test_size, out_size]
+    self.train_path = os.path.join(self.data_path, 'im_seg', 'train')
+    self.val_path = os.path.join(self.data_path, 'im_seg', 'val')
+    self.test_path = os.path.join(self.data_path, 'im_seg', 'test')
+    self.out_path = os.path.join(self.data_path, 'im_seg', 'out')
 
-    if not os.path.isdir(self.data_path + '/im_seg'):
+    self.data_sizes = [0] * 4
+    self.init_directories()
+  
+
+  def init_directories(self):
+    """
+    Creates the 'im_seg' directory in the data_path. Also creates the train/val/test/out
+    directories with the images/ and annotations/ directory for each.
+    If the directories already exist, then initialises the data_sizes based on existing 
+    directories.
+    """
+    if not os.path.isdir(os.path.join(self.data_path, 'im_seg')):
       print(f"Creating directory to store semantic segmentation formatted dataset.")
-      os.mkdir(self.data_path + '/im_seg')
+      os.mkdir(os.path.join(self.data_path, 'im_seg'))
 
     # Create train, validation, test directories, each with an images and
     # annotations sub-directories
-    for directory in [self.train_path, self.val_path, self.test_path, self.out_path]:
+    for i, directory in enumerate([self.train_path, self.val_path, self.test_path]):
       if not os.path.isdir(directory):
         os.mkdir(directory)
 
-      if not os.path.isdir(directory + '/images'):
-        os.mkdir(directory + '/images')
+      if not os.path.isdir(os.path.join(directory, 'images')):
+        os.mkdir(os.path.join(directory, 'images'))
 
-      if not os.path.isdir(directory + '/annotations'):
-        os.mkdir(directory + '/annotations')
+      if not os.path.isdir(os.path.join(directory, 'annotations')):
+        os.mkdir(os.path.join(directory, 'annotations'))
 
       # Size of each training, val and test directories  
-      num_samples = len([name for name in os.listdir(f'{directory}/images') if name.endswith('.jpg')])
-      self.data_sizes.append(num_samples)
+      num_samples = len([name for name in os.listdir(os.path.join(directory, 'images')) if name.endswith('.jpg')])
+      self.data_sizes[i] = num_samples
+  
+
+  def create_model_out_dir(self, model_name):
+    """
+    Creates directories for metrics, ouput images and annotations for a
+    given model during training.
+    """
+    try:
+      getattr(self, "model_path")
+      raise AttributeError("Attribute model_path already created")
+    except AttributeError as e:
+      pass
+
+    if not os.path.isdir(self.out_path):
+      os.mkdir(self.out_path)
+    
+    self.model_path = os.path.join(self.out_path, model_name)
+    if not os.path.isdir(self.model_path):
+      os.mkdir(self.model_path)
+
+    self.checkpoint_path = os.path.join(self.model_path, 'checkpoints')
+    if not os.path.isdir(self.checkpoint_path):
+      os.mkdir(self.checkpoint_path)
+    
+    self.metrics_path = os.path.join(self.model_path, 'metrics')
+    if not os.path.isdir(self.metrics_path):
+      os.mkdir(self.metrics_path)
+    
+    if not os.path.isdir(os.path.join(self.model_path, 'images')):
+      os.mkdir(os.path.join(self.model_path, 'images'))
+
+    if not os.path.isdir(os.path.join(self.model_path, 'annotations')):
+      os.mkdir(os.path.join(self.model_path, 'annotations'))
+
+  
+  def get_seg_class_name(self, super_class_name, sub_class_name, delim=':'):
+    """
+    Maps a given super class name and sub-class name to the class name stored
+    in the ordered list of segmentation classes.
+    """
+    return super_class_name + delim + sub_class_name
+
+
+  def sorted_classes(self, classes_dict):
+    """
+    Helper method to return a sorted list of all the sub_classes.
+    The list of classes should be same every time a new ImSeg_Dataset object is created.
+    Returns: 
+      ['superclass0:subclass1', 'superclass0:subclass1', ...]
+    """
+    seg_classes = []
+    for super_class, sub_classes in classes_dict.items():
+      seg_classes.extend([self.get_seg_class_name(super_class, sub_class) for sub_class in sub_classes])
+    return sorted(seg_classes)
+
 
   def build_dataset(self):
     """
@@ -84,13 +157,11 @@ class ImSeg_Dataset(Dataset):
       if i < math.floor(train*len(shuffled_img)):
         # Add to train folder
 
-        # copyfile(f"{self.images_path}/{shuffled_img[i]}", \
-        #          f"{self.train_path}/images/{i}.jpg")
-        self.resize_and_save_image(f"{self.images_path}/{shuffled_img[i]}", \
-                                   f"{self.train_path}/images/{i}.jpg")
+        self.format_image(os.path.join(self.images_path, shuffled_img[i]), \
+                          os.path.join(self.train_path, "images", f"{i}.jpg"))
 
-        self.format_json(f"{self.annotations_path}/{shuffled_annotations[i]}",\
-                         f"{self.train_path}/annotations/{i}.json", f"{i}.jpg")
+        self.format_json(os.path.join(self.annotations_path, shuffled_annotations[i]), \
+                         os.path.join(self.train_path, "annotations", f"{i}.json"), f"{i}.jpg")
         
         self.data_sizes[0] += 1
 
@@ -98,13 +169,11 @@ class ImSeg_Dataset(Dataset):
         # Add to val folder
         ind = i - math.floor(train*len(shuffled_img))
 
-        # copyfile(f"{self.images_path}/{shuffled_img[i]}",\
-        #          f"{self.val_path}/images/{ind}.jpg")
-        self.resize_and_save_image(f"{self.images_path}/{shuffled_img[i]}", \
-                                   f"{self.val_path}/images/{ind}.jpg")
+        self.format_image(os.path.join(self.images_path, shuffled_img[i]), \
+                          os.path.join(self.val_path, "images", f"{ind}.jpg"))
 
-        self.format_json(f"{self.annotations_path}/{shuffled_annotations[i]}",\
-                         f"{self.val_path}/annotations/{ind}.json", f"{ind}.jpg")
+        self.format_json(os.path.join(self.annotations_path, shuffled_annotations[i]), \
+                         os.path.join(self.val_path, "annotations", f"{ind}.json"), f"{ind}.jpg")
         
         self.data_sizes[1] += 1
         
@@ -112,28 +181,28 @@ class ImSeg_Dataset(Dataset):
         # Add to test folder
         ind = i - math.floor((train+val)*len(shuffled_img))
 
-        # copyfile(f"{self.images_path}/{shuffled_img[i]}",\
-        #          f"{self.test_path}/images/{ind}.jpg")
-        self.resize_and_save_image(f"{self.images_path}/{shuffled_img[i]}", \
-                                   f"{self.test_path}/images/{ind}.jpg")
+        self.format_image(os.path.join(self.images_path, shuffled_img[i]), \
+                          os.path.join(self.test_path, "images", f"{ind}.jpg"))
 
-        self.format_json(f"{self.annotations_path}/{shuffled_annotations[i]}",\
-                         f"{self.test_path}/annotations/{ind}.json", f"{ind}.jpg")
+        self.format_json(os.path.join(self.annotations_path, shuffled_annotations[i]), \
+                         os.path.join(self.test_path, "annotations", f"{ind}.json"), f"{ind}.jpg")
         
         self.data_sizes[2] += 1
       # increment index counter
       i += 1
 
-  def resize_and_save_image(self, path_to_file, path_to_dest):
+
+  def format_image(self, path_to_file, path_to_dest):
     """
     Helper method called in build_dataset that copies the file from 
     path_to_file, resizes it to IMAGE_SIZE x IMAGE_SIZE x 3, and saves
     it in the destination folder. 
     """
+    # copyfile(path_to_file, path_to_dest)
     im = Image.open(path_to_file)
-    im = np.array(im)
-    im = scipy.misc.imresize(im, (IMAGE_SIZE, IMAGE_SIZE, 3), interp="bilinear")
-    scipy.misc.imsave(path_to_dest, im)
+    if (im.size[1], im.size[0], len(im.getbands())) != self.image_size:
+      im = im.resize(self.image_size, resample=Image.BILINEAR)
+    im.save(path_to_dest)
 
 
   def format_json(self, path_to_file, path_to_dest, img_name):
@@ -149,20 +218,21 @@ class ImSeg_Dataset(Dataset):
     # Im_size: [width, height, depth] should be squares
     with open(path_to_file) as f:
       try:
-        buildings_dict = json.load(f)
+        labels_in_tile = json.load(f)
       except:
-        buildings_dict = {}
+        labels_in_tile = {}
 
-    buildings_dict = self.one_hot_encoding(buildings_dict)
+    labels_in_tile = self.create_mask(labels_in_tile)
 
     # Add corresponding image name to annotaion
-    buildings_dict["img"] = img_name
+    labels_in_tile["img"] = img_name
 
     # save annotation in file
     with open(path_to_dest, 'w') as dest:
-      json.dump(buildings_dict, dest)
+      json.dump(labels_in_tile, dest)
 
-  def one_hot_encoding(self, buildings_dict):
+
+  def create_mask(self, labels_in_tile):
     """
     Helper method only called in convert_json that takes a dictionary of
       building coordinates and creates a one-hot encoding for each pixel 
@@ -172,7 +242,8 @@ class ImSeg_Dataset(Dataset):
     Reference: https://stackoverflow.com/questions/21339448/how-to-get-list-of-points-inside-a-polygon-in-python
     """
     # Image size of tiles.
-    w, h, _ = self.get_img_size()  # Right order?
+    h, w, _ = self.image_size
+    C = len(self.seg_classes)
 
     # make a canvas with pixel coordinates
     x, y = np.meshgrid(np.arange(w), np.arange(h))
@@ -180,23 +251,40 @@ class ImSeg_Dataset(Dataset):
     # A list of all pixels in terms of indices
     all_pix = np.vstack((x, y)).T
 
-    # Single, w*h 1d array of all pixels in image initialised to 0s. This will accumulate
-    # annotation markings for each building. 
-    pixel_annotations = np.zeros((w*h), dtype=bool)
-    for building, nodes in buildings_dict.items():
-      p = Path(nodes)
-      one_building_pixels = p.contains_points(all_pix)
+    # Single, (C, w*h) 1d array of empty mask for all pixels in image, for each class, initialised
+    # to 0s. This will accumulate annotation markings for each building by ORing the pixels.
+    pixel_annotations = np.zeros((C, h*w), dtype=bool)
+    for super_class, sub_class_labels in labels_in_tile.items():
+      for sub_class, labels in sub_class_labels.items():
+        for label_nodes in labels:
+          
+          one_label_pixels = []
+          if super_class == "highway":
+            # Draw the road as a thick line on a blank mask.
+            label_nodes = [tuple(point) for point in label_nodes]
+            road_mask = Image.fromarray(np.zeros((h, w)).astype(np.uint8))
+            drawer = ImageDraw.Draw(road_mask)
+            drawer.line(label_nodes, fill=1, width=3)
 
-      pixel_annotations = np.logical_or(pixel_annotations, one_building_pixels)
-      pixel_annotations = np.array(pixel_annotations)
+            one_label_pixels = np.array(road_mask).astype(np.bool).flatten()
 
-    pixel_annotations = np.array(pixel_annotations, dtype=np.uint8).reshape((w,h))
-    pixel_annotations = scipy.misc.imresize(pixel_annotations, (IMAGE_SIZE, IMAGE_SIZE) )
-    pixel_annotations = np.array(pixel_annotations, dtype=bool)
+          elif super_class == "building":
+            # Create a path enclosing the nodes, and then fill in a blank mask for building's mask
+            p = Path(label_nodes)
+            one_label_pixels = p.contains_points(all_pix)
+          else:
+            raise NotImplementedError("Only support roads and buildings currently.")
+
+          # Index of label's class name in list of ordered seg_classes
+          seg_class = self.seg_classes.index(self.get_seg_class_name(super_class, sub_class))
+          pixel_annotations[seg_class] = np.logical_or(pixel_annotations[seg_class], one_label_pixels)
+
+    pixel_annotations = pixel_annotations.astype(np.uint8).reshape((C, h, w))
 
     return {"annotation": pixel_annotations.tolist()}
 
-  def get_batch(self, indices, train_val_test):
+
+  def get_batch(self, indices, train_val_test, is_augment=True, augment_data_seed=0):
     """
     Returns the batch of images and labels associated with the images,
     based on the list of indicies to look up.
@@ -217,21 +305,28 @@ class ImSeg_Dataset(Dataset):
     # Accumulators for images and annotations in batch
     images = []
     annotations = []
+    C = len(self.seg_classes)
     for i in indices:
-      image = Image.open(f'{path}/images/{i}.jpg')
+      image = Image.open(os.path.join(path, 'images', f'{i}.jpg'))
       image = np.array(image)
 
-      with open(f'{path}/annotations/{i}.json', 'r') as ann:
-        annotation = np.array(json.load(ann)['annotation'])
-        
-      # Reshape to the width/height dimensions of image, with depth=num_classes (here, it is 1)
-      annotation = np.reshape(annotation, (image.shape[0], image.shape[1], 1))
+      # Reshape to (h,w,C) dimensions
+      with open(os.path.join(path, 'annotations', f'{i}.json'), 'r') as ann:
+        annotation = np.moveaxis(np.array(json.load(ann)['annotation']), 0, -1)
 
       images.append(image)
       annotations.append(annotation)
 
     # Return tuple by stacking them into blocks
-    return (np.stack(images), np.stack(annotations))
+    images, annotations = np.stack(images), np.stack(annotations)
+
+    if is_augment:
+      # call function from data_augmentation.pyplot
+      images, annotations = augment_data(images, annotations, seed=augment_data_seed)
+
+    # TODO: Normalize images
+    return images, annotations
+
 
   def save_preds(self, image_indices, preds, image_dir="val"):
     """
@@ -254,13 +349,13 @@ class ImSeg_Dataset(Dataset):
     # Output directory
     if not os.path.isdir(self.out_path):
       os.mkdir(self.out_path) 
-      os.mkdir(self.out_path + '/images')
-      os.mkdir(self.out_path + '/annotations')
+      os.mkdir(os.path.join(self.out_path, 'images'))
+      os.mkdir(os.path.join(self.out_path, 'annotations'))
     
     # First copy the images in image_indices
     for i in image_indices:
-      copyfile(
-          f"{path_to_im}/images/{i}.jpg", f"{self.out_path}/images/{i}.jpg")
+      copyfile(os.path.join(path_to_im, 'images', f'{i}.jpg'), 
+               os.path.join(self.out_path, 'images', f'{i}.jpg'))
 
     # Save prediction in json format and dump
     for i in range(len(preds)): 
@@ -269,7 +364,7 @@ class ImSeg_Dataset(Dataset):
       preds_json["annotation"] = preds[i].tolist()
 
       # save annotation in file
-      with open(f"{self.out_path}/annotations/{image_indices[i]}.json", 'w') as dest:
+      with open(os.path.join(self.out_path, 'annotations', f'{image_indices[i]}.json'), 'w') as dest:
         json.dump(preds_json, dest)
     
 
@@ -277,6 +372,8 @@ class ImSeg_Dataset(Dataset):
     """
     Provides a visualization of the tile and its corresponding annotation/ label in one
     of the train/test/val directories as specified. 
+    Requires:
+      index: A valid index in one of train/test/val
     """
 
     path = self.train_path
@@ -288,23 +385,65 @@ class ImSeg_Dataset(Dataset):
       path = self.out_path
 
     # Image visualization
-    im = Image.open(f'{path}/images/{index}.jpg')
+    im = Image.open(os.path.join(path, 'images', f'{index}.jpg'))
     im_arr = np.array(im)
     fig, ax = plt.subplots(nrows=1, ncols=1)
-    ax.imshow(im_arr)
 
-    with open(f'{path}/annotations/{index}.json') as f:
+    # Works better for bitmaps
+    im = Image.fromarray(im_arr, mode='RGB')
+    drawer = ImageDraw.Draw(im)
+
+    with open(os.path.join(path, 'annotations', f'{index}.json')) as f:
       try:
         annotation = json.load(f)
       except:
         annotation = {}
 
-    # w, h, _ = self.get_img_size()  # Right?
-    w, h = IMAGE_SIZE, IMAGE_SIZE
+    h, w, _ = self.image_size
+    C = len(self.seg_classes)
 
-    pixel_annotation = np.array(annotation["annotation"]).reshape(w, h)  # Right?
+    class_masks = np.array(annotation["annotation"])#.reshape(C, h, w)
 
     # Check our results
-    ax.imshow(pixel_annotation, alpha=0.3)
-
+    for i, mask in enumerate(class_masks):
+      mask_im = Image.fromarray(mask.astype(np.uint8) * 64, mode='L')
+      drawer.bitmap((0,0), mask_im, fill=self.class_colors[i % len(self.class_colors)])
+    
+    ax.imshow(im)
     plt.show()
+
+
+def passed_arguments():
+  parser = argparse.ArgumentParser(description="Script to create Image Segmentation dataset from raw dataset.")
+  parser.add_argument('--data_path',\
+                      type=str,
+                      required=True,
+                      help='Path to directory where extracted dataset is stored.')
+  parser.add_argument('--classes_path',\
+                      type=str,
+                      default='./classes.json',
+                      help='Path to directory where extracted dataset is stored.')
+  parser.add_argument('--tile',\
+                      action='store_true',
+                      default=False,
+                      help='Visualize a random sequence of 20 tiles in the dataset.')
+  args = parser.parse_args()
+  return args
+
+
+if __name__ == "__main__":
+  args = passed_arguments()
+  
+  ds = ImSeg_Dataset(args.data_path, args.classes_path)
+
+  # Create dataset.
+  if ds.data_sizes[0] == 0:
+    ds.build_dataset()
+  print(ds.seg_classes)
+
+  # Visualize tiles.
+  if args.tile:
+    inds = random.sample(range(ds.data_sizes[0]), 20)
+    for i in inds:
+      ds.visualize_tile(i, directory='train')
+

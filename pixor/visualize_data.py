@@ -26,7 +26,6 @@ def extract_positive_labels(bboxes):
 
 #applies translation, rotation, then un-translation of four points
 def rotate_point(point, center_x, center_y, cos_angle, sin_angle):
-
     ox, oy = center_x, center_y
     px, py = point
     angle = np.arccos(cos_angle)
@@ -37,18 +36,10 @@ def rotate_point(point, center_x, center_y, cos_angle, sin_angle):
     return qx, qy
 
 def tf_rotate_point(corners, center_x, center_y, cos_angle, sin_angle):
-
-#     ox, oy = center_x, center_y
-#     px, py = point_x, point_y
-#     angles = tf.acos(cos_angle)
-
-#     qx = ox + tf.cos(angle) * (px - ox) - tf.sin(angle) * (py - oy)
-#     qy = oy + tf.sin(angle) * (px - ox) + tf.cos(angle) * (py - oy)
-
     qx = center_x + cos_angle * (corners[:, :, :, :, 0] - center_x) - sin_angle * (corners[:, :, :, :, 1] - center_y)
     qy = center_y + sin_angle * (corners[:, :, :, :, 0] - center_x) + cos_angle * (corners[:, :, :, :, 1] - center_y)
     
-    rotated_points = tf.stack([qx, qy], axis=4)
+    rotated_points = tf.stack([qx, qy], axis=-1)
     
     return rotated_points
 
@@ -89,11 +80,6 @@ def tf_pixor_to_corners(box):
     corner_4 = tf.concat([corner_4_x, corner_4_y], 3)
     
     corners = tf.stack([corner_1, corner_2, corner_3, corner_4], axis=3)
-    
-#     four_corners = [(center_x+length//2, center_y+width//2),
-#         (center_x+length//2, center_y-width//2),
-#         (center_x-length//2, center_y-width//2),
-#         (center_x-length//2, center_y+width//2)]
 
     rotated_corners = tf_rotate_point(corners, center_x, center_y, cos_angle, sin_angle)
     return rotated_corners
@@ -109,25 +95,18 @@ def visualize_pixels(image_array, bboxes):
 
 def visualize_bounding_boxes(image_array, bboxes, save, counter, save_path, box_color):
     # Visualize bounding boxes on an image with bb_pixels either as horizontal boxes
-#     plt.clf()
     if box_color == 'blue':
         plt.clf()
     plt.imshow(image_array)
-    print("len of bboxes")
-    print(len(bboxes))
+    print("len of bboxes", len(bboxes))
     for box in bboxes:
-#         print("visualizing box:")
-#         print(box)
         coordinates = pixor_to_corners(box)
         if not math.isnan(coordinates[0][0]):
             poly = Polygon(coordinates)
-#             print("here are coordinates: " + str(coordinates))
-#             print(box)
+
             x, y = poly.exterior.xy
             plt.plot(x,y, color = box_color)
-        # print(box)
-    # if counter % 5 == 0 or counter >375:
-    #     plt.savefig('tile_images/tile'+str(counter)+".png")
+
     if save:
         plt.savefig(save_path+ '/' + str(counter)+ ".png")
     else:
@@ -151,9 +130,7 @@ if __name__ == "__main__":
         counter = 0
         for r in range(0, image.shape[0]):
             for c in range(0, image.shape[1]):
-                # print(bboxes[r,c])
                 if class_labels[r,c][0] > .8:
-                # if bboxes[r,c][-1] != 0:
                     center_x = (c) + (int(bboxes[r,c][0]))
                     truth_counter+=1
                     center_y = (r) + (int(bboxes[r,c][1]))
@@ -164,18 +141,7 @@ if __name__ == "__main__":
                         unique_boxes_set.add(tuple(bboxes[r,c][2:]))
                         boxes_in_image.append(box)
                         print(box)
-                        # if counter == 915:
-                        #     print("counter is: ")
-                        #     print(counter)
-                        #     print("label is: ")
-                        #     print(bboxes[r,c])
-                        #     print("box is: ")
-                        #     print(box)
-                        #     print("pixels are: ")
-                        #     print((r,c))
+                      
                         counter+=1
 
-        # visualize_pixels(image, pixels_to_color)
         visualize_bounding_boxes(image, boxes_in_image, True, i, 'label_visualized', 'blue')
-#     print('percent true')
-#     print(truth_counter / 15595200.)
