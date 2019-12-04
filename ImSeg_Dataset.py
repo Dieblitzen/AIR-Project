@@ -325,12 +325,13 @@ class ImSeg_Dataset(Dataset):
       image = Image.open(os.path.join(path, 'images', f'{i}.jpg'))
       image = np.array(image)
 
-      # Reshape to (h,w,C) dimensions
+      # Filter out classes we don't want then reshape to (h,w,C) dimensions
       with open(os.path.join(path, 'annotations', f'{i}.json'), 'r') as ann:
+        annotation = annotation[indices_of_interest]
         annotation = np.moveaxis(np.array(json.load(ann)['annotation']), 0, -1)
 
       images.append(image)
-      annotations.append(annotation[indices_of_interest])
+      annotations.append(annotation)
 
     # Return tuple by stacking them into blocks
     images, annotations = np.stack(images), np.stack(annotations)
