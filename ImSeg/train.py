@@ -134,17 +134,8 @@ if __name__ == "__main__":
   # Set up Logger
   logging.basicConfig(filename=os.path.join(dataset.metrics_path, f"{model_name}.log"), level=logging.INFO)
 
-
-  ## BEGIN: REFACTOR THIS CODE FOR BETTER MODEL LOADING
-
-  
+  # Set up model from config.
   model = refine_net.refine_net_from_config(config)
-  # backbone_model = resnet.resnet50()
-
-  # model = refine_net.create_refine_net(backbone_model, [['layer3', 'layer4'], ['layer1','layer2']], 
-  #                                      num_classes, input_shape=img_size)
-
-  ## END: REFACTOR CODE 
 
   ## Loss and optimizer
   loss_function = tf.keras.losses.BinaryCrossentropy(from_logits=True)
