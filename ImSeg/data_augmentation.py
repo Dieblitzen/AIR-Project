@@ -43,7 +43,8 @@ def augment_data(images, annotations, multiplier=1, seed=0):
   for i in range(multiplier):
     aug_images = imageGen.next()
 
-    aug_labels = [] # (c length list of n x IMAGE_SIZE x IMAGE_SIZE x 1) -> list of n x IMAGE_SIZE x IMAGE_SIZE x c
+    # (c length list of n x IMAGE_SIZE x IMAGE_SIZE x 1) -> list of n x IMAGE_SIZE x IMAGE_SIZE x c
+    aug_labels = [] 
     for classLabelGen in labelGens:
       aug_labels.append(classLabelGen.next())
 
