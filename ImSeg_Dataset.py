@@ -7,6 +7,7 @@ import numpy as np
 from PIL import Image, ImageDraw
 from shutil import copyfile
 from Dataset import Dataset
+from ImSeg.data_augmentation import augment_data
 
 # Visualising
 import matplotlib.pyplot as plt
@@ -24,7 +25,7 @@ class ImSeg_Dataset(Dataset):
 
   """
 
-  def __init__(self, data_path, classes_path, train_val_test=(0.8, 0.1, 0.1), image_resize=None):
+  def __init__(self, data_path, classes_path='./classes.json', train_val_test=(0.8, 0.1, 0.1), image_resize=None):
     """
     Initialises a ImSeg_Dataset object by calling the superclass initialiser.
 
@@ -70,7 +71,7 @@ class ImSeg_Dataset(Dataset):
 
     # Create train, validation, test directories, each with an images and
     # annotations sub-directories
-    for i, directory in enumerate([self.train_path, self.val_path, self.test_path, self.out_path]):
+    for i, directory in enumerate([self.train_path, self.val_path, self.test_path]):
       if not os.path.isdir(directory):
         os.mkdir(directory)
 
@@ -83,6 +84,39 @@ class ImSeg_Dataset(Dataset):
       # Size of each training, val and test directories  
       num_samples = len([name for name in os.listdir(os.path.join(directory, 'images')) if name.endswith('.jpg')])
       self.data_sizes[i] = num_samples
+  
+
+  def create_model_out_dir(self, model_name):
+    """
+    Creates directories for metrics, ouput images and annotations for a
+    given model during training.
+    """
+    try:
+      getattr(self, "model_path")
+      raise AttributeError("Attribute model_path already created")
+    except AttributeError as e:
+      pass
+
+    if not os.path.isdir(self.out_path):
+      os.mkdir(self.out_path)
+    
+    self.model_path = os.path.join(self.out_path, model_name)
+    if not os.path.isdir(self.model_path):
+      os.mkdir(self.model_path)
+
+    self.checkpoint_path = os.path.join(self.model_path, 'checkpoints')
+    if not os.path.isdir(self.checkpoint_path):
+      os.mkdir(self.checkpoint_path)
+    
+    self.metrics_path = os.path.join(self.model_path, 'metrics')
+    if not os.path.isdir(self.metrics_path):
+      os.mkdir(self.metrics_path)
+    
+    if not os.path.isdir(os.path.join(self.model_path, 'images')):
+      os.mkdir(os.path.join(self.model_path, 'images'))
+
+    if not os.path.isdir(os.path.join(self.model_path, 'annotations')):
+      os.mkdir(os.path.join(self.model_path, 'annotations'))
 
   
   def get_seg_class_name(self, super_class_name, sub_class_name, delim=':'):
@@ -250,7 +284,7 @@ class ImSeg_Dataset(Dataset):
     return {"annotation": pixel_annotations.tolist()}
 
 
-  def get_batch(self, indices, train_val_test):
+  def get_batch(self, indices, train_val_test, is_augment=True, augment_data_seed=0):
     """
     Returns the batch of images and labels associated with the images,
     based on the list of indicies to look up.
@@ -278,13 +312,20 @@ class ImSeg_Dataset(Dataset):
 
       # Reshape to (h,w,C) dimensions
       with open(os.path.join(path, 'annotations', f'{i}.json'), 'r') as ann:
-        annotation = np.array(json.load(ann)['annotation']).T
+        annotation = np.moveaxis(np.array(json.load(ann)['annotation']), 0, -1)
 
       images.append(image)
       annotations.append(annotation)
 
     # Return tuple by stacking them into blocks
-    return (np.stack(images), np.stack(annotations))
+    images, annotations = np.stack(images), np.stack(annotations)
+
+    if is_augment:
+      # call function from data_augmentation.pyplot
+      images, annotations = augment_data(images, annotations, seed=augment_data_seed)
+
+    # TODO: Normalize images
+    return images, annotations
 
 
   def save_preds(self, image_indices, preds, image_dir="val"):
