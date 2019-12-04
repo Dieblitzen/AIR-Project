@@ -1,6 +1,7 @@
 import tensorflow as tf
-from tensorflow.keras import Model, Sequential
-from tensorflow.keras import layers, models
+from tensorflow.keras import Model, Sequential, layers, models
+import ImSeg.resnet as fresh_resnet
+import tensorflow.keras.applications.resnet as pretrained_resnet
 
 
 """
@@ -221,3 +222,62 @@ def create_refine_net(backbone, refine_net_blocks, num_classes, input_shape=(Non
   x = layers.Conv2D(num_classes, (1,1), strides=(1,1), padding='same')(x)
   
   return Model(inputs=img_input, outputs=x)
+
+
+"""
+Creates RefineNet model given a model config file.
+- Creates a pre-trained resnet backbone if specified (or one from scratch)
+- Sets up the RefineNet blocks given intermediate outputs.
+Requires:
+  config: A dict as follows...
+  {
+    "name": "model_name",
+    "backbone": "resnet name, must correspond to valid local/keras name",
+    "backbone_kwargs": {},
+    "pretrained": true/false,
+    "refine_net_blocks":
+      [
+        [intermediate_out1, intermediate_out2, ...], 
+        ...
+      ],
+    "input_shape": [224, 224, 3],
+    "classes":
+      [
+        "building:other",
+        ...
+      ],
+    "rcu_kwargs": {},
+    "mrf_kwargs": {},
+    "crp_kwargs": {},
+    other training hyper params...
+  }
+"""
+def refine_net_from_config(config):
+  backbone_name = config["backbone"]
+  backbone_kwargs = config["backbone_kwargs"]
+
+  # Get backbone from local resnet, or from keras pre-trained resnet.
+  try:
+    if config["pretrained"]:
+      backbone = pretrained_resnet.__dict__[backbone_name](**backbone_kwargs)
+    else:
+      backbone = fresh_resnet.__dict__[backbone_name](**backbone_kwargs)
+  except:
+    raise ValueError("Invalid backbone model name")
+
+  # Set up other model kwargs.
+  refine_net_blocks = config["refine_net_blocks"]
+  num_classes = len(config["classes"])
+  input_shape = tuple(config["input_shape"])
+  rcu_kwargs = config["rcu_kwargs"]
+  mrf_kwargs = config["mrf_kwargs"]
+  crp_kwargs = config["crp_kwargs"]
+
+  model = create_refine_net(backbone,
+                            refine_net_blocks,
+                            num_classes,
+                            input_shape=input_shape,
+                            rcu_kwargs=rcu_kwargs,
+                            mrf_kwargs=mrf_kwargs,
+                            crp_kwargs=crp_kwargs)
+  return model

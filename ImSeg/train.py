@@ -1,5 +1,6 @@
 import sys
 sys.path.append('.')
+import json
 from ImSeg_Dataset import ImSeg_Dataset
 import ImSeg.refine_net as refine_net
 import ImSeg.resnet as resnet
@@ -66,22 +67,14 @@ def passed_arguments():
                       type=str,
                       required=True,
                       help='Path to directory where extracted dataset is stored.')
-  parser.add_argument('--model_name',
+  parser.add_argument('--config',
                       type=str,
                       required=True,
-                      help='Short name of model being trained. eg: refine_net_res50_pretrained')
+                      help='Path to model config .json file defining model hyperparams.')
   parser.add_argument('--classes_path',\
                       type=str,
                       default='./classes.json',
                       help='Path to directory where extracted dataset is stored.')
-  parser.add_argument('--epochs',
-                      type=int,
-                      default=200,
-                      help='Number of epochs to train the model.')
-  parser.add_argument('--batch_size',
-                      type=int,
-                      default=16,
-                      help='Size of batches to feed into model.')
   args = parser.parse_args()
   return args
 
@@ -119,14 +112,18 @@ def val_step(model, loss_function, val_loss, optimizer, images, labels):
 if __name__ == "__main__":
   args = passed_arguments()
 
-  epochs = args.epochs
-  batch_size = args.batch_size
-  model_name = args.model_name
+  # Get args from config.
+  config_path = args.config
+  with open(config_path, 'r') as f:
+    config = json.load(f)
+  epochs = config["epochs"]
+  batch_size = config["batch_size"]
+  model_name = config["name"]
+  augment_kwargs = config["augment"]
+  classes = config["classes"]
 
   ## Set up dataset, number of training/validation samples and number of batches
   dataset = ImSeg_Dataset(data_path=args.data_path, classes_path=args.classes_path)
-  img_size = dataset.image_size
-  num_classes = len(dataset.seg_classes)
   num_train, num_val = dataset.data_sizes[0], dataset.data_sizes[1]
   num_train_batches, num_val_batches = num_train//batch_size, num_val//batch_size
 
@@ -139,10 +136,14 @@ if __name__ == "__main__":
 
 
   ## BEGIN: REFACTOR THIS CODE FOR BETTER MODEL LOADING
-  backbone_model = resnet.resnet50()
 
-  model = refine_net.create_refine_net(backbone_model, [['layer3', 'layer4'], ['layer1','layer2']], 
-                                       num_classes, input_shape=img_size)
+  
+  model = refine_net.refine_net_from_config(config)
+  # backbone_model = resnet.resnet50()
+
+  # model = refine_net.create_refine_net(backbone_model, [['layer3', 'layer4'], ['layer1','layer2']], 
+  #                                      num_classes, input_shape=img_size)
+
   ## END: REFACTOR CODE 
 
   ## Loss and optimizer
@@ -186,7 +187,8 @@ if __name__ == "__main__":
       # Actual train/val over all batches.
       for batch in range(num_batches):
         img_input, label_masks =\
-          dataset.get_batch(indices[batch*batch_size : (batch+1)*batch_size], phase)
+          dataset.get_batch(indices[batch*batch_size : (batch+1)*batch_size], phase, 
+                            classes_of_interset=classes, augment=augment_kwargs)
         
         # Feed inputs to model
         img_input = np.array(img_input, dtype=np.float32)
@@ -194,7 +196,7 @@ if __name__ == "__main__":
         
         # Get metrics
         preds = preds.numpy()
-        ious, prec, recall = calculate_iou_prec_recall(preds, label_masks, pred_threshold=0.5)
+        ious, prec, recall = calculate_iou_prec_recall(preds, label_masks, pred_threshold=0.0)
 
         # Update epoch metrics
         epoch_ious.update_state(ious)

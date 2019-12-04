@@ -1,5 +1,7 @@
 {
+  "name": "refine_net_test3",
   "backbone": "resnet50",
+  "backbone_kwargs": {},
   "pretrained": false,
   "refine_net_blocks":
     [
@@ -15,6 +17,8 @@
   "rcu_kwargs": {},
   "mrf_kwargs": {},
   "crp_kwargs": {},
+  "epochs": 200,
+  "batch_size": 16,
   "augment":
     {
       "rotate_range":90,
