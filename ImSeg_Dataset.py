@@ -307,9 +307,10 @@ class ImSeg_Dataset(Dataset):
     # Filter label classes by classes_of_interest
     indices_of_interest = []
     for class_ in classes_of_interset:
-      index = self.seg_classes.find(class_)
-      if index == -1:
-        raise ValueError("Invalid class name in classes_of_interest")
+      try:
+        index = self.seg_classes.index(class_)
+      except ValueError:
+        raise ValueError("Invalid class name in classes_of_interest.")
       indices_of_interest.append(index)
 
     # interested in all classes if no classes specified
