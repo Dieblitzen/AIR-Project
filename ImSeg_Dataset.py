@@ -7,6 +7,7 @@ import numpy as np
 from PIL import Image, ImageDraw
 from shutil import copyfile
 from Dataset import Dataset
+from ImSeg.data_augmentation import augment_data
 
 # Visualising
 import matplotlib.pyplot as plt
@@ -24,7 +25,7 @@ class ImSeg_Dataset(Dataset):
 
   """
 
-  def __init__(self, data_path, classes_path, train_val_test=(0.8, 0.1, 0.1), image_resize=None):
+  def __init__(self, data_path, classes_path='./classes.json', train_val_test=(0.8, 0.1, 0.1), image_resize=None):
     """
     Initialises a ImSeg_Dataset object by calling the superclass initialiser.
 
@@ -70,7 +71,7 @@ class ImSeg_Dataset(Dataset):
 
     # Create train, validation, test directories, each with an images and
     # annotations sub-directories
-    for i, directory in enumerate([self.train_path, self.val_path, self.test_path, self.out_path]):
+    for i, directory in enumerate([self.train_path, self.val_path, self.test_path]):
       if not os.path.isdir(directory):
         os.mkdir(directory)
 
@@ -83,6 +84,39 @@ class ImSeg_Dataset(Dataset):
       # Size of each training, val and test directories  
       num_samples = len([name for name in os.listdir(os.path.join(directory, 'images')) if name.endswith('.jpg')])
       self.data_sizes[i] = num_samples
+  
+
+  def create_model_out_dir(self, model_name):
+    """
+    Creates directories for metrics, ouput images and annotations for a
+    given model during training.
+    """
+    try:
+      getattr(self, "model_path")
+      raise AttributeError("Attribute model_path already created")
+    except AttributeError as e:
+      pass
+
+    if not os.path.isdir(self.out_path):
+      os.mkdir(self.out_path)
+    
+    self.model_path = os.path.join(self.out_path, model_name)
+    if not os.path.isdir(self.model_path):
+      os.mkdir(self.model_path)
+
+    self.checkpoint_path = os.path.join(self.model_path, 'checkpoints')
+    if not os.path.isdir(self.checkpoint_path):
+      os.mkdir(self.checkpoint_path)
+    
+    self.metrics_path = os.path.join(self.model_path, 'metrics')
+    if not os.path.isdir(self.metrics_path):
+      os.mkdir(self.metrics_path)
+    
+    if not os.path.isdir(os.path.join(self.model_path, 'images')):
+      os.mkdir(os.path.join(self.model_path, 'images'))
+
+    if not os.path.isdir(os.path.join(self.model_path, 'annotations')):
+      os.mkdir(os.path.join(self.model_path, 'annotations'))
 
   
   def get_seg_class_name(self, super_class_name, sub_class_name, delim=':'):
@@ -218,25 +252,39 @@ class ImSeg_Dataset(Dataset):
     all_pix = np.vstack((x, y)).T
 
     # Single, (C, w*h) 1d array of empty mask for all pixels in image, for each class, initialised
-    # to 0s. This will accumulate annotation markings for each building. 
-    pixel_annotations = np.zeros((C, w*h), dtype=bool)
+    # to 0s. This will accumulate annotation markings for each building by ORing the pixels.
+    pixel_annotations = np.zeros((C, h*w), dtype=bool)
     for super_class, sub_class_labels in labels_in_tile.items():
       for sub_class, labels in sub_class_labels.items():
         for label_nodes in labels:
-          p = Path(label_nodes)
-          one_building_pixels = p.contains_points(all_pix)
+          
+          one_label_pixels = []
+          if super_class == "highway":
+            # Draw the road as a thick line on a blank mask.
+            label_nodes = [tuple(point) for point in label_nodes]
+            road_mask = Image.fromarray(np.zeros((h, w)).astype(np.uint8))
+            drawer = ImageDraw.Draw(road_mask)
+            drawer.line(label_nodes, fill=1, width=3)
+
+            one_label_pixels = np.array(road_mask).astype(np.bool).flatten()
+
+          elif super_class == "building":
+            # Create a path enclosing the nodes, and then fill in a blank mask for building's mask
+            p = Path(label_nodes)
+            one_label_pixels = p.contains_points(all_pix)
+          else:
+            raise NotImplementedError("Only support roads and buildings currently.")
 
           # Index of label's class name in list of ordered seg_classes
           seg_class = self.seg_classes.index(self.get_seg_class_name(super_class, sub_class))
-          pixel_annotations[seg_class] = np.logical_or(pixel_annotations[seg_class], one_building_pixels)
-          # pixel_annotations = np.array(pixel_annotations)
+          pixel_annotations[seg_class] = np.logical_or(pixel_annotations[seg_class], one_label_pixels)
 
     pixel_annotations = pixel_annotations.astype(np.uint8).reshape((C, h, w))
 
     return {"annotation": pixel_annotations.tolist()}
 
 
-  def get_batch(self, indices, train_val_test):
+  def get_batch(self, indices, train_val_test, is_augment=True, augment_data_seed=0):
     """
     Returns the batch of images and labels associated with the images,
     based on the list of indicies to look up.
@@ -264,13 +312,20 @@ class ImSeg_Dataset(Dataset):
 
       # Reshape to (h,w,C) dimensions
       with open(os.path.join(path, 'annotations', f'{i}.json'), 'r') as ann:
-        annotation = np.array(json.load(ann)['annotation']).T
+        annotation = np.moveaxis(np.array(json.load(ann)['annotation']), 0, -1)
 
       images.append(image)
       annotations.append(annotation)
 
     # Return tuple by stacking them into blocks
-    return (np.stack(images), np.stack(annotations))
+    images, annotations = np.stack(images), np.stack(annotations)
+
+    if is_augment:
+      # call function from data_augmentation.pyplot
+      images, annotations = augment_data(images, annotations, seed=augment_data_seed)
+
+    # TODO: Normalize images
+    return images, annotations
 
 
   def save_preds(self, image_indices, preds, image_dir="val"):
@@ -317,6 +372,8 @@ class ImSeg_Dataset(Dataset):
     """
     Provides a visualization of the tile and its corresponding annotation/ label in one
     of the train/test/val directories as specified. 
+    Requires:
+      index: A valid index in one of train/test/val
     """
 
     path = self.train_path
@@ -382,8 +439,8 @@ if __name__ == "__main__":
   # Create dataset.
   if ds.data_sizes[0] == 0:
     ds.build_dataset()
-
   print(ds.seg_classes)
+
   # Visualize tiles.
   if args.tile:
     inds = random.sample(range(ds.data_sizes[0]), 20)
