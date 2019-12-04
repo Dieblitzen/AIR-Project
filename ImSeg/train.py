@@ -18,7 +18,7 @@ Requires:
   label_masks: ground truth masks, shape (batch, h, w, #c)
   pred_threshold: Confidence threshold over which pixel prediction counted,
 """
-def calculate_iou_prec_recall(preds, label_masks, pred_threshold=0.5):
+def calculate_iou_prec_recall(preds, label_masks, pred_threshold=0.0):
   # Reduce dimensions across all but classes dimension.
   preds = preds.reshape(-1, preds.shape[-1])
   label_masks = label_masks.reshape(-1, label_masks.shape[-1])
