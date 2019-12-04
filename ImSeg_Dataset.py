@@ -284,12 +284,14 @@ class ImSeg_Dataset(Dataset):
     return {"annotation": pixel_annotations.tolist()}
 
 
-  def get_batch(self, indices, train_val_test, is_augment=True, augment_data_seed=0):
+  def get_batch(self, indices, train_val_test, classes_of_interset=[], augment={}):
     """
     Returns the batch of images and labels associated with the images,
     based on the list of indicies to look up.
     Requires:
       indices: list of indices with which to make a batch
+      classes_of_interest: list of class names to get annotations for
+
     Format: (block of images, block of labels)
     """
 
@@ -302,10 +304,23 @@ class ImSeg_Dataset(Dataset):
     elif train_val_test == "out":
       path = self.out_path
 
+    # Filter label classes by classes_of_interest
+    indices_of_interest = []
+    for class_ in classes_of_interset:
+      index = self.seg_classes.find(class_)
+      if index == -1:
+        raise ValueError("Invalid class name in classes_of_interest")
+      indices_of_interest.append(index)
+
+    # interested in all classes if no classes specified
+    if indices_of_interest == []:
+      indices_of_interest = list(range(len(self.seg_classes)))
+
     # Accumulators for images and annotations in batch
     images = []
     annotations = []
     C = len(self.seg_classes)
+
     for i in indices:
       image = Image.open(os.path.join(path, 'images', f'{i}.jpg'))
       image = np.array(image)
@@ -315,14 +330,14 @@ class ImSeg_Dataset(Dataset):
         annotation = np.moveaxis(np.array(json.load(ann)['annotation']), 0, -1)
 
       images.append(image)
-      annotations.append(annotation)
+      annotations.append(annotation[indices_of_interest])
 
     # Return tuple by stacking them into blocks
     images, annotations = np.stack(images), np.stack(annotations)
 
-    if is_augment:
-      # call function from data_augmentation.pyplot
-      images, annotations = augment_data(images, annotations, seed=augment_data_seed)
+    # call function from data_augmentation.pyplot
+    if augment:
+      images, annotations = augment_data(images, annotations, **augment)
 
     # TODO: Normalize images
     return images, annotations

@@ -1,8 +1,8 @@
 import sys
 sys.path.append('.')
 from ImSeg_Dataset import ImSeg_Dataset
-import ImSeg.network as network
-import ImSeg.backbone as backbone
+import ImSeg.refine_net as refine_net
+import ImSeg.resnet as resnet
 
 import os
 import logging
@@ -139,10 +139,10 @@ if __name__ == "__main__":
 
 
   ## BEGIN: REFACTOR THIS CODE FOR BETTER MODEL LOADING
-  backbone_model = backbone.resnet50()
+  backbone_model = resnet.resnet50()
 
-  model = network.create_refine_net(backbone_model, [['layer3', 'layer4'], ['layer1','layer2']], 
-                                    num_classes, input_shape=img_size)
+  model = refine_net.create_refine_net(backbone_model, [['layer3', 'layer4'], ['layer1','layer2']], 
+                                       num_classes, input_shape=img_size)
   ## END: REFACTOR CODE 
 
   ## Loss and optimizer

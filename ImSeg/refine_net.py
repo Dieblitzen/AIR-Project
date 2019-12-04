@@ -73,6 +73,9 @@ class MRF_Block(Model):
 
     # Upsample to largest (h, w) resolution
     largest_res = max(inputs, key=lambda t: t.shape[1] * t.shape[2])
+
+    # Sort inputs by smallest to largest resolution (for conv_transpose)
+    convolved = sorted(convolved, key=lambda t: t.shape[1] * t.shape[2])
     resized = []
     for i, t in enumerate(convolved):
       deconv = getattr(self, f'deconv_{i}', lambda t: t)
@@ -203,10 +206,11 @@ def create_refine_net(backbone, refine_net_blocks, num_classes, input_shape=(Non
   for layer_names in refine_net_blocks:
     input_features = [features[name] for name in layer_names]
     input_channels = [feature.shape[-1] for feature in input_features]
-
+    
+    # Order of tensors to refine net block ordered by smallest to largest resolution.
     if prev_refine_net_out is not None:
-      input_features.append(prev_refine_net_out)
-      input_channels.append(prev_refine_net_out.shape[-1])
+      input_features = [prev_refine_net_out] + input_features
+      input_channels = [prev_refine_net_out.shape[-1]] + input_channels
     
     refine_net_block = RefineNet_Block(input_channels, rcu_kwargs, mrf_kwargs, crp_kwargs)
     refine_net_out = refine_net_block(input_features)

@@ -2,20 +2,8 @@ from tensorflow.keras.preprocessing.image import ImageDataGenerator
 import tensorflow as tf
 import numpy as np
 
-DATA_GEN_X =ImageDataGenerator(rotation_range=90,
-                               horizontal_flip=True,
-                               vertical_flip=True,
-                               channel_shift_range=64,
-                               fill_mode='constant',
-                               cval=0)
-DATA_GEN_Y = ImageDataGenerator(rotation_range=90,
-                               horizontal_flip=True,
-                               vertical_flip=True,
-                               channel_shift_range=1e-10,
-                               fill_mode='constant', 
-                               cval=0)
-
-def augment_data(images, annotations, multiplier=1, seed=0):
+def augment_data(images, annotations, rotate_range=0, flip=False, 
+                  channel_shift_range=1e-10, multiplier=0, seed=0):
   """
   Augments images and label masks
   Requires:
@@ -33,12 +21,26 @@ def augment_data(images, annotations, multiplier=1, seed=0):
     aug_annotations: ((multiplier + 1) * n) x IMAGE_SIZE x IMAGE_SIZE x c
       numpy array of masks where c is the number of classes
   """
+  data_gen_X =ImageDataGenerator(rotation_range=rotate_range,
+                                horizontal_flip=flip,
+                                vertical_flip=flip,
+                                channel_shift_range=channel_shift_range,
+                                fill_mode='constant',
+                                cval=0)
+  data_gen_Y = ImageDataGenerator(rotation_range=rotate_range,
+                                horizontal_flip=flip,
+                                vertical_flip=flip,
+                                channel_shift_range=1e-10,
+                                fill_mode='constant', 
+                                cval=0)
+
+
   batch_size = images.shape[0]
-  imageGen = DATA_GEN_X.flow(images, batch_size=batch_size, seed=seed)
+  imageGen = data_gen_X.flow(images, batch_size=batch_size, seed=seed)
   labelGens = []
   
   for i in range(annotations.shape[3]):
-    labelGens.append(DATA_GEN_Y.flow(annotations[:,:,:,i:i + 1], batch_size=batch_size, seed=seed))
+    labelGens.append(data_gen_Y.flow(annotations[:,:,:,i:i + 1], batch_size=batch_size, seed=seed))
 
   for i in range(multiplier):
     aug_images = imageGen.next()
