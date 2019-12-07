@@ -15,15 +15,25 @@ import os
 import os.path as osp
 from smooth_L1 import smooth_L1, decode_smooth_L1
 
-TILE_SIZE = 224
-NUM_CLASSES = 6
-BATCH_SIZE = 30
-TRAIN_BASE_PATH = osp.join('..', 'data_pathN', 'pixor', 'train')
-TRAIN_LEN = len(os.listdir(osp.join(TRAIN_BASE_PATH, 'images')))
 
 class PixorModel(object):
+    def __init__(self, flags): 
 
-    def __init__(self): 
+        self.flags = flags
+        NUM_EPOCHS = flags.num_epochs
+        BATCH_SIZE = flags.batch_size
+        TILE_SIZE = flags.tile_size
+        IMAGE_SIZE = (TILE_SIZE, TILE_SIZE, 3)
+        LOGFILE_NAME = flags.logfile_name
+        NUM_CLASSES = flags.num_classes
+        BATCH_SIZE = flags.batch_size
+        GPU = flags.gpu
+        DATA_FILE_NAME = flags.data_path
+        TRAIN_BASE_PATH = os.path.join('..', DATA_FILE_NAME, 'pixor', 'train')
+        VAL_BASE_PATH = os.path.join('..', DATA_FILE_NAME, 'pixor', 'val')
+        VAL_LEN = len(os.listdir(VAL_BASE_PATH))
+
+        TILE_SIZE = flags.tile_size
         #Initialize expected input for images
         self.x = tf.placeholder(tf.float32, shape=(None, TILE_SIZE, TILE_SIZE, 3), name='x')
         #Initialize holder for per-pixel bounding boxes
@@ -136,7 +146,7 @@ class PixorModel(object):
         self.pixor_loss = self.class_loss + self.box_loss
         self.decode_pixor_loss = self.class_loss + self.decode_loss
 
-        # return self.box_loss, self.pixor_loss, decode_loss, decode_pixor_loss
+        return self.box_loss, self.pixor_loss, self.decode_loss, self.decode_pixor_loss
 
     # alpha is the weight of the less frequent class
     def custom_cross_entropy(self, class_labels, unnormalized_class_preds, class_weights, alpha=0.25, gamma=2.0): 
@@ -151,25 +161,22 @@ class PixorModel(object):
         return tf.layers.conv2d_transpose(inputs=input, filters=out_channels,
             kernel_size=filter_size, strides=stride, padding='same', activation=activation) 
 
-    def train_one_epoch(self, epoch, sess, train_path):
+    def train_one_epoch(self, epoch, sess, batch_size, train_path):
         per_epoch_train_loss = 0
         per_epoch_box_loss = 0
         per_epoch_class_loss = 0
 
+        TRAIN_LEN = len(os.listdir(os.path.join(train_path, 'images')))
         batch_indices = np.arange(TRAIN_LEN)
-        
-        # logging.info("\nepoch " + stdr(epoch))
-        print("\nepoch " + str(epoch))
-
         np.random.shuffle(batch_indices)
         
         # RIGHT NOW IF DOESN'T PERFECTLY DIVIDE IT DOESN'T COVER REMAINING, MIGHT WANT TO CHANGE THIS
-        # num_batches = TRAIN_LEN // BATCH_SIZE
+        # num_batches = self.train_len // batch_size
         num_batches = 1
         for batch_number in range(0, num_batches):
-            start_idx = batch_number * BATCH_SIZE
-            end_idx = start_idx + BATCH_SIZE
-            batch_images, batch_boxes, batch_classes = get_batch(start_idx, TRAIN_BASE_PATH)
+            start_idx = batch_number * batch_size
+            end_idx = start_idx + batch_size
+            batch_images, batch_boxes, batch_classes = get_batch(start_idx, self.flags, train_path)
 
             _, b_loss, c_loss, batch_train_loss, box_preds, unnorm_class_preds = \
             sess.run([self.decode_train_step, self.decode_loss, self.class_loss, self.decode_pixor_loss, self.output_box, self.output_class], 
@@ -186,11 +193,11 @@ class PixorModel(object):
         return box_preds, unnorm_class_preds, per_epoch_train_loss, per_epoch_box_loss, per_epoch_class_loss
 
     def evaluate(self, sess, val_base_path):
-        val_images, val_boxes, val_classes = get_batch(0, val_base_path)
+        val_images, val_boxes, val_classes = get_batch(0, self.flags, val_base_path)
         val_loss, box_preds, unnorm_class_preds = sess.run([self.decode_pixor_loss, self.output_box, self.output_class], feed_dict = {self.x: val_images, self.y_box: val_boxes, self.y_class: val_classes})
-        return val_loss, box_preds, unnorm_class_preds
-   
-def get_tile_and_label(index, norm, path=TRAIN_BASE_PATH):
+        return val_loss, box_preds, unnorm_class_preds, val_classes
+    
+def get_tile_and_label(index, flags, norm=True):
     """
     Method 2)
     Gets the tile and label associated with data index.
@@ -198,7 +205,10 @@ def get_tile_and_label(index, norm, path=TRAIN_BASE_PATH):
     Returns:
     (tile_array, dictionary_of_buildings)
     """
-    
+    DATA_FILE_NAME = flags.data_path
+    TRAIN_BASE_PATH = os.path.join('..', DATA_FILE_NAME, 'pixor', 'train')
+
+    path=TRAIN_BASE_PATH
     mean = np.load('mean.npy')
     std = np.load('std.npy')
     train_mean = np.load('train_mean.npy')
@@ -213,18 +223,18 @@ def get_tile_and_label(index, norm, path=TRAIN_BASE_PATH):
 
     
     class_annotation = np.load(osp.join(path, 'class_annotations', f'{index}.npy'))
+    if(len(class_annotation.shape) == 2):
+            class_annotation = class_annotation[:,:,newaxis]
     # Open the json file and parse into dictionary of index -> buildings pairs
     box_annotation = np.load(osp.join(path, 'box_annotations', f'{index}.npy'))
     # normalizing the positive labels if norm=True
     if norm:
-        if(len(class_annotation.shape) == 2):
-            class_annotation = class_annotation[:,:,newaxis]
         clipped = np.clip(class_annotation, 0, 1)
         box_annotation = clipped * (box_annotation - train_mean)/train_std + (1 - clipped) * box_annotation
     return im_arr, box_annotation, class_annotation
 
 
-def get_batch(start_index, path=TRAIN_BASE_PATH, norm=True):
+def get_batch(start_index, flags, path='', norm=True):
     """
     Method 3)
     Gets batch of tiles and labels associated with data start_index.
@@ -232,6 +242,12 @@ def get_batch(start_index, path=TRAIN_BASE_PATH, norm=True):
     Returns:
     [(tile_array, list_of_buildings), ...]
     """
+    # DATA_FILE_NAME = flags.data_path
+    # TRAIN_BASE_PATH = os.path.join('..', DATA_FILE_NAME, 'pixor', 'train')
+    BATCH_SIZE = flags.batch_size
+    TILE_SIZE = flags.tile_size
+
+    # path = TRAIN_BASE_PATH
     p = osp.join(path, 'images')
     length = len(os.listdir(p))
     batch_indices = np.arange(length)
@@ -240,6 +256,7 @@ def get_batch(start_index, path=TRAIN_BASE_PATH, norm=True):
     batch_boxes = np.zeros((BATCH_SIZE, TILE_SIZE, TILE_SIZE, 6))
     batch_classes = np.zeros((BATCH_SIZE, TILE_SIZE, TILE_SIZE, 1))
     for i in range(start_index, start_index + BATCH_SIZE):
-        batch_images[i % BATCH_SIZE], batch_boxes[i % BATCH_SIZE], batch_classes[i % BATCH_SIZE] = get_tile_and_label(batch_indices[i], norm, path)
+        batch_images[i % BATCH_SIZE], batch_boxes[i % BATCH_SIZE], batch_classes[i % BATCH_SIZE] = get_tile_and_label(batch_indices[i], flags, norm=norm)
 
     return batch_images, batch_boxes, batch_classes
+

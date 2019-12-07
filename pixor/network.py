@@ -1,3 +1,4 @@
+import argparse
 import tensorflow as tf
 import numpy as np
 from PIL import Image
@@ -11,21 +12,37 @@ from nms import nms
 import cv2
 import meanAP
 import os
+import os.path as osp
 
+import pixor_model
 from pixor_model import PixorModel
 
 
+parser = argparse.ArgumentParser(description='Arguments for GAN with rotation loss')
+parser.add_argument('--gpu', type=int, default=0, help='0 - run with CPU; 1 - run with GPU')
+parser.add_argument('--num_epochs', type=int, default=300, help='number of epochs to train')
+parser.add_argument('--batch_size', type=int, default=32, help='Batch Size during training [default: 32]')
+parser.add_argument('--logfile_name', type=str, default='PIXOR_logfile', help='File to save logging info')
+parser.add_argument('--tile_size', type=int, default=224, help='Size of tile images')
+parser.add_argument('--data_path', type=str, default='data_path', help='Name of data folder')
+parser.add_argument('--num_classes', type=int, default=6, help='number of building classes')
+
+flags = parser.parse_args()
 ##### SETTINGS #####
 
-NUM_EPOCHS = 300
-BATCH_SIZE = 32
-TILE_SIZE = 224
+NUM_EPOCHS = flags.num_epochs
+BATCH_SIZE = flags.batch_size
+TILE_SIZE = flags.tile_size
 IMAGE_SIZE = (TILE_SIZE, TILE_SIZE, 3)
-LOGFILE_NAME = "PIXOR_logfile"
+LOGFILE_NAME = flags.logfile_name
+GPU = flags.gpu
+NUM_CLASSES = flags.num_classes
+DATA_FILE_NAME = flags.data_path
+TRAIN_BASE_PATH = os.path.join('..', DATA_FILE_NAME, 'pixor', 'train')
+TRAIN_LEN = len(os.listdir(os.path.join(TRAIN_BASE_PATH, 'images')))
 
-TRAIN_BASE_PATH = os.path.join('..', 'data_pathN', 'pixor', 'train')
-VAL_BASE_PATH = os.path.join('..', 'data_pathN', 'pixor', 'train')
-VAL_LEN = len(os.listdir(VAL_BASE_PATH))
+VAL_BASE_PATH = os.path.join('..', DATA_FILE_NAME, 'pixor', 'val')
+VAL_LEN = len(os.listdir(osp.join(VAL_BASE_PATH, 'images')))
 ##### End of SETTINGS #####
 
 logging.basicConfig(level=logging.INFO, filename=LOGFILE_NAME,
@@ -33,12 +50,10 @@ logging.basicConfig(level=logging.INFO, filename=LOGFILE_NAME,
 sys.path.append("..")
 
 # launch session to connect to C++ computation power
-# gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.25)
+gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.25)
 config = tf.ConfigProto()
 config.gpu_options.allow_growth=True
-# sess = tf.InteractiveSession(config=tf.ConfigProto(gpu_options=gpu_options))
-sess = tf.Session()
-# LACKING MORE SKIP CONNECTIONS
+sess = tf.InteractiveSession(config=tf.ConfigProto(gpu_options=gpu_options)) if GPU else tf.Session()
 
 
 def pixor_to_corners_tf(box):
@@ -64,7 +79,9 @@ def find_angle(box):
 
         
 def viz_preds(box_preds, class_preds):
-    vis_val_images, vis_val_boxes, vis_val_classes = get_batch(0, VAL_LEN, val_batch_indices, val_base_path, np.zeros(IMAGE_SIZE), np.ones(IMAGE_SIZE), train_mean, train_std, norm=False)
+    vis_val_images, vis_val_boxes, vis_val_classes = pixor_model.get_batch(0, flags, path=VAL_BASE_PATH,  norm=False)
+
+
     true_pos = 0.
     false_pos = 0.
     
@@ -115,13 +132,11 @@ def viz_preds(box_preds, class_preds):
         
     
 def get_MAP(box_preds, class_preds):
-    
-    vis_val_images, vis_val_boxes, vis_val_classes = get_batch(0, VAL_LEN, val_batch_indices, val_base_path, np.zeros(IMAGE_SIZE), np.ones(IMAGE_SIZE), train_mean, train_std, norm=False)
+    vis_val_images, vis_val_boxes, vis_val_classes = pixor_model.get_batch(0, flags, path=val_base_path, norm=False)
     true_pos = 0.
     false_pos = 0.
     
     for i in range(len(vis_val_images)):
-        
         logging.info("image " + str(i))
         unique_boxes_set = set()
         boxes_in_image = []
@@ -178,7 +193,10 @@ def get_MAP(box_preds, class_preds):
         logging.info(true_pos/(true_pos+false_pos))
     else:
         logging.info("no predictions, mAP undefined")
-   
+
+def log_print(log_string):
+    logging.info(log_string)
+    print(log_string)
 
 if __name__ == "__main__":
     
@@ -186,10 +204,8 @@ if __name__ == "__main__":
     # neg_weight = 60000000/12831713
     
     #A step to minimize our cost function
-    model = PixorModel()
-    # box_loss, pixor_loss, decode_loss, decode_pixor_loss = model.get_loss()
-    # print('decode_loss.shape', decode_loss.shape)
-
+    model = PixorModel(flags)
+    box_loss, pixor_loss, decode_loss, decode_pixor_loss = model.get_loss()
     
     # RUN THINGS
     saver = tf.train.Saver()
@@ -202,19 +218,16 @@ if __name__ == "__main__":
 
         mAP = 0.
         for epoch in range(NUM_EPOCHS):
-            box_preds, unnorm_class_preds, per_epoch_train_loss, per_epoch_box_loss, per_epoch_class_loss = model.train_one_epoch(epoch, sess, TRAIN_BASE_PATH)
-            # # at each epoch, print training and validation loss
-            val_loss, box_preds, unnorm_class_preds = model.evaluate(sess, VAL_BASE_PATH)
+            box_preds, unnorm_class_preds, per_epoch_train_loss, per_epoch_box_loss, per_epoch_class_loss = model.train_one_epoch(epoch, sess, BATCH_SIZE, TRAIN_BASE_PATH)
 
-            # logging.info('epoch %d, training loss %g' % (epoch, per_epoch_train_loss))
-            # logging.info('epoch %d, training class loss %g' % (epoch, per_epoch_class_loss))
-            # logging.info('epoch %d, training box loss %g' % (epoch, per_epoch_box_loss))
-            # logging.info('epoch %d, validation loss %g' % (epoch, val_loss))
+            # at each epoch, print training and validation loss
+            val_loss, box_preds, unnorm_class_preds, val_classes = model.evaluate(sess, VAL_BASE_PATH)
             
-            print('epoch %d, training loss %g' % (epoch, per_epoch_train_loss))
-            print('epoch %d, training class loss %g' % (epoch, per_epoch_class_loss))
-            print('epoch %d, training box loss %g' % (epoch, per_epoch_box_loss))
-            # print('epoch %d, validation loss %g' % (epoch, val_loss))
+            log_print(f'epoch {epoch}')
+            log_print(f'training loss {per_epoch_train_loss}')
+            log_print(f'training class loss {per_epoch_class_loss}')
+            log_print(f'training box loss {per_epoch_box_loss}')
+            log_print(f'validation loss {val_loss}')
             
             # pos = np.where(class_preds >.8)
             class_preds = tf.sigmoid(unnorm_class_preds).eval()
@@ -223,24 +236,29 @@ if __name__ == "__main__":
             pos_indices = pos_indices[:-1]
                     
             # checkpoint model if best so far
-            # if val_loss < lowest_val_loss:
-            #     lowest_val_loss = val_loss
-            #     saver.save(sess, 'ckpt/', global_step=epoch)
+            if val_loss < lowest_val_loss:
+                lowest_val_loss = val_loss
+                saver.save(sess, 'ckpt/', global_step=epoch)
 
-        # ap = average_precision_score(val_classes.flatten(), class_preds.flatten())
-        # precision = precision_score(val_classes.flatten(), np.round(class_preds.flatten()))
-        # recall = recall_score(val_classes.flatten(), np.round(class_preds.flatten()))
-        # print("ap: " + str(ap))
-        # print("precision: " + str(precision))
-        # print("recall: " + str(recall))
+        print('val_classes.shape', val_classes.shape) #(1, 224, 224, 1)
+        temp = val_classes.flatten().astype(int)
+        print('val_classes max', int(temp.max()))
+        val_classes = np.zeros((temp.size, int(temp.max())+1))
+        val_classes[np.arange(temp.size), temp] = 1
+        print('val_classes.shape after', val_classes.shape)
+        print('class_preds.shape after', class_preds.shape) #(1, 224, 224, 6)
+
+        ap = average_precision_score(val_classes, class_preds.reshape(-1, 6))
+        precision = precision_score(val_classes.flatten(), np.round(class_preds.flatten()))
+        recall = recall_score(val_classes.flatten(), np.round(class_preds.flatten()))
         
-        # logging.info("ap: " + str(ap))
-        # logging.info("precision: " + str(precision))
-        # logging.info("recall: " + str(recall))
+        log_print(f'ap: {ap}')
+        log_print(f'precision: {precision}')
+        log_print(f'recall: {recall}')
             
     #save outputs for visualizing/calculate MAP (skipping eval.py)
         if epoch % 25 == 0 and epoch != 0 and epoch != 25:
             get_MAP(box_preds, class_preds)
-        if epoch == 150:
-            viz_preds(box_preds, class_preds)
+        #if epoch == 0:
+            #viz_preds(box_preds, class_preds)
             
