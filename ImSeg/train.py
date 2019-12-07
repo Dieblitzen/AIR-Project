@@ -148,6 +148,8 @@ if __name__ == "__main__":
   ## Set up dataset, number of training/validation samples and number of batches
   dataset = ImSeg_Dataset(data_path=args.data_path, classes_path=args.classes_path,
                           augment_kwargs=augment_kwargs)
+  if dataset.data_sizes[0] == 0:
+    dataset.build_dataset()
   num_train, num_val = dataset.data_sizes[0], dataset.data_sizes[1]
   num_train_batches, num_val_batches = num_train//batch_size, num_val//batch_size
 
