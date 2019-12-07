@@ -123,7 +123,8 @@ if __name__ == "__main__":
   interest_classes = config["classes"]
 
   ## Set up dataset, number of training/validation samples and number of batches
-  dataset = ImSeg_Dataset(data_path=args.data_path, classes_path=args.classes_path)
+  dataset = ImSeg_Dataset(data_path=args.data_path, classes_path=args.classes_path
+                          augment_kwargs=augment_kwargs)
   num_train, num_val = dataset.data_sizes[0], dataset.data_sizes[1]
   num_train_batches, num_val_batches = num_train//batch_size, num_val//batch_size
 
@@ -179,7 +180,7 @@ if __name__ == "__main__":
       for batch in range(num_batches):
         img_input, label_masks =\
           dataset.get_batch(indices[batch*batch_size : (batch+1)*batch_size], phase, 
-                            classes_of_interset=interest_classes, augment=augment_kwargs)
+                            classes_of_interset=interest_classes)
         
         # Feed inputs to model
         img_input = np.array(img_input, dtype=np.float32)
