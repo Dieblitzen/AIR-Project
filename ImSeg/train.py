@@ -169,7 +169,7 @@ if __name__ == "__main__":
   ## =============================================================================================
   train_loss = tf.keras.metrics.Mean(name='train_loss')
   val_loss = tf.keras.metrics.Mean(name='val_loss')
-  best_val_loss = float('inf')
+  best_val_iou = float('-inf')
   
   for epoch in range(epochs):
     print(f"\nEpoch {epoch+1}")
@@ -234,9 +234,9 @@ if __name__ == "__main__":
       # Log metrics, print metrics, write metrics to summary_writer
       log_metrics(metrics_dict, writer, epoch, phase)
 
-      # Checkpoint model weights if loss is good
-      if phase == 'val' and epoch_loss.result() < best_val_loss:
-        best_val_loss = epoch_loss.result()
+      # Checkpoint model weights if mean iou is good.
+      if phase == 'val' and np.mean(epoch_ious.result().numpy()) >= best_val_iou:
+        best_val_iou = np.mean(epoch_ious.result().numpy())
         model.save_weights(os.path.join(dataset.checkpoint_path, model_name))
 
       # End of epoch, reset metrics
