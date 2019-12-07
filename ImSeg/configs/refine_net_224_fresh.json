@@ -17,14 +17,26 @@
   "rcu_kwargs": {},
   "mrf_kwargs": {},
   "crp_kwargs": {},
+
+  "augment":
+  {
+    "rotate_range":90,
+    "flip":true, 
+    "channel_shift_range":1e-10, 
+    "multiplier":1, 
+    "seed":0
+  },
+
   "epochs": 200,
   "batch_size": 16,
-  "augment":
+  "loss": "BinaryCrossentropy",
+  "loss_kwargs": 
     {
-      "rotate_range":90,
-      "flip":true, 
-      "channel_shift_range":1e-10, 
-      "multiplier":1, 
-      "seed":0
+      "from_logits": true
+    },
+  "optimizer": "Adam",
+  "optimizer_kwargs": 
+    {
+      "learning_rate":0.0001
     }
 }

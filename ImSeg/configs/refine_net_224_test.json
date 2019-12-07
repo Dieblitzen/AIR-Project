@@ -16,7 +16,19 @@
   "rcu_kwargs": {},
   "mrf_kwargs": {},
   "crp_kwargs": {},
+  
+  "augment": {},
+
   "epochs": 200,
   "batch_size": 16,
-  "augment": {}
+  "loss": "BinaryCrossentropy",
+  "loss_kwargs": 
+    {
+      "from_logits": true
+    },
+  "optimizer": "Adam",
+  "optimizer_kwargs": 
+    {
+      "learning_rate":0.0001
+    }
 }

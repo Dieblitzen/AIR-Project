@@ -12,6 +12,47 @@ import numpy as np
 import tensorflow as tf
 
 
+def passed_arguments():
+  parser = argparse.ArgumentParser(description="Script to train an Image Segmentation model.")
+  parser.add_argument('--data_path',
+                      type=str,
+                      required=True,
+                      help='Path to directory where extracted dataset is stored.')
+  parser.add_argument('--config',
+                      type=str,
+                      required=True,
+                      help='Path to model config .json file defining model hyperparams.')
+  parser.add_argument('--classes_path',\
+                      type=str,
+                      default='./classes.json',
+                      help='Path to directory where extracted dataset is stored.')
+  args = parser.parse_args()
+  return args
+
+"""
+Instantiates loss function and optimizer based on name and kwargs.
+Ensure that names are valid in the tf.keras.losses/optmizers modules.
+Also ensure keyword arguments match.
+Defaults to using BinaryCrossentropy (from logits), and Adam(lr=0.0001)
+"""
+def get_loss_optimizer(config):
+  loss_name = config.get("loss", "BinaryCrossentropy")
+  loss_kwargs = config.get("loss_kwargs", {"from_logits":True})
+  optimizer_name = config.get("optimizer", "Adam")
+  optimizer_kwargs = config.get("optimizer_kwargs", {"learning_rate":0.0001})
+
+  try:
+    loss_function = tf.keras.losses.__dict__[loss_name](**loss_kwargs)
+  except KeyError:
+    raise ValueError("Loss name (case sensitive) doesn't match keras losses.")
+
+  try:
+    optimizer = tf.keras.optimizers.__dict__[optimizer_name](**optimizer_kwargs)
+  except KeyError:
+    raise ValueError("Optimizer name (case sensitive) doesn't match keras optimizers.")
+  return loss_function, optimizer
+
+
 """
 Calculate IoU, Precision and Recall per class for entire batch of images.
 Requires:
@@ -61,24 +102,6 @@ def log_metrics(metrics_dict, writer, epoch, phase):
       print(f"{metric_name}: {metric_value}")
 
 
-def passed_arguments():
-  parser = argparse.ArgumentParser(description="Script to train an Image Segmentation model.")
-  parser.add_argument('--data_path',
-                      type=str,
-                      required=True,
-                      help='Path to directory where extracted dataset is stored.')
-  parser.add_argument('--config',
-                      type=str,
-                      required=True,
-                      help='Path to model config .json file defining model hyperparams.')
-  parser.add_argument('--classes_path',\
-                      type=str,
-                      default='./classes.json',
-                      help='Path to directory where extracted dataset is stored.')
-  args = parser.parse_args()
-  return args
-
-
 """
 Performs one training step over a batch.
 Passes one batch of images through the model, and backprops the gradients.
@@ -116,9 +139,9 @@ if __name__ == "__main__":
   config_path = args.config
   with open(config_path, 'r') as f:
     config = json.load(f)
+  model_name = config["name"]
   epochs = config["epochs"]
   batch_size = config["batch_size"]
-  model_name = config["name"]
   augment_kwargs = config["augment"]
   interest_classes = config["classes"]
 
@@ -135,21 +158,19 @@ if __name__ == "__main__":
   # Set up Logger
   logging.basicConfig(filename=os.path.join(dataset.metrics_path, f"{model_name}.log"), level=logging.INFO)
 
-  # Set up model from config.
+  ## Set up model from config.
   model = refine_net.refine_net_from_config(config)
 
-  ## Loss and optimizer
-  loss_function = tf.keras.losses.BinaryCrossentropy(from_logits=True)
-  optimizer = tf.keras.optimizers.Adam(learning_rate=0.001)
-
-  train_loss = tf.keras.metrics.Mean(name='train_loss')
-  val_loss = tf.keras.metrics.Mean(name='val_loss')
+  ## Get loss and optimizer from config
+  loss_function, optimizer = get_loss_optimizer(config)
 
   ## =============================================================================================
   ## BEGIN ITERATING OVER EPOCHS
   ## =============================================================================================
-
+  train_loss = tf.keras.metrics.Mean(name='train_loss')
+  val_loss = tf.keras.metrics.Mean(name='val_loss')
   best_val_loss = float('inf')
+  
   for epoch in range(epochs):
     print(f"\nEpoch {epoch+1}")
 
@@ -225,4 +246,3 @@ if __name__ == "__main__":
       epoch_recall.reset_states()
 
     print("\n")
-
