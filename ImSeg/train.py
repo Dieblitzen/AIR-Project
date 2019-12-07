@@ -1,5 +1,6 @@
 import sys
 sys.path.append('.')
+import json
 from ImSeg_Dataset import ImSeg_Dataset
 import ImSeg.refine_net as refine_net
 import ImSeg.resnet as resnet
@@ -9,6 +10,47 @@ import logging
 import argparse
 import numpy as np
 import tensorflow as tf
+
+
+def passed_arguments():
+  parser = argparse.ArgumentParser(description="Script to train an Image Segmentation model.")
+  parser.add_argument('--data_path',
+                      type=str,
+                      required=True,
+                      help='Path to directory where extracted dataset is stored.')
+  parser.add_argument('--config',
+                      type=str,
+                      required=True,
+                      help='Path to model config .json file defining model hyperparams.')
+  parser.add_argument('--classes_path',\
+                      type=str,
+                      default='./classes.json',
+                      help='Path to directory where extracted dataset is stored.')
+  args = parser.parse_args()
+  return args
+
+"""
+Instantiates loss function and optimizer based on name and kwargs.
+Ensure that names are valid in the tf.keras.losses/optmizers modules.
+Also ensure keyword arguments match.
+Defaults to using BinaryCrossentropy (from logits), and Adam(lr=0.0001)
+"""
+def get_loss_optimizer(config):
+  loss_name = config.get("loss", "BinaryCrossentropy")
+  loss_kwargs = config.get("loss_kwargs", {"from_logits":True})
+  optimizer_name = config.get("optimizer", "Adam")
+  optimizer_kwargs = config.get("optimizer_kwargs", {"learning_rate":0.0001})
+
+  try:
+    loss_function = tf.keras.losses.__dict__[loss_name](**loss_kwargs)
+  except KeyError:
+    raise ValueError("Loss name (case sensitive) doesn't match keras losses.")
+
+  try:
+    optimizer = tf.keras.optimizers.__dict__[optimizer_name](**optimizer_kwargs)
+  except KeyError:
+    raise ValueError("Optimizer name (case sensitive) doesn't match keras optimizers.")
+  return loss_function, optimizer
 
 
 """
@@ -60,32 +102,6 @@ def log_metrics(metrics_dict, writer, epoch, phase):
       print(f"{metric_name}: {metric_value}")
 
 
-def passed_arguments():
-  parser = argparse.ArgumentParser(description="Script to train an Image Segmentation model.")
-  parser.add_argument('--data_path',
-                      type=str,
-                      required=True,
-                      help='Path to directory where extracted dataset is stored.')
-  parser.add_argument('--model_name',
-                      type=str,
-                      required=True,
-                      help='Short name of model being trained. eg: refine_net_res50_pretrained')
-  parser.add_argument('--classes_path',\
-                      type=str,
-                      default='./classes.json',
-                      help='Path to directory where extracted dataset is stored.')
-  parser.add_argument('--epochs',
-                      type=int,
-                      default=200,
-                      help='Number of epochs to train the model.')
-  parser.add_argument('--batch_size',
-                      type=int,
-                      default=16,
-                      help='Size of batches to feed into model.')
-  args = parser.parse_args()
-  return args
-
-
 """
 Performs one training step over a batch.
 Passes one batch of images through the model, and backprops the gradients.
@@ -119,14 +135,21 @@ def val_step(model, loss_function, val_loss, optimizer, images, labels):
 if __name__ == "__main__":
   args = passed_arguments()
 
-  epochs = args.epochs
-  batch_size = args.batch_size
-  model_name = args.model_name
+  # Get args from config.
+  config_path = args.config
+  with open(config_path, 'r') as f:
+    config = json.load(f)
+  model_name = config["name"]
+  epochs = config["epochs"]
+  batch_size = config["batch_size"]
+  augment_kwargs = config["augment"]
+  interest_classes = config["classes"]
 
   ## Set up dataset, number of training/validation samples and number of batches
-  dataset = ImSeg_Dataset(data_path=args.data_path, classes_path=args.classes_path)
-  img_size = dataset.image_size
-  num_classes = len(dataset.seg_classes)
+  dataset = ImSeg_Dataset(data_path=args.data_path, classes_path=args.classes_path,
+                          augment_kwargs=augment_kwargs)
+  if dataset.data_sizes[0] == 0:
+    dataset.build_dataset()
   num_train, num_val = dataset.data_sizes[0], dataset.data_sizes[1]
   num_train_batches, num_val_batches = num_train//batch_size, num_val//batch_size
 
@@ -137,26 +160,19 @@ if __name__ == "__main__":
   # Set up Logger
   logging.basicConfig(filename=os.path.join(dataset.metrics_path, f"{model_name}.log"), level=logging.INFO)
 
+  ## Set up model from config.
+  model = refine_net.refine_net_from_config(config)
 
-  ## BEGIN: REFACTOR THIS CODE FOR BETTER MODEL LOADING
-  backbone_model = resnet.resnet50()
-
-  model = refine_net.create_refine_net(backbone_model, [['layer3', 'layer4'], ['layer1','layer2']], 
-                                       num_classes, input_shape=img_size)
-  ## END: REFACTOR CODE 
-
-  ## Loss and optimizer
-  loss_function = tf.keras.losses.BinaryCrossentropy(from_logits=True)
-  optimizer = tf.keras.optimizers.Adam(learning_rate=0.001)
-
-  train_loss = tf.keras.metrics.Mean(name='train_loss')
-  val_loss = tf.keras.metrics.Mean(name='val_loss')
+  ## Get loss and optimizer from config
+  loss_function, optimizer = get_loss_optimizer(config)
 
   ## =============================================================================================
   ## BEGIN ITERATING OVER EPOCHS
   ## =============================================================================================
-
-  best_val_loss = float('inf')
+  train_loss = tf.keras.metrics.Mean(name='train_loss')
+  val_loss = tf.keras.metrics.Mean(name='val_loss')
+  best_val_iou = float('-inf')
+  
   for epoch in range(epochs):
     print(f"\nEpoch {epoch+1}")
 
@@ -186,7 +202,8 @@ if __name__ == "__main__":
       # Actual train/val over all batches.
       for batch in range(num_batches):
         img_input, label_masks =\
-          dataset.get_batch(indices[batch*batch_size : (batch+1)*batch_size], phase)
+          dataset.get_batch(indices[batch*batch_size : (batch+1)*batch_size], phase, 
+                            classes_of_interset=interest_classes)
         
         # Feed inputs to model
         img_input = np.array(img_input, dtype=np.float32)
@@ -194,7 +211,7 @@ if __name__ == "__main__":
         
         # Get metrics
         preds = preds.numpy()
-        ious, prec, recall = calculate_iou_prec_recall(preds, label_masks, pred_threshold=0.5)
+        ious, prec, recall = calculate_iou_prec_recall(preds, label_masks, pred_threshold=0.0)
 
         # Update epoch metrics
         epoch_ious.update_state(ious)
@@ -208,7 +225,7 @@ if __name__ == "__main__":
                       'mean_recall':np.mean(epoch_recall.result().numpy())}
 
       # Break down IoU, precision and recall by class
-      for i, class_name in enumerate(dataset.seg_classes):
+      for i, class_name in enumerate(interest_classes):
         sub_metric_dict = {'iou':epoch_ious, 'prec':epoch_prec, 'recall':epoch_recall}
         for metric_type, metrics in sub_metric_dict.items():
           metrics = metrics.result().numpy()
@@ -219,9 +236,9 @@ if __name__ == "__main__":
       # Log metrics, print metrics, write metrics to summary_writer
       log_metrics(metrics_dict, writer, epoch, phase)
 
-      # Checkpoint model weights if loss is good
-      if phase == 'val' and epoch_loss.result() < best_val_loss:
-        best_val_loss = epoch_loss.result()
+      # Checkpoint model weights if mean iou is good.
+      if phase == 'val' and np.mean(epoch_ious.result().numpy()) >= best_val_iou:
+        best_val_iou = np.mean(epoch_ious.result().numpy())
         model.save_weights(os.path.join(dataset.checkpoint_path, model_name))
 
       # End of epoch, reset metrics
@@ -231,4 +248,3 @@ if __name__ == "__main__":
       epoch_recall.reset_states()
 
     print("\n")
-

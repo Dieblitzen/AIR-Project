@@ -1,18 +1,21 @@
 {
-  "name": "refine_net_test3",
-  "backbone": "resnet50",
-  "backbone_kwargs": {},
-  "pretrained": false,
+  "name": "refine_net_pretrained_augment",
+  "backbone": "ResNet50",
+  "backbone_kwargs": 
+    {
+      "include_top": false,
+      "weights": "imagenet"
+    },
+  "pretrained": true,
   "refine_net_blocks":
     [
-      ["layer4", "layer3"],
-      ["layer2", "layer1"]
+      ["conv5_block3_out", "conv4_block6_out"],
+      ["conv3_block4_out", "conv2_block3_out"]
     ],
   "input_shape": [224, 224, 3],
   "classes":
     [
-      "building:other",
-      "highway:roads"
+      "building:other"
     ],
   "refine_net_kwargs": 
     {
@@ -31,7 +34,7 @@
     "seed":0
   },
 
-  "epochs": 200,
+  "epochs": 150,
   "batch_size": 16,
   "loss": "BinaryCrossentropy",
   "loss_kwargs": 

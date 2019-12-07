@@ -1,9 +1,7 @@
-from tensorflow.keras.preprocessing.image import ImageDataGenerator
-import tensorflow as tf
 import numpy as np
+import tensorflow as tf
 
-def augment_data(images, annotations, rotate_range=0, flip=False, 
-                  channel_shift_range=1e-10, multiplier=0, seed=0):
+def augment_data(images, annotations, data_gen_X, data_gen_Y, multiplier=1, seed=0):
   """
   Augments images and label masks
   Requires:
@@ -21,19 +19,6 @@ def augment_data(images, annotations, rotate_range=0, flip=False,
     aug_annotations: ((multiplier + 1) * n) x IMAGE_SIZE x IMAGE_SIZE x c
       numpy array of masks where c is the number of classes
   """
-  data_gen_X =ImageDataGenerator(rotation_range=rotate_range,
-                                horizontal_flip=flip,
-                                vertical_flip=flip,
-                                channel_shift_range=channel_shift_range,
-                                fill_mode='constant',
-                                cval=0)
-  data_gen_Y = ImageDataGenerator(rotation_range=rotate_range,
-                                horizontal_flip=flip,
-                                vertical_flip=flip,
-                                channel_shift_range=1e-10,
-                                fill_mode='constant', 
-                                cval=0)
-
 
   batch_size = images.shape[0]
   imageGen = data_gen_X.flow(images, batch_size=batch_size, seed=seed)

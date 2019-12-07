@@ -1,5 +1,5 @@
 {
-  "name": "refine_net_test3",
+  "name": "refine_net_test1",
   "backbone": "resnet50",
   "backbone_kwargs": {},
   "pretrained": false,
@@ -11,8 +11,7 @@
   "input_shape": [224, 224, 3],
   "classes":
     [
-      "building:other",
-      "highway:roads"
+      "building:other"
     ],
   "refine_net_kwargs": 
     {
@@ -21,15 +20,8 @@
       "mrf_kwargs": {},
       "crp_kwargs": {}
     },
-
-  "augment":
-  {
-    "rotate_range":90,
-    "flip":true, 
-    "channel_shift_range":1e-10, 
-    "multiplier":1, 
-    "seed":0
-  },
+  
+  "augment": {},
 
   "epochs": 200,
   "batch_size": 16,

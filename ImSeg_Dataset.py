@@ -25,7 +25,8 @@ class ImSeg_Dataset(Dataset):
 
   """
 
-  def __init__(self, data_path, classes_path='./classes.json', train_val_test=(0.8, 0.1, 0.1), image_resize=None):
+  def __init__(self, data_path, classes_path='./classes.json', 
+              train_val_test=(0.8, 0.1, 0.1), image_resize=None, augment_kwargs={}):
     """
     Initialises a ImSeg_Dataset object by calling the superclass initialiser.
 
@@ -48,6 +49,7 @@ class ImSeg_Dataset(Dataset):
       c = [((i >> s) % 2) * 255 for s in range(2, -1, -1)]
       self.class_colors.append(tuple(c))
 
+    # Set up data file paths
     self.train_val_test = train_val_test
     self.train_path = os.path.join(self.data_path, 'im_seg', 'train')
     self.val_path = os.path.join(self.data_path, 'im_seg', 'val')
@@ -56,6 +58,9 @@ class ImSeg_Dataset(Dataset):
 
     self.data_sizes = [0] * 4
     self.init_directories()
+
+    # Set up data augmentor if need be
+    self.augment = self.get_data_gen(**augment_kwargs) if augment_kwargs else None
   
 
   def init_directories(self):
@@ -82,7 +87,8 @@ class ImSeg_Dataset(Dataset):
         os.mkdir(os.path.join(directory, 'annotations'))
 
       # Size of each training, val and test directories  
-      num_samples = len([name for name in os.listdir(os.path.join(directory, 'images')) if name.endswith('.jpg')])
+      num_samples = len([name for name in os.listdir(os.path.join(directory, 'images'))\
+                         if name.endswith('.jpg')])
       self.data_sizes[i] = num_samples
   
 
@@ -283,8 +289,35 @@ class ImSeg_Dataset(Dataset):
 
     return {"annotation": pixel_annotations.tolist()}
 
+  
+  def get_data_gen(self, rotate_range=0, flip=False, 
+                   channel_shift_range=1e-10, multiplier=0, seed=0):
+    """
+    Creates data augmenting generators for both images and annotations.
+    Locally imports tensorflow, because don't want to import if not training.
+    Requires:
+      rotate_range: 0-90 degrees, range of rotations to rotate image/label
+      flip: whether to randomly veritcally/horizontally flip samples
+      channel_shift_range: Add colour changes to images.
+      multiplier: Return x multiplier of the data
+    """
+    from tensorflow.keras.preprocessing.image import ImageDataGenerator
+    data_gen_X = ImageDataGenerator(rotation_range=rotate_range,
+                                    horizontal_flip=flip,
+                                    vertical_flip=flip,
+                                    channel_shift_range=channel_shift_range,
+                                    fill_mode='constant',
+                                    cval=0)
+    data_gen_Y = ImageDataGenerator(rotation_range=rotate_range,
+                                    horizontal_flip=flip,
+                                    vertical_flip=flip,
+                                    channel_shift_range=1e-10,
+                                    fill_mode='constant', 
+                                    cval=0)
+    return data_gen_X, data_gen_Y, multiplier, seed
 
-  def get_batch(self, indices, train_val_test, classes_of_interset=[], augment={}):
+
+  def get_batch(self, indices, train_val_test, classes_of_interset=[]):
     """
     Returns the batch of images and labels associated with the images,
     based on the list of indicies to look up.
@@ -307,9 +340,10 @@ class ImSeg_Dataset(Dataset):
     # Filter label classes by classes_of_interest
     indices_of_interest = []
     for class_ in classes_of_interset:
-      index = self.seg_classes.find(class_)
-      if index == -1:
-        raise ValueError("Invalid class name in classes_of_interest")
+      try:
+        index = self.seg_classes.index(class_)
+      except ValueError:
+        raise ValueError("Invalid class name in classes_of_interest.")
       indices_of_interest.append(index)
 
     # interested in all classes if no classes specified
@@ -317,27 +351,26 @@ class ImSeg_Dataset(Dataset):
       indices_of_interest = list(range(len(self.seg_classes)))
 
     # Accumulators for images and annotations in batch
-    images = []
-    annotations = []
-    C = len(self.seg_classes)
+    images, annotations = [], []
 
     for i in indices:
       image = Image.open(os.path.join(path, 'images', f'{i}.jpg'))
       image = np.array(image)
 
-      # Reshape to (h,w,C) dimensions
+      # Filter out classes we don't want then reshape to (h,w,C) dimensions
       with open(os.path.join(path, 'annotations', f'{i}.json'), 'r') as ann:
-        annotation = np.moveaxis(np.array(json.load(ann)['annotation']), 0, -1)
+        annotation = np.array(json.load(ann)['annotation'])
+        annotation = np.moveaxis(annotation[indices_of_interest], 0, -1)
 
       images.append(image)
-      annotations.append(annotation[indices_of_interest])
+      annotations.append(annotation)
 
     # Return tuple by stacking them into blocks
     images, annotations = np.stack(images), np.stack(annotations)
 
     # call function from data_augmentation.pyplot
-    if augment:
-      images, annotations = augment_data(images, annotations, **augment)
+    if self.augment:
+      images, annotations = augment_data(images, annotations, *self.augment)
 
     # TODO: Normalize images
     return images, annotations
