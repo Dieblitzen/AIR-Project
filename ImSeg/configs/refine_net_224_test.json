@@ -1,0 +1,22 @@
+{
+  "name": "refine_net_test1",
+  "backbone": "resnet50",
+  "backbone_kwargs": {},
+  "pretrained": false,
+  "refine_net_blocks":
+    [
+      ["layer4", "layer3"],
+      ["layer2", "layer1"]
+    ],
+  "input_shape": [224, 224, 3],
+  "classes":
+    [
+      "building:other"
+    ],
+  "rcu_kwargs": {},
+  "mrf_kwargs": {},
+  "crp_kwargs": {},
+  "epochs": 200,
+  "batch_size": 16,
+  "augment": {}
+}
