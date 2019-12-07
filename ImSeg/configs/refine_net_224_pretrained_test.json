@@ -1,5 +1,5 @@
 {
-  "name": "refine_net_test1",
+  "name": "refine_net_pretrained_test1",
   "backbone": "ResNet50",
   "backbone_kwargs": 
     {
