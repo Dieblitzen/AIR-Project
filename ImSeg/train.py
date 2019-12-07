@@ -26,10 +26,6 @@ def passed_arguments():
                       type=str,
                       default='./classes.json',
                       help='Path to directory where extracted dataset is stored.')
-  parser.add_argument('--gpu',\
-                      type=int,
-                      default=0,
-                      help='The GPU ID to run the training script. (Our server has 0,1).')
   args = parser.parse_args()
   return args
 
@@ -138,13 +134,6 @@ def val_step(model, loss_function, val_loss, optimizer, images, labels):
 
 if __name__ == "__main__":
   args = passed_arguments()
-
-  # Set working gpu to one of 1/0
-  gpu_id = args.gpu
-  assert gpu_id in {0, 1}, "Invalid GPU ID. Available GPUs are only 0, 1."
-  gpus = tf.config.experimental.list_physical_devices('GPU')
-  gpu_ind = 1 if gpus[1].name.endswith(str(gpu_id)) else 0
-  tf.config.experimental.set_visible_devices(gpus[gpu_ind], 'GPU')
 
   # Get args from config.
   config_path = args.config
