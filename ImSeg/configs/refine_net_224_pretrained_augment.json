@@ -1,0 +1,49 @@
+{
+  "name": "refine_net_pretrained_augment",
+  "backbone": "ResNet50",
+  "backbone_kwargs": 
+    {
+      "include_top": false,
+      "weights": "imagenet"
+    },
+  "pretrained": true,
+  "refine_net_blocks":
+    [
+      ["conv5_block3_out", "conv4_block6_out"],
+      ["conv3_block4_out", "conv2_block3_out"]
+    ],
+  "input_shape": [224, 224, 3],
+  "classes":
+    [
+      "building:other"
+    ],
+  "refine_net_kwargs": 
+    {
+      "reduce_channel_scale": 4,
+      "rcu_kwargs": {},
+      "mrf_kwargs": {},
+      "crp_kwargs": {}
+    },
+
+  "augment":
+  {
+    "rotate_range":90,
+    "flip":true, 
+    "channel_shift_range":1e-10, 
+    "multiplier":1, 
+    "seed":0
+  },
+
+  "epochs": 150,
+  "batch_size": 16,
+  "loss": "BinaryCrossentropy",
+  "loss_kwargs": 
+    {
+      "from_logits": true
+    },
+  "optimizer": "Adam",
+  "optimizer_kwargs": 
+    {
+      "learning_rate":0.0001
+    }
+}
