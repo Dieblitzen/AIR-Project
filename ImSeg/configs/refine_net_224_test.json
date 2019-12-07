@@ -13,9 +13,13 @@
     [
       "building:other"
     ],
-  "rcu_kwargs": {},
-  "mrf_kwargs": {},
-  "crp_kwargs": {},
+  "refine_net_kwargs": 
+    {
+      "reduce_channel_scale": 4,
+      "rcu_kwargs": {},
+      "mrf_kwargs": {},
+      "crp_kwargs": {}
+    },
   
   "augment": {},
 
