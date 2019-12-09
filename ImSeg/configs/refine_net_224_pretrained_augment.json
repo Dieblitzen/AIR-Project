@@ -1,5 +1,5 @@
 {
-  "name": "refine_net_pretrained_augment",
+  "name": "refine_net_pretrained_augment_road_no_rot",
   "backbone": "ResNet50",
   "backbone_kwargs": 
     {
@@ -15,7 +15,8 @@
   "input_shape": [224, 224, 3],
   "classes":
     [
-      "building:other"
+      "building:other",
+      "highway:roads"
     ],
   "refine_net_kwargs": 
     {
@@ -27,14 +28,14 @@
 
   "augment":
   {
-    "rotate_range":90,
+    "rotate_range":0,
     "flip":true, 
     "channel_shift_range":1e-10, 
     "multiplier":1, 
     "seed":0
   },
 
-  "epochs": 150,
+  "epochs": 175,
   "batch_size": 16,
   "loss": "BinaryCrossentropy",
   "loss_kwargs": 
