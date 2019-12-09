@@ -171,8 +171,8 @@ class PixorModel(object):
         np.random.shuffle(batch_indices)
         
         # RIGHT NOW IF DOESN'T PERFECTLY DIVIDE IT DOESN'T COVER REMAINING, MIGHT WANT TO CHANGE THIS
-        # num_batches = self.train_len // batch_size
-        num_batches = 1
+        num_batches = TRAIN_LEN // batch_size
+        # num_batches = 1
         for batch_number in range(0, num_batches):
             start_idx = batch_number * batch_size
             end_idx = start_idx + batch_size
