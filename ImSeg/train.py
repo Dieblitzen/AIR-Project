@@ -12,8 +12,7 @@ import numpy as np
 import tensorflow as tf
 
 
-## Supported model variants for image segmentation, along with function
-# that loads the model given a config dictionary.
+## Supported model variants, along with model loading function given a config dictionary.
 MODEL_TYPES = {"RefineNet": refine_net.refine_net_from_config}
 
 
@@ -173,11 +172,14 @@ if __name__ == "__main__":
   config["classes"] = dataset.seg_classes if not config["classes"] else config["classes"]
   interest_classes = config["classes"]
 
-  ## Summary writers for training/validation
+  # Create model output dir where checkpoints/metrics etc will be stored. Save config here.
   dataset.create_model_out_dir(model_name)
+  with open(os.path.join(dataset.model_path, 'config.json'), 'w') as f:
+    json.dump(config, f)
+
+  ## Summary writers for training/validation and logger
   train_summary_writer = tf.summary.create_file_writer(os.path.join(dataset.metrics_path, 'train'))
   val_summary_writer = tf.summary.create_file_writer(os.path.join(dataset.metrics_path, 'val'))
-  # Set up Logger
   logging.basicConfig(filename=os.path.join(dataset.metrics_path, f"{model_name}.log"), level=logging.INFO)
 
   ## Set up model from config.
@@ -256,7 +258,7 @@ if __name__ == "__main__":
       # Log metrics, print metrics, write metrics to summary_writer
       log_metrics(metrics_dict, writer, epoch, phase)
 
-      # Checkpoint model weights if mean iou is good.
+      # Checkpoint model weights if mean iou is good. Also save model config.
       if phase == 'val' and np.mean(epoch_ious.result().numpy()) >= best_val_iou:
         best_val_iou = np.mean(epoch_ious.result().numpy())
         model.save_weights(os.path.join(dataset.checkpoint_path, model_name))
