@@ -7,7 +7,7 @@ import numpy as np
 from PIL import Image, ImageDraw
 from shutil import copyfile
 from Dataset import Dataset
-from ImSeg.data_augmentation import augment_data
+from ImSeg.preprocess import augment_data
 
 # Visualising
 import matplotlib.pyplot as plt
