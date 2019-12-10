@@ -423,7 +423,7 @@ class ImSeg_Dataset(Dataset):
 
       # Save metrics for prediction
       metric_path = os.path.join(self.model_path, 'preds', f'{set_type}_metrics_{image_ind}.json')
-      with open(metric_path, 'r') as f:
+      with open(metric_path, 'w') as f:
         json.dump(metrics[i], f)
 
       # Save associated image annotated with ground truth masks

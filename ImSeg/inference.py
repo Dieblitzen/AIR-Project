@@ -26,6 +26,11 @@ def passed_arguments():
                       type=str,
                       required=True,
                       help='Path to model config .json file defining model hyperparams.')
+  parser.add_argument('--checkpoint',
+                      type=str,
+                      default=None,
+                      help='(Optional) path to checkpoint dir. If not given, will find based'+
+                            ' on model name from config and given data_path.')
   parser.add_argument('--classes_path',\
                       type=str,
                       default=os.path.join('.', 'classes.json'),
@@ -38,6 +43,7 @@ if __name__ == "__main__":
   args = passed_arguments()
   set_type = args.set_type
   assert set_type in {"train", "val", "test"}, "Must specify one of train/val/test sets."
+  checkpoint_path = args.checkpoint
 
   # Get args from config.
   config_path = args.config
@@ -64,8 +70,9 @@ if __name__ == "__main__":
     json.dump(config, f, indent=2)
 
   ## Load model from config, load weights
+  checkpoint_path = checkpoint_path if checkpoint_path else dataset.checkpoint_path
   model = model_from_config(model_type, config)
-  model.load_weights(os.path.join(dataset.checkpoint_path, model_name))
+  model.load_weights(os.path.join(checkpoint_path, model_name))
 
   ## Iterate over dataset.
   data_indices = list(range(num_samples))
