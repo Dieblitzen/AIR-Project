@@ -55,7 +55,7 @@ def passed_arguments():
 if __name__ == "__main__":
     # args = passed_arguments()
     #dp = f'{data_path}'
-    dp = 'data_pathN'
+    dp = 'data_pathNYC'
     bp = osp.join('..', dp, 'pixor', 'train')
 
     # mean.npy and std.npy are stats about the images 
