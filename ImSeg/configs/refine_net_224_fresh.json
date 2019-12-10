@@ -1,4 +1,5 @@
 {
+  "type": "RefineNet",
   "name": "refine_net_test3",
   "backbone": "resnet50",
   "backbone_kwargs": {},

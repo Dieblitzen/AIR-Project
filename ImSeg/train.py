@@ -12,6 +12,11 @@ import numpy as np
 import tensorflow as tf
 
 
+## Supported model variants for image segmentation, along with function
+# that loads the model given a config dictionary.
+MODEL_TYPES = {"RefineNet": refine_net.refine_net_from_config}
+
+
 def passed_arguments():
   parser = argparse.ArgumentParser(description="Script to train an Image Segmentation model.")
   parser.add_argument('--data_path',
@@ -28,6 +33,19 @@ def passed_arguments():
                       help='Path to directory where extracted dataset is stored.')
   args = parser.parse_args()
   return args
+
+
+"""
+Initialises image segmentation model given a config dictionary.
+Requires: 
+  model_type: A name from the dictionary `MODEL_TYPES` in `train.py`.
+  config: A valid config dictionary for the type of model
+"""
+def model_from_config(model_type, config):
+  assert model_type in MODEL_TYPES, "Input model type is not supported yet."
+  model = MODEL_TYPES[model_type](config)
+  return model
+
 
 """
 Instantiates loss function and optimizer based on name and kwargs.
@@ -139,12 +157,13 @@ if __name__ == "__main__":
   config_path = args.config
   with open(config_path, 'r') as f:
     config = json.load(f)
+  model_type = config.get("type", "RefineNet")
   model_name = config["name"]
   epochs = config["epochs"]
   batch_size = config["batch_size"]
-  augment_kwargs = config["augment"] 
+  augment_kwargs = config.get("augment", {})
 
-  ## Set up dataset, number of training/validation samples and number of batches
+  ## Set up dataset, number of train/val samples, number of batches and interested classes.
   dataset = ImSeg_Dataset(data_path=args.data_path, classes_path=args.classes_path,
                           augment_kwargs=augment_kwargs)
   if dataset.data_sizes[0] == 0:
@@ -162,7 +181,7 @@ if __name__ == "__main__":
   logging.basicConfig(filename=os.path.join(dataset.metrics_path, f"{model_name}.log"), level=logging.INFO)
 
   ## Set up model from config.
-  model = refine_net.refine_net_from_config(config)
+  model = model_from_config(model_type, config)
 
   ## Get loss and optimizer from config
   loss_function, optimizer = get_loss_optimizer(config)

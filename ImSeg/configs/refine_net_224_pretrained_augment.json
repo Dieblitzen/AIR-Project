@@ -1,4 +1,5 @@
 {
+  "type": "RefineNet",
   "name": "refine_net_pretrained_augment_all_classes",
   "backbone": "ResNet50",
   "backbone_kwargs": 
