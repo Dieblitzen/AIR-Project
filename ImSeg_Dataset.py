@@ -25,7 +25,7 @@ class ImSeg_Dataset(Dataset):
 
   """
 
-  def __init__(self, data_path, classes_path='./classes.json', 
+  def __init__(self, data_path, classes_path=os.path.join('.', 'classes.json'), 
               train_val_test=(0.8, 0.1, 0.1), image_resize=None, augment_kwargs={}):
     """
     Initialises a ImSeg_Dataset object by calling the superclass initialiser.
@@ -43,7 +43,7 @@ class ImSeg_Dataset(Dataset):
 
     self.image_size = image_resize if image_resize else self.get_img_size()
     self.seg_classes = self.sorted_classes(self.classes)
-    self.class_colors = [] #[colors.ListedColormap(np.random.rand(256,3)) for _ in self.seg_classes]
+    self.class_colors = []
     # power set of colors across RBG for visualizing
     for i in range(2**3):
       c = [((i >> s) % 2) * 255 for s in range(2, -1, -1)]

@@ -152,6 +152,7 @@ if __name__ == "__main__":
     dataset.build_dataset()
   num_train, num_val = dataset.data_sizes[0], dataset.data_sizes[1]
   num_train_batches, num_val_batches = num_train//batch_size, num_val//batch_size
+  config["classes"] = dataset.seg_classes if not interest_classes else interest_classes
 
   ## Summary writers for training/validation
   dataset.create_model_out_dir(model_name)
