@@ -210,7 +210,7 @@ class PIXOR_Dataset(Dataset):
 		logging.info("boxes within tile: ")
 		logging.info(bboxes)
 
-		print("Bboxes:", len(bboxes))
+		
 		for bbox_index in range(0, len(bboxes)):
 			dx = 0
 			dy = 0
@@ -222,9 +222,7 @@ class PIXOR_Dataset(Dataset):
 			heading, width, length = bboxes[bbox_index][2:]
 			corner_points = corner_boxes[bbox_index][-1]
 			x_coords, y_coords = zip(*corner_points)
-			print('x_coords', x_coords)
-			print('y_coords', y_coords)
-			
+						
 			for c in range(max(int(min(x_coords)), 0), min(int(max(x_coords)), 224)):
 				for r in range(max(int(min(y_coords)), 0), min(int(max(y_coords)), 224)):
 					pixel_xyform = (c, r)
