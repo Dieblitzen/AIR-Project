@@ -3,7 +3,6 @@ sys.path.append('.')
 import json
 from ImSeg_Dataset import ImSeg_Dataset
 import ImSeg.refine_net as refine_net
-import ImSeg.resnet as resnet
 
 import os
 import logging
@@ -175,7 +174,7 @@ if __name__ == "__main__":
   # Create model output dir where checkpoints/metrics etc will be stored. Save config here.
   dataset.create_model_out_dir(model_name)
   with open(os.path.join(dataset.model_path, 'config.json'), 'w') as f:
-    json.dump(config, f)
+    json.dump(config, f, indent=2)
 
   ## Summary writers for training/validation and logger
   train_summary_writer = tf.summary.create_file_writer(os.path.join(dataset.metrics_path, 'train'))

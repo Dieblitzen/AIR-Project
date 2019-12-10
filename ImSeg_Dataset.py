@@ -118,11 +118,8 @@ class ImSeg_Dataset(Dataset):
     if not os.path.isdir(self.metrics_path):
       os.mkdir(self.metrics_path)
     
-    if not os.path.isdir(os.path.join(self.model_path, 'images')):
-      os.mkdir(os.path.join(self.model_path, 'images'))
-
-    if not os.path.isdir(os.path.join(self.model_path, 'annotations')):
-      os.mkdir(os.path.join(self.model_path, 'annotations'))
+    if not os.path.isdir(os.path.join(self.model_path, 'preds')):
+      os.mkdir(os.path.join(self.model_path, 'preds'))
 
   
   def get_seg_class_name(self, super_class_name, sub_class_name, delim=':'):
@@ -334,8 +331,6 @@ class ImSeg_Dataset(Dataset):
       path = self.val_path
     elif train_val_test == "test":
       path = self.test_path
-    elif train_val_test == "out":
-      path = self.out_path
 
     # Filter label classes by classes_of_interest
     indices_of_interest = []
@@ -352,7 +347,6 @@ class ImSeg_Dataset(Dataset):
 
     # Accumulators for images and annotations in batch
     images, annotations = [], []
-
     for i in indices:
       image = Image.open(os.path.join(path, 'images', f'{i}.jpg'))
       image = np.array(image)
@@ -376,45 +370,70 @@ class ImSeg_Dataset(Dataset):
     return images, annotations
 
 
-  def save_preds(self, image_indices, preds, image_dir="val"):
+  def draw_mask_on_im(self, im_path, masks):
     """
-    Saves the images specified by image_indices (accessed from image_dir) 
-    and the model's predictions (as json files) in the output directory.
+    Helper method that opens an image, draws the segmentation masks in `masks`
+    as bitmaps, and then returns the masked image.
     Requires:
+      im_path: Path to .jpg image
+      masks: Array shaped as: #C x h x h
+    """
+    # Open the image and set up an ImageDraw object
+    im = Image.open(im_path).convert('RGB')
+    im_draw = ImageDraw.Draw(im)
+
+    # Draw the bitmap for each class
+    for i, mask in enumerate(masks):
+      mask_im = Image.fromarray(mask.astype(np.uint8) * 64, mode='L')
+      im_draw.bitmap((0,0), mask_im, fill=self.class_colors[i % len(self.class_colors)])
+    
+    return im
+
+
+  def save_preds(self, image_indices, batch_preds, metrics, set_type="val"):
+    """
+    Saves the model's predictions as annotated images in `../model_path/images/`. 
+    Corresponding images from image_indices are accessed from image_dir.
+    Also copies the ground truth annotation to the `../model_path/annotations/` dir.\n
+    Requires:\n
       image_indices: A list of indices corresponding to images stored in directory
-                     image_dir/images
-      preds: A list of np arrays (usually size 224x224) corresponding to the model 
-             predictions for each image in image_indices.
-      image_dir: The directory that image_indices corresponds to. (Usually validation)
+                     image_dir/images \n
+      batch_preds: The model predictions, shaped: (n x h x w x #C), each pixel between 0,1.\n
+      metrics: List of metric dict containing image iou/prec/... (per class, average etc.)\n
+      set_type: The directory that image_indices corresponds to. (Usually val)\n
     """
     # Path from where images will be copied
-    path_to_im = self.val_path
-    if image_dir == "train":
-      path_to_im = self.train_path
-    elif image_dir == "test":
-      path_to_im = self.test_path
+    path = self.val_path
+    if set_type == "train":
+      path = self.train_path
+    elif set_type == "test":
+      path = self.test_path
     
-    # Output directory
-    if not os.path.isdir(self.out_path):
-      os.mkdir(self.out_path) 
-      os.mkdir(os.path.join(self.out_path, 'images'))
-      os.mkdir(os.path.join(self.out_path, 'annotations'))
-    
-    # First copy the images in image_indices
-    for i in image_indices:
-      copyfile(os.path.join(path_to_im, 'images', f'{i}.jpg'), 
-               os.path.join(self.out_path, 'images', f'{i}.jpg'))
+    # Save the images annotated with their predicted labels
+    for i, image_ind in enumerate(image_indices):
+      im_path = os.path.join(path, 'images', f'{image_ind}.jpg')
 
-    # Save prediction in json format and dump
-    for i in range(len(preds)): 
-      preds_json = {"img": str(image_indices[i]) + ".jpg"}
-      # take annotation
-      preds_json["annotation"] = preds[i].tolist()
+      # Reshape to #C x h x w dimensions
+      pred_masks = batch_preds[i]
+      pred_masks = np.moveaxis(pred_masks, -1, 0)
+      
+      # Draw pred masks on image, save prediction
+      pred_im = self.draw_mask_on_im(im_path, pred_masks)
+      pred_im.save(os.path.join(self.model_path, 'preds', f'{set_type}_pred_{image_ind}.jpg'))
 
-      # save annotation in file
-      with open(os.path.join(self.out_path, 'annotations', f'{image_indices[i]}.json'), 'w') as dest:
-        json.dump(preds_json, dest)
-    
+      # Save metrics for prediction
+      metric_path = os.path.join(self.model_path, 'preds', f'{set_type}_metrics_{image_ind}.json')
+      with open(metric_path, 'r') as f:
+        json.dump(metrics[i], f)
+
+      # Save associated image annotated with ground truth masks
+      with open(os.path.join(path, 'annotations', f'{image_ind}.json')) as f:
+        try: annotation = json.load(f)
+        except: annotation = {}
+      gt_masks = np.array(annotation["annotation"])
+      gt_im = self.draw_mask_on_im(im_path, gt_masks)
+      gt_im.save(os.path.join(self.model_path, 'preds', f'{set_type}_gt_{image_ind}.jpg'))
+      
 
   def visualize_tile(self, index, directory="train"):
     """
@@ -423,41 +442,27 @@ class ImSeg_Dataset(Dataset):
     Requires:
       index: A valid index in one of train/test/val
     """
-
-    path = self.train_path
-    if directory == "test":
+    if directory == "train":
+      path = self.train_path
+    elif directory == "test":
       path = self.test_path
     elif directory == "val":
       path = self.val_path
-    elif directory == "out":
-      path = self.out_path
+    else: raise ValueError("Can only visualize annotations from train/val/test.")
 
     # Image visualization
-    im = Image.open(os.path.join(path, 'images', f'{index}.jpg'))
-    im_arr = np.array(im)
     fig, ax = plt.subplots(nrows=1, ncols=1)
 
-    # Works better for bitmaps
-    im = Image.fromarray(im_arr, mode='RGB')
-    drawer = ImageDraw.Draw(im)
-
     with open(os.path.join(path, 'annotations', f'{index}.json')) as f:
-      try:
-        annotation = json.load(f)
-      except:
-        annotation = {}
-
-    h, w, _ = self.image_size
-    C = len(self.seg_classes)
+      try: annotation = json.load(f)
+      except: annotation = {}
 
     class_masks = np.array(annotation["annotation"])#.reshape(C, h, w)
 
-    # Check our results
-    for i, mask in enumerate(class_masks):
-      mask_im = Image.fromarray(mask.astype(np.uint8) * 64, mode='L')
-      drawer.bitmap((0,0), mask_im, fill=self.class_colors[i % len(self.class_colors)])
-    
-    ax.imshow(im)
+    # Draw masks on image
+    im_path = os.path.join(path, 'images', f'{index}.jpg')
+    masked_im = self.draw_mask_on_im(im_path, class_masks)
+    ax.imshow(masked_im)
     plt.show()
 
 
