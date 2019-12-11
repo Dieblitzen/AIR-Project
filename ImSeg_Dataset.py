@@ -295,7 +295,7 @@ class ImSeg_Dataset(Dataset):
     Requires:
       rotate_range: 0-90 degrees, range of rotations to rotate image/label
       flip: whether to randomly veritcally/horizontally flip samples
-      channel_shift_range: Add colour changes to images.
+      channel_shift_range: Add colour changes to images in range [0..255]
       multiplier: Return x multiplier of the data
     """
     from tensorflow.keras.preprocessing.image import ImageDataGenerator

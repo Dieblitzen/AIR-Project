@@ -28,12 +28,12 @@
   {
     "rotate_range":30,
     "flip":true, 
-    "channel_shift_range":1e-10, 
+    "channel_shift_range":50, 
     "multiplier":1, 
     "seed":0
   },
 
-  "epochs": 175,
+  "epochs": 300,
   "batch_size": 16,
   "loss": "BinaryCrossentropy",
   "loss_kwargs": 
