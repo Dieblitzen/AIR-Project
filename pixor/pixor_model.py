@@ -30,7 +30,7 @@ class PixorModel(object):
         GPU = flags.gpu
         DATA_FILE_NAME = flags.data_path
         TRAIN_BASE_PATH = os.path.join('..', DATA_FILE_NAME, 'pixor', 'train')
-        VAL_BASE_PATH = os.path.join('..', 'data_pathWP', 'pixor', 'val')
+        VAL_BASE_PATH = os.path.join('..', DATA_FILE_NAME, 'pixor', 'val')
         VAL_LEN = len(os.listdir(VAL_BASE_PATH))
 
         TILE_SIZE = flags.tile_size

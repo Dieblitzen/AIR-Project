@@ -43,8 +43,18 @@ DATA_FILE_NAME = flags.data_path
 TRAIN_BASE_PATH = os.path.join('..', DATA_FILE_NAME, 'pixor', 'train')
 TRAIN_LEN = len(os.listdir(os.path.join(TRAIN_BASE_PATH, 'images')))
 
-VAL_BASE_PATH = os.path.join('..', 'data_pathWP', 'pixor', 'val')
+VAL_BASE_PATH_L = os.path.join('..', 'data_pathLA', 'pixor', 'val')
+VAL_LEN_L = len(os.listdir(osp.join(VAL_BASE_PATH_L, 'images')))
+
+
+VAL_BASE_PATH = os.path.join('..', DATA_FILE_NAME, 'pixor', 'val')
 VAL_LEN = len(os.listdir(osp.join(VAL_BASE_PATH, 'images')))
+
+mean = np.load('mean.npy')
+std = np.load('std.npy')
+TRAIN_MEAN = np.load('train_mean.npy')
+TRAIN_STD = np.load('train_std.npy')
+
 ##### End of SETTINGS #####
 
 logging.basicConfig(level=logging.INFO, filename=LOGFILE_NAME,
@@ -134,8 +144,8 @@ def viz_preds(box_preds, class_preds):
         visualize_data.visualize_bounding_boxes(image, unique_val_boxes, True, i, 'label_visualized', 'green')
         
     
-def get_MAP(box_preds, class_preds):
-    vis_val_images, vis_val_boxes, vis_val_classes = pixor_model.get_batch(0, flags, path=val_base_path, norm=False)
+def get_MAP(box_preds, class_preds, path):
+    vis_val_images, vis_val_boxes, vis_val_classes = pixor_model.get_batch(0, flags, path, norm=False)
     true_pos = 0.
     false_pos = 0.
     
@@ -153,18 +163,22 @@ def get_MAP(box_preds, class_preds):
         pos_indices = pos_indices[:-1]
         
         # only contains the positive box predictions for image i
-        pos_box_preds = box_preds[i][pos_indices]
-        
+        pos_box_preds = box_preds[i][pos_indices] 
         for j in range(0, pos_box_preds.shape[0]):
             r = pos_indices[0][j]
             c = pos_indices[1][j]
             
-            
-            curr_norm_box_pred = pos_box_preds[j]
-            curr_box_pred = (curr_norm_box_pred*train_std) + train_mean
+            train_std = np.average(TRAIN_STD,  axis=1)
+            train_mean = np.average(TRAIN_MEAN, axis = 1)
+            train_std = np.average(train_std, axis = 0)
+            train_mean = np.average(train_mean, axis = 0)
 
-            center_x = (c) + (int(curr_box_pred[0]))
-            center_y = (r) + (int(curr_box_pred[1]))
+            curr_norm_box_pred = pos_box_preds[j]
+            #print("std:", std.shape)
+            # print("std_train", train_std.shape)
+            curr_box_pred = np.multiply(curr_norm_box_pred,train_std) + train_mean
+            center_x = (c) + ((curr_box_pred[0]))
+            center_y = (r) + ((curr_box_pred[1]))
             center = np.array([center_x, center_y])
             box = np.concatenate([center, curr_box_pred[2:]])
             angle = find_angle(box)
@@ -193,7 +207,7 @@ def get_MAP(box_preds, class_preds):
 
     logging.info("mAP:")
     if true_pos + false_pos != 0:
-        logging.info(true_pos/(true_pos+false_pos))
+        log_print(true_pos/(true_pos+false_pos))
     else:
         logging.info("no predictions, mAP undefined")
 
@@ -222,7 +236,7 @@ if __name__ == "__main__":
         mAP = 0.
         #opt = tf.keras.optimizers.Adam(0.1)
         #ckpt = tf.train.Checkpoint(step=tf.Variable(1))
-        #manager = tf.train.CheckpointManager(ckpt, './tf_ckpts', max_to_keep = 3)
+        #manager = tf.train.CheckpointManager(ckpt, './tf_ckpts', max_to_keep = 1)
 
 
         #ckpt.restore(manager.latest_checkpoint)
@@ -247,15 +261,16 @@ if __name__ == "__main__":
             pos_indices = pos_indices[:-1]
                     
             # checkpoint model if best so far
-            if val_loss < lowest_val_loss:
+            if (epoch%10 == 0 ) and val_loss < lowest_val_loss:
                 lowest_val_loss = val_loss
-                #saver.save(sess, 'ckpt/', global_step=epoch)
+                saver.save(sess, 'ckpt/', global_step=epoch)
             # saving weights
-            #ckpt.step.assign_add(1)
+                #ckpt.step.assign_add(1)
             #if epoch % 10 == 0:
-                #save_path = manager.save()
-                #print("Saved checkpoint for step {} :{}".format(int(ckpt.step),save_path))
+                #save_path = manager.save(checkpoint_number = epoch)
+                #print("Saved checkpoint for step {} :{}".format(epoch),save_path)
 
+        get_MAP(box_preds, class_preds, VAL_BASE_PATH)
         print('val_classes.shape', val_classes.shape) #(1, 224, 224, 1)
         temp = val_classes.flatten().astype(int)
         print('val_classes max', int(temp.max()))
@@ -263,43 +278,62 @@ if __name__ == "__main__":
         val_classes[np.arange(temp.size), temp] = 1
         print('val_classes.shape after', val_classes.shape)
         print('class_preds.shape after', class_preds.shape) #(1, 224, 224, 6)
-
+        #get_MAP(box_preds, class_preds, VAL_BASE_PATH)
         ap = average_precision_score(val_classes.flatten(), np.round(class_preds.flatten()))
         precision = precision_score(val_classes.flatten(), np.round(class_preds.flatten()))
         recall = recall_score(val_classes.flatten(), np.round(class_preds.flatten()))
-        
+        print("pp", val_classes.shape)
+        print("pp", class_preds.shape)
         log_print(f'ap: {ap}')
         log_print(f'precision: {precision}')
         log_print(f'recall: {recall}')            
 
-        val_loss, box_preds, unnorm_class_preds, val_classes = model.evaluate_one(sess, VAL_BASE_PATH)
-        bbox = pixor_to_corners_tf(box_preds)
+        print('\nTest on white plains')
+        print(VAL_LEN)
+        print(VAL_LEN_L)
+        i, box_preds_l, un, val_classes_l = model.evaluate(sess, VAL_BASE_PATH_L)
+        temp = val_classes_l.flatten().astype(int)
+        val_classes_l = np.zeros((temp.size, int(temp.max())+1))
+        val_classes_l[np.arange(temp.size), temp] = 1
+        class_preds_l = tf.sigmoid(un).eval()
+
+        print("op", val_classes_l.shape)
+        print("op",class_preds_l.shape)
+        apWP = average_precision_score(val_classes_l.flatten(), np.round(class_preds_l.flatten()))
+        precisionWP = precision_score(val_classes_l.flatten(), np.round(class_preds_l.flatten()))
+        recallWP = recall_score(val_classes_l.flatten(), np.round(class_preds_l.flatten()))
+
+        log_print(f'ap: {apWP}')
+        log_print(f'precision: {precisionWP}')
+        log_print(f'recall: {recallWP}')
+
+                                                
+
+        #val_loss, box_preds, unnorm_class_preds, val_classes = model.evaluate_one(sess, VAL_BASE_PATH)
+        #bbox = pixor_to_corners_tf(box_preds)
 
         #ADD PLOTING 
-        p = osp.join(VAL_BASE_PATH, 'images', '1.jpg')
-        im = Image.open(p)
-        im_arr = np.array(im)
-        f = plt.figure()
-        f.add_subplot(1, 2, 1)
-        plt.imshow(im_arr)
-        f.add_subplot(1, 2, 2)
-        plt.imshow(np.squeeze(val_classes))
+        #p = osp.join(VAL_BASE_PATH, 'images', '1.jpg')
+        #im = Image.open(p)
+        #im_arr = np.array(im)
+        #f = plt.figure()
+        # f.add_subplot(1, 2, 1)
+        #plt.imshow(im_arr)
+        #f.add_subplot(1, 2, 2#)
+        #plt.imshow(np.squeeze(val_classes))
         #plt.show(block=True)
-        draw = ImageDraw.Draw(im)
-        for _,points in bbox:
-            p = sorted(points)
-            ps = []
-            ps.append(p[0])
-            ps.append(p[1])
-            ps.append(p[3])
-            ps.append(p[2])
-            draw.polygon(tuple(ps),outline="blue")
-        im.show()
+        # draw = ImageDraw.Draw(im)
+        # for _,points in bbox:
+            #p = sorted(points)
+            #ps = []
+            #ps.append(p[0])
+            #ps.append(p[1])
+            #ps.append(p[3])
+            #ps.append(p[2])
+            #draw.polygon(tuple(ps),outline="blue")
+        #im.show()
 
 
     #save outputs for visualizing/calculate MAP (skipping eval.py)
-        if epoch % 25 == 0 and epoch != 0 and epoch != 25:
-            get_MAP(box_preds, class_preds)
-        if epoch == 0:
-            viz_preds(box_preds, class_preds)
+    #viz_preds(box_preds, class_preds)
             
