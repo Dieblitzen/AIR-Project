@@ -196,6 +196,20 @@ class PixorModel(object):
         val_images, val_boxes, val_classes = get_batch(0, self.flags, val_base_path)
         val_loss, box_preds, unnorm_class_preds = sess.run([self.decode_pixor_loss, self.output_box, self.output_class], feed_dict = {self.x: val_images, self.y_box: val_boxes, self.y_class: val_classes})
         return val_loss, box_preds, unnorm_class_preds, val_classes
+
+    def evaluate_one(self, sess, val_base_path):
+        p = osp.join(val_base_path, 'images', '1.jpg')
+        im = Image.open(p)
+        im_arr = np.array(im)
+        im_arr = (im_arr - mean) / std
+    
+        val_classes = np.load(osp.join(path, 'class_annotations', '1.npy'))
+        if(len(val_classes.shape) == 2):
+                val_classes = val_classes[:,:,newaxis]
+        # Open the json file and parse into dictionary of index -> buildings pairs
+        val_boxes = np.load(osp.join(path, 'box_annotations', '1.npy'))
+        val_loss, box_preds, unnorm_class_preds = sess.run([self.decode_pixor_loss, self.output_box, self.output_class], feed_dict = {self.x: im_arr, self.y_box: val_boxes, self.y_class: val_classes})
+        return val_loss, box_preds, unnorm_class_preds, val_classes
     
 def get_tile_and_label(index, flags, norm=True):
     """

@@ -11,6 +11,8 @@ import random
 from shutil import copyfile
 from functools import reduce
 from scipy.spatial import Delaunay
+from PIL import Image, ImageDraw 
+from PIL import ImagePath  
 
 # Visualising
 import matplotlib.pyplot as plt
@@ -144,12 +146,21 @@ class PIXOR_Dataset(Dataset):
 				im = Image.open(img_path)
 				im_arr = np.array(im)
 				f = plt.figure()
-				f.add_subplot(1, 2, 1)
-				plt.imshow(im_arr)
-				f.add_subplot(1, 2, 2)
-				plt.imshow(np.squeeze(class_labels))
-				plt.show(block=True)
-
+				#f.add_subplot(1, 2, 1)
+				#plt.imshow(im_arr)
+				#f.add_subplot(1, 2, 2)
+				#plt.imshow(np.squeeze(class_labels))
+				#plt.show(block=True)
+				draw = ImageDraw.Draw(im)
+				for _,points in corner_boxes:
+					p = sorted(points)
+					ps = []
+					ps.append(p[0])
+					ps.append(p[1])
+					ps.append(p[3])
+					ps.append(p[2])
+					draw.polygon(tuple(ps),outline="blue")
+				im.show()
 
 			if i < math.floor(train*len(shuffled_img)):
 				# Copy image to train folder
@@ -210,7 +221,6 @@ class PIXOR_Dataset(Dataset):
 		logging.info("boxes within tile: ")
 		logging.info(bboxes)
 
-		print("Bboxes:", len(bboxes))
 		for bbox_index in range(0, len(bboxes)):
 			dx = 0
 			dy = 0
@@ -222,8 +232,7 @@ class PIXOR_Dataset(Dataset):
 			heading, width, length = bboxes[bbox_index][2:]
 			corner_points = corner_boxes[bbox_index][-1]
 			x_coords, y_coords = zip(*corner_points)
-			print('x_coords', x_coords)
-			print('y_coords', y_coords)
+
 			
 			for c in range(max(int(min(x_coords)), 0), min(int(max(x_coords)), 224)):
 				for r in range(max(int(min(y_coords)), 0), min(int(max(y_coords)), 224)):
