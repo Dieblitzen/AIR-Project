@@ -246,7 +246,7 @@ def passed_arguments():
   parser = argparse.ArgumentParser(description="Script to visualize labels on entire queried area.")
   parser.add_argument('--data_path',\
                       type=str,
-                      required=True,
+                      red=True,
                       help='Path to directory where extracted dataset is stored.')
   parser.add_argument('--classes_path',\
                       type=str,
