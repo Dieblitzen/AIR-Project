@@ -33,7 +33,7 @@
     "seed":0
   },
 
-  "epochs": 175,
+  "epochs": 250,
   "batch_size": 16,
   "loss": "BinaryCrossentropy",
   "loss_kwargs": 
