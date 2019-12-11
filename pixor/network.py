@@ -49,6 +49,7 @@ logging.basicConfig(level=logging.INFO, filename=LOGFILE_NAME,
                     format="%(asctime)-15s %(levelname)-8s %(message)s")
 sys.path.append("..")
 
+
 # launch session to connect to C++ computation power
 gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.25)
 config = tf.ConfigProto()
@@ -208,7 +209,7 @@ if __name__ == "__main__":
     box_loss, pixor_loss, decode_loss, decode_pixor_loss = model.get_loss()
     
     # RUN THINGS
-    saver = tf.train.Saver()
+    saver = tf.train.Saver(max_to_keep=1)
     with tf.Session() as sess:
       #initialize everything
         sess.run(tf.global_variables_initializer())
@@ -217,6 +218,14 @@ if __name__ == "__main__":
         lowest_val_loss = np.inf
 
         mAP = 0.
+        #opt = tf.keras.optimizers.Adam(0.1)
+        #ckpt = tf.train.Checkpoint(step=tf.Variable(1))
+        #manager = tf.train.CheckpointManager(ckpt, './tf_ckpts', max_to_keep = 3)
+
+
+        #ckpt.restore(manager.latest_checkpoint)
+        
+
         for epoch in range(NUM_EPOCHS):
             box_preds, unnorm_class_preds, per_epoch_train_loss, per_epoch_box_loss, per_epoch_class_loss = model.train_one_epoch(epoch, sess, BATCH_SIZE, TRAIN_BASE_PATH)
 
@@ -238,7 +247,12 @@ if __name__ == "__main__":
             # checkpoint model if best so far
             if val_loss < lowest_val_loss:
                 lowest_val_loss = val_loss
-                saver.save(sess, 'ckpt/', global_step=epoch)
+                #saver.save(sess, 'ckpt/', global_step=epoch)
+            # saving weights
+            #ckpt.step.assign_add(1)
+            #if epoch % 10 == 0:
+                #save_path = manager.save()
+                #print("Saved checkpoint for step {} :{}".format(int(ckpt.step),save_path))
 
         print('val_classes.shape', val_classes.shape) #(1, 224, 224, 1)
         temp = val_classes.flatten().astype(int)
@@ -248,7 +262,7 @@ if __name__ == "__main__":
         print('val_classes.shape after', val_classes.shape)
         print('class_preds.shape after', class_preds.shape) #(1, 224, 224, 6)
 
-        ap = average_precision_score(val_classes, class_preds.reshape(-1, 6))
+        ap = average_precision_score(val_classes.flatten(), np.round(class_preds.flatten()))
         precision = precision_score(val_classes.flatten(), np.round(class_preds.flatten()))
         recall = recall_score(val_classes.flatten(), np.round(class_preds.flatten()))
         

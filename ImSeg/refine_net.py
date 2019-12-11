@@ -237,6 +237,7 @@ Creates RefineNet model given a model config file.
 Requires:
   config: A dict as follows...
   {
+    "type": "RefineNet",
     "name": "model_name",
     "backbone": "resnet name, must correspond to valid local/keras name",
     "backbone_kwargs": {},
