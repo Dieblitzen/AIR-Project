@@ -270,11 +270,36 @@ if __name__ == "__main__":
         
         log_print(f'ap: {ap}')
         log_print(f'precision: {precision}')
-        log_print(f'recall: {recall}')
-            
+        log_print(f'recall: {recall}')            
+
+        val_loss, box_preds, unnorm_class_preds, val_classes = model.evaluate_one(sess, VAL_BASE_PATH)
+        bbox = pixor_to_corners_tf(box_preds)
+
+        #ADD PLOTING 
+        p = osp.join(VAL_BASE_PATH, 'images', '1.jpg')
+        im = Image.open(p)
+        im_arr = np.array(im)
+        f = plt.figure()
+        f.add_subplot(1, 2, 1)
+        plt.imshow(im_arr)
+        f.add_subplot(1, 2, 2)
+        plt.imshow(np.squeeze(val_classes))
+        #plt.show(block=True)
+        draw = ImageDraw.Draw(im)
+        for _,points in bbox:
+            p = sorted(points)
+            ps = []
+            ps.append(p[0])
+            ps.append(p[1])
+            ps.append(p[3])
+            ps.append(p[2])
+            draw.polygon(tuple(ps),outline="blue")
+        im.show()
+
+
     #save outputs for visualizing/calculate MAP (skipping eval.py)
         if epoch % 25 == 0 and epoch != 0 and epoch != 25:
             get_MAP(box_preds, class_preds)
-        #if epoch == 0:
-            #viz_preds(box_preds, class_preds)
+        if epoch == 0:
+            viz_preds(box_preds, class_preds)
             
