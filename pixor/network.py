@@ -29,7 +29,9 @@ parser.add_argument('--num_classes', type=int, default=6, help='number of buildi
 
 flags = parser.parse_args()
 ##### SETTINGS #####
-
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
+os.environ["CUDA_DEVICE_ORDER"]="PCI_BUS_ID"
+os.environ["CUDA_VISIBLE_DEVICES"]="1"  # specify which GPU(s) to be used
 NUM_EPOCHS = flags.num_epochs
 BATCH_SIZE = flags.batch_size
 TILE_SIZE = flags.tile_size
@@ -41,7 +43,7 @@ DATA_FILE_NAME = flags.data_path
 TRAIN_BASE_PATH = os.path.join('..', DATA_FILE_NAME, 'pixor', 'train')
 TRAIN_LEN = len(os.listdir(os.path.join(TRAIN_BASE_PATH, 'images')))
 
-VAL_BASE_PATH = os.path.join('..', DATA_FILE_NAME, 'pixor', 'val')
+VAL_BASE_PATH = os.path.join('..', 'data_pathWP', 'pixor', 'val')
 VAL_LEN = len(os.listdir(osp.join(VAL_BASE_PATH, 'images')))
 ##### End of SETTINGS #####
 
@@ -51,7 +53,7 @@ sys.path.append("..")
 
 
 # launch session to connect to C++ computation power
-gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.25)
+gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.1)
 config = tf.ConfigProto()
 config.gpu_options.allow_growth=True
 sess = tf.InteractiveSession(config=tf.ConfigProto(gpu_options=gpu_options)) if GPU else tf.Session()
