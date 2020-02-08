@@ -1,8 +1,8 @@
 
-#Preprocessing:
+# Preprocessing:
 
 
-The `train_labels_preprocessing.py` file contains the script that generates numpy files that will be used in normalization.  Each time that a new dataset is being used, this script must be run. 
+The `train_labels_preprocessing.py` file contains the script to generate numpy files that will be used in normalization.  Each time that a new dataset is being used, this script must be run. 
 
 To run use: 
 ```
@@ -17,9 +17,9 @@ The generated files are:
 * `std`: standard deviation of images
 
 
-#Training 
+# Training 
 
-The `network.py` file is used to train the model. 
+The `network.py` file is used to train the model. To train run: 
 
 ```
 `python network.py --gpu [how to run] --num_epochs [number of epochs to train] --batch_size [training batch size] --logfile_name [file to save logging info] --tile_size [size of tile images] --data_path [path to data folder] --num_classes [number of building classes]`
