@@ -267,7 +267,7 @@ class ImSeg_Dataset(Dataset):
             label_nodes = [tuple(point) for point in label_nodes]
             road_mask = Image.fromarray(np.zeros((h, w)).astype(np.uint8))
             drawer = ImageDraw.Draw(road_mask)
-            drawer.line(label_nodes, fill=1, width=3)
+            drawer.line(label_nodes, fill=1, width=5)
 
             one_label_pixels = np.array(road_mask).astype(np.bool).flatten()
 
