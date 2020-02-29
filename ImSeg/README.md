@@ -27,14 +27,21 @@ Each aspect of the script is explained below:
 * `--classes_path`: This is the path to the `.json` file that contains exactly the classes (or keys) that we want labelled info for (the same as the `--classes` argument in the `DataPipeline.py`).
 * `--config`: This is the path to your `.json` model configuration file that specifies the type of model, and some of the training parameters you want to use. See below for a detailed explanation of config files.
 
+### Saved Weights and Metrics
+
+During training, the model will periodically save its weights if the validation IoU (intersection over union) has improved compared to the best IoU so far. Metrics for precision, recall, and IoU are logged every epoch and saved to the tensorboard and log file. The weights for the model are saved in the following directory:  
+`.../data_path_[your_area]/im_seg/out/[model_name]/checkpoints/`  
+Metrics are stored in the following directory:  
+`.../data_path_[your_area]/im_seg/out/[model_name]/metrics/`
+
+
+### Training on Server
 If you are training a model, we recommend that you use a machine with GPUs. If your machine has multiple GPUs, then you can run the following before running the training command to use another GPU (eg: gpu 1):  
 `export CUDA_VISIBLE_DEVICES=1`  
 To make all `CUDA` devices visible again:  
 `unset CUDA_VISIBLE_DEVICES`  
 
-### Training on Server
-
-You are likely to be training models on a server that contains GPUs. In this case, you want to make sure that when you logout, the training job still runs. To do that, modify the training command as follows:
+You also want to make sure that when you logout, the training job still runs. To do that, modify the training command as follows:
 ```
 nohup python ImSeg/train.py --data_path [directory name] --classes_path [path/to/classes.json] --config ImSeg/configs/yourConfig.json &
 ```
@@ -52,4 +59,50 @@ Consult this post for more [tensorboard remote usage details](https://stackoverf
 
 ## Model Config 
 
-This section describes the layout of the model configuration files used to describe image segmentation models.
+This section describes the layout of the model configuration files used to describe image segmentation models. We use `.json` files to describe the model configurations, and examples can be found int `ImSet/configs/...`. The strcture of the configuration files are described here:
+```
+{  
+   type: type of model [eg: "RefineNet"],  
+   name: unique model name [eg: "refine_net_test"],  
+   backbone: model architecture backbone [eg: "resnet50"],  
+   backbone_kwargs: keyword arguments for chosen backbone architecture [eg: {  
+      "include_top": false,  
+      "weights": "imagenet"  
+    }],
+   pretrained: Whether to use a pretrained Tensorflow backbone. [eg: True]  
+   refine_net_blocks: List of layer names that specify the output position of different feature maps in backbone model. [eg:  
+      [  
+         ["layer4", "layer3"],  
+         ["layer2", "layer1"]  
+      ]  
+   ],  
+   input_shape: Shape of input image in h x w x c [eg: [224, 224, 3]],  
+   classes: The specific classes you want the model to train on. Don't include this if you want the model to train on all classes defined in classes.json [eg: ["building:other"]],  
+   refine_net_kwargs: Keyword arguments for the RefineNet model. Set this to an empyt dictionary if you want the default keyword arguments. [eg:   
+      {   
+         "reduce_channel_scale": 4,  
+         "rcu_kwargs": {},  
+         "mrf_kwargs": {},  
+         "crp_kwargs": {}  
+      }  
+    ],  
+    augment: Keyword arguments for data augmentation. Set this to an empty dictionary if you don't want any augmentation. [eg:   
+      {  
+         "rotate_range":30,  
+         "flip":true,   
+         "channel_shift_range":50,   
+         "multiplier":1,   
+         "seed":0  
+      }  
+    ],  
+    epochs: Number of training epochs [eg: 200],  
+    batch_size: Number of images per batch fed into model [eg; 16],  
+    loss: Tensorflow Keras loss name (should match one of their losses) [eg: "BinaryCrossentropy"],  
+    loss_kwargs: Keyword arguments for loss object. [eg: {"from_logits":true}],  
+    optimizer: Tensorflow Keras optimizer name (should match one of their optimizers) [eg: "Adam"],  
+    optimizer_kwargs: Keyowrd arguments for optimizer object [eg: {"learning_rate":0.0001}]  
+}  
+```
+
+## Inference
+After training, you can run the model on the validation or test sets to generate output segmentation maps. 
