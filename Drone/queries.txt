@@ -1,0 +1,7 @@
+1cm, https://map.openaerialmap.org/#/-68.994140625,33.7243396617476,3/square/03202/5d67dfdddf35140006907ab3?_k=zh4nlc
+2cm, https://map.openaerialmap.org/#/-68.994140625,33.7243396617476,3/square/03202/5cd07d6528c3b90006c14602?_k=jk0mht
+3cm, https://map.openaerialmap.org/#/-68.994140625,33.7243396617476,3/square/03202/5cd1db2be885bf000637c38b?_k=1owbri
+4cm, https://map.openaerialmap.org/#/-68.994140625,33.7243396617476,3/square/03202/5cd1de27e885bf000637c38e?_k=s2bk5k
+5cm, https://map.openaerialmap.org/#/-39.19921875,40.97989806962013,2/square/03202/5d8ac063b34cb60005ebc2cb?_k=aq93bn
+3cm, https://map.openaerialmap.org/#/-73.125,44.95119866668919,3/square/03023/5abae76b65bd8f00110f3e44?_k=g4m1lt 
+3cm, https://map.openaerialmap.org/#/-73.125,44.95119866668919,3/square/03023/59e62b9a3d6412ef7220a51f?_k=vy2p83
