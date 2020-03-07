@@ -4,6 +4,7 @@ import json
 import random
 import argparse
 import numpy as np
+from datetime import date
 from PIL import Image, ImageDraw
 from shutil import copyfile
 from Dataset import Dataset
@@ -154,6 +155,20 @@ class ImSeg_Dataset(Dataset):
 
     train, val, test = self.train_val_test
 
+    data = {}
+
+    data['train'] = {}
+    data['val'] = {}
+    data['test'] = {}
+
+    data['train']['imgs'] = []
+    data['val']['imgs'] = []
+    data['test']['imgs'] = []
+
+    data['train']['anno'] = []
+    data['val']['anno'] = []
+    data['test']['anno'] = []
+
     # index counter i
     i = 0
     while i < len(shuffled_img):
@@ -166,6 +181,12 @@ class ImSeg_Dataset(Dataset):
         self.format_json(os.path.join(self.annotations_path, shuffled_annotations[i]), \
                          os.path.join(self.train_path, "annotations", f"{i}.json"), f"{i}.jpg")
         
+        data['train']['imgs'].append({
+        os.path.join(self.images_path, shuffled_img[i]): os.path.join(self.train_path, "images", f"{i}.jpg")
+        })
+        data['train']['anno'].append({
+        os.path.join(self.annotations_path, shuffled_annotations[i]): os.path.join(self.train_path, "annotations", f"{i}.json")
+        })
         self.data_sizes[0] += 1
 
       elif i < math.floor((train+val)*len(shuffled_img)):
@@ -178,6 +199,12 @@ class ImSeg_Dataset(Dataset):
         self.format_json(os.path.join(self.annotations_path, shuffled_annotations[i]), \
                          os.path.join(self.val_path, "annotations", f"{ind}.json"), f"{ind}.jpg")
         
+        data['val']['imgs'].append({
+        os.path.join(self.images_path, shuffled_img[i]): os.path.join(self.train_path, "images", f"{i}.jpg")
+        })
+        data['val']['anno'].append({
+        os.path.join(self.annotations_path, shuffled_annotations[i]): os.path.join(self.train_path, "annotations", f"{i}.json")
+        })
         self.data_sizes[1] += 1
         
       else:
@@ -190,9 +217,18 @@ class ImSeg_Dataset(Dataset):
         self.format_json(os.path.join(self.annotations_path, shuffled_annotations[i]), \
                          os.path.join(self.test_path, "annotations", f"{ind}.json"), f"{ind}.jpg")
         
+        data['test']['imgs'].append({
+        os.path.join(self.images_path, shuffled_img[i]): os.path.join(self.train_path, "images", f"{i}.jpg")
+        })
+        data['test']['anno'].append({
+        os.path.join(self.annotations_path, shuffled_annotations[i]): os.path.join(self.train_path, "annotations", f"{i}.json")
+        })
         self.data_sizes[2] += 1
       # increment index counter
       i += 1
+    
+    with open('data_versions/version_' + date.today() + '.json', 'w') as outfile:
+        json.dump(data, outfile)
 
 
   def format_image(self, path_to_file, path_to_dest):
