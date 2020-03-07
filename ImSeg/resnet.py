@@ -63,7 +63,7 @@ Requires:
 """
 class BottleneckBlock(Model):
   # Expansion controls the #out_channels. expansion = 4 means for in_depth = 512, out_depth = 2048
-  expansion = 1
+  expansion = 4
   __constants__ = ['downsample']
 
   def __init__(self, out_channels, stride=1, downsample=None, base_width=64, dilation=1):

@@ -1,4 +1,5 @@
 import numpy as np
+
 from PIL import Image
 import os
 import os.path as osp
@@ -54,7 +55,7 @@ def passed_arguments():
 if __name__ == "__main__":
     # args = passed_arguments()
     #dp = f'{data_path}'
-    dp = 'data_path'
+    dp = 'data_pathNYC'
     bp = osp.join('..', dp, 'pixor', 'train')
 
     # mean.npy and std.npy are stats about the images 

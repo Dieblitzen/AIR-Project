@@ -7,7 +7,7 @@ import numpy as np
 from PIL import Image, ImageDraw
 from shutil import copyfile
 from Dataset import Dataset
-from ImSeg.data_augmentation import augment_data
+from ImSeg.preprocess import augment_data
 
 # Visualising
 import matplotlib.pyplot as plt
@@ -25,7 +25,8 @@ class ImSeg_Dataset(Dataset):
 
   """
 
-  def __init__(self, data_path, classes_path='./classes.json', train_val_test=(0.8, 0.1, 0.1), image_resize=None):
+  def __init__(self, data_path, classes_path=os.path.join('.', 'classes.json'), 
+              train_val_test=(0.8, 0.1, 0.1), image_resize=None, augment_kwargs={}):
     """
     Initialises a ImSeg_Dataset object by calling the superclass initialiser.
 
@@ -42,12 +43,13 @@ class ImSeg_Dataset(Dataset):
 
     self.image_size = image_resize if image_resize else self.get_img_size()
     self.seg_classes = self.sorted_classes(self.classes)
-    self.class_colors = [] #[colors.ListedColormap(np.random.rand(256,3)) for _ in self.seg_classes]
+    self.class_colors = []
     # power set of colors across RBG for visualizing
     for i in range(2**3):
       c = [((i >> s) % 2) * 255 for s in range(2, -1, -1)]
       self.class_colors.append(tuple(c))
 
+    # Set up data file paths
     self.train_val_test = train_val_test
     self.train_path = os.path.join(self.data_path, 'im_seg', 'train')
     self.val_path = os.path.join(self.data_path, 'im_seg', 'val')
@@ -56,6 +58,9 @@ class ImSeg_Dataset(Dataset):
 
     self.data_sizes = [0] * 4
     self.init_directories()
+
+    # Set up data augmentor if need be
+    self.augment = self.get_data_gen(**augment_kwargs) if augment_kwargs else None
   
 
   def init_directories(self):
@@ -82,7 +87,8 @@ class ImSeg_Dataset(Dataset):
         os.mkdir(os.path.join(directory, 'annotations'))
 
       # Size of each training, val and test directories  
-      num_samples = len([name for name in os.listdir(os.path.join(directory, 'images')) if name.endswith('.jpg')])
+      num_samples = len([name for name in os.listdir(os.path.join(directory, 'images'))\
+                         if name.endswith('.jpg')])
       self.data_sizes[i] = num_samples
   
 
@@ -112,11 +118,8 @@ class ImSeg_Dataset(Dataset):
     if not os.path.isdir(self.metrics_path):
       os.mkdir(self.metrics_path)
     
-    if not os.path.isdir(os.path.join(self.model_path, 'images')):
-      os.mkdir(os.path.join(self.model_path, 'images'))
-
-    if not os.path.isdir(os.path.join(self.model_path, 'annotations')):
-      os.mkdir(os.path.join(self.model_path, 'annotations'))
+    if not os.path.isdir(os.path.join(self.model_path, 'preds')):
+      os.mkdir(os.path.join(self.model_path, 'preds'))
 
   
   def get_seg_class_name(self, super_class_name, sub_class_name, delim=':'):
@@ -264,7 +267,7 @@ class ImSeg_Dataset(Dataset):
             label_nodes = [tuple(point) for point in label_nodes]
             road_mask = Image.fromarray(np.zeros((h, w)).astype(np.uint8))
             drawer = ImageDraw.Draw(road_mask)
-            drawer.line(label_nodes, fill=1, width=3)
+            drawer.line(label_nodes, fill=1, width=5)
 
             one_label_pixels = np.array(road_mask).astype(np.bool).flatten()
 
@@ -283,13 +286,42 @@ class ImSeg_Dataset(Dataset):
 
     return {"annotation": pixel_annotations.tolist()}
 
+  
+  def get_data_gen(self, rotate_range=0, flip=False, 
+                   channel_shift_range=1e-10, multiplier=0, seed=0):
+    """
+    Creates data augmenting generators for both images and annotations.
+    Locally imports tensorflow, because don't want to import if not training.
+    Requires:
+      rotate_range: 0-90 degrees, range of rotations to rotate image/label
+      flip: whether to randomly veritcally/horizontally flip samples
+      channel_shift_range: Add colour changes to images in range [0..255]
+      multiplier: Return x multiplier of the data
+    """
+    from tensorflow.keras.preprocessing.image import ImageDataGenerator
+    data_gen_X = ImageDataGenerator(rotation_range=rotate_range,
+                                    horizontal_flip=flip,
+                                    vertical_flip=flip,
+                                    channel_shift_range=channel_shift_range,
+                                    fill_mode='constant',
+                                    cval=0)
+    data_gen_Y = ImageDataGenerator(rotation_range=rotate_range,
+                                    horizontal_flip=flip,
+                                    vertical_flip=flip,
+                                    channel_shift_range=1e-10,
+                                    fill_mode='constant', 
+                                    cval=0)
+    return data_gen_X, data_gen_Y, multiplier, seed
 
-  def get_batch(self, indices, train_val_test, is_augment=True, augment_data_seed=0):
+
+  def get_batch(self, indices, train_val_test, classes_of_interset=[]):
     """
     Returns the batch of images and labels associated with the images,
     based on the list of indicies to look up.
     Requires:
       indices: list of indices with which to make a batch
+      classes_of_interest: list of class names to get annotations for
+
     Format: (block of images, block of labels)
     """
 
@@ -299,20 +331,30 @@ class ImSeg_Dataset(Dataset):
       path = self.val_path
     elif train_val_test == "test":
       path = self.test_path
-    elif train_val_test == "out":
-      path = self.out_path
+
+    # Filter label classes by classes_of_interest
+    indices_of_interest = []
+    for class_ in classes_of_interset:
+      try:
+        index = self.seg_classes.index(class_)
+      except ValueError:
+        raise ValueError("Invalid class name in classes_of_interest.")
+      indices_of_interest.append(index)
+
+    # interested in all classes if no classes specified
+    if indices_of_interest == []:
+      indices_of_interest = list(range(len(self.seg_classes)))
 
     # Accumulators for images and annotations in batch
-    images = []
-    annotations = []
-    C = len(self.seg_classes)
+    images, annotations = [], []
     for i in indices:
       image = Image.open(os.path.join(path, 'images', f'{i}.jpg'))
       image = np.array(image)
 
-      # Reshape to (h,w,C) dimensions
+      # Filter out classes we don't want then reshape to (h,w,C) dimensions
       with open(os.path.join(path, 'annotations', f'{i}.json'), 'r') as ann:
-        annotation = np.moveaxis(np.array(json.load(ann)['annotation']), 0, -1)
+        annotation = np.array(json.load(ann)['annotation'])
+        annotation = np.moveaxis(annotation[indices_of_interest], 0, -1)
 
       images.append(image)
       annotations.append(annotation)
@@ -320,53 +362,78 @@ class ImSeg_Dataset(Dataset):
     # Return tuple by stacking them into blocks
     images, annotations = np.stack(images), np.stack(annotations)
 
-    if is_augment:
-      # call function from data_augmentation.pyplot
-      images, annotations = augment_data(images, annotations, seed=augment_data_seed)
+    # call function from data_augmentation.pyplot
+    if self.augment:
+      images, annotations = augment_data(images, annotations, *self.augment)
 
     # TODO: Normalize images
     return images, annotations
 
 
-  def save_preds(self, image_indices, preds, image_dir="val"):
+  def draw_mask_on_im(self, im_path, masks):
     """
-    Saves the images specified by image_indices (accessed from image_dir) 
-    and the model's predictions (as json files) in the output directory.
+    Helper method that opens an image, draws the segmentation masks in `masks`
+    as bitmaps, and then returns the masked image.
     Requires:
+      im_path: Path to .jpg image
+      masks: Array shaped as: #C x h x h
+    """
+    # Open the image and set up an ImageDraw object
+    im = Image.open(im_path).convert('RGB')
+    im_draw = ImageDraw.Draw(im)
+
+    # Draw the bitmap for each class
+    for i, mask in enumerate(masks):
+      mask_im = Image.fromarray(mask.astype(np.uint8) * 64, mode='L')
+      im_draw.bitmap((0,0), mask_im, fill=self.class_colors[i % len(self.class_colors)])
+    
+    return im
+
+
+  def save_preds(self, image_indices, batch_preds, metrics, set_type="val"):
+    """
+    Saves the model's predictions as annotated images in `../model_path/images/`. 
+    Corresponding images from image_indices are accessed from image_dir.
+    Also copies the ground truth annotation to the `../model_path/annotations/` dir.\n
+    Requires:\n
       image_indices: A list of indices corresponding to images stored in directory
-                     image_dir/images
-      preds: A list of np arrays (usually size 224x224) corresponding to the model 
-             predictions for each image in image_indices.
-      image_dir: The directory that image_indices corresponds to. (Usually validation)
+                     image_dir/images \n
+      batch_preds: The model predictions, shaped: (n x h x w x #C), each pixel between 0,1.\n
+      metrics: List of metric dict containing image iou/prec/... (per class, average etc.)\n
+      set_type: The directory that image_indices corresponds to. (Usually val)\n
     """
     # Path from where images will be copied
-    path_to_im = self.val_path
-    if image_dir == "train":
-      path_to_im = self.train_path
-    elif image_dir == "test":
-      path_to_im = self.test_path
+    path = self.val_path
+    if set_type == "train":
+      path = self.train_path
+    elif set_type == "test":
+      path = self.test_path
     
-    # Output directory
-    if not os.path.isdir(self.out_path):
-      os.mkdir(self.out_path) 
-      os.mkdir(os.path.join(self.out_path, 'images'))
-      os.mkdir(os.path.join(self.out_path, 'annotations'))
-    
-    # First copy the images in image_indices
-    for i in image_indices:
-      copyfile(os.path.join(path_to_im, 'images', f'{i}.jpg'), 
-               os.path.join(self.out_path, 'images', f'{i}.jpg'))
+    # Save the images annotated with their predicted labels
+    for i, image_ind in enumerate(image_indices):
+      im_path = os.path.join(path, 'images', f'{image_ind}.jpg')
 
-    # Save prediction in json format and dump
-    for i in range(len(preds)): 
-      preds_json = {"img": str(image_indices[i]) + ".jpg"}
-      # take annotation
-      preds_json["annotation"] = preds[i].tolist()
+      # Reshape to #C x h x w dimensions
+      pred_masks = batch_preds[i]
+      pred_masks = np.moveaxis(pred_masks, -1, 0)
+      
+      # Draw pred masks on image, save prediction
+      pred_im = self.draw_mask_on_im(im_path, pred_masks)
+      pred_im.save(os.path.join(self.model_path, 'preds', f'{set_type}_pred_{image_ind}.jpg'))
 
-      # save annotation in file
-      with open(os.path.join(self.out_path, 'annotations', f'{image_indices[i]}.json'), 'w') as dest:
-        json.dump(preds_json, dest)
-    
+      # Save metrics for prediction
+      metric_path = os.path.join(self.model_path, 'preds', f'{set_type}_metrics_{image_ind}.json')
+      with open(metric_path, 'w') as f:
+        json.dump(metrics[i], f, indent=2)
+
+      # Save associated image annotated with ground truth masks
+      with open(os.path.join(path, 'annotations', f'{image_ind}.json')) as f:
+        try: annotation = json.load(f)
+        except: annotation = {}
+      gt_masks = np.array(annotation["annotation"])
+      gt_im = self.draw_mask_on_im(im_path, gt_masks)
+      gt_im.save(os.path.join(self.model_path, 'preds', f'{set_type}_gt_{image_ind}.jpg'))
+      
 
   def visualize_tile(self, index, directory="train"):
     """
@@ -375,41 +442,27 @@ class ImSeg_Dataset(Dataset):
     Requires:
       index: A valid index in one of train/test/val
     """
-
-    path = self.train_path
-    if directory == "test":
+    if directory == "train":
+      path = self.train_path
+    elif directory == "test":
       path = self.test_path
     elif directory == "val":
       path = self.val_path
-    elif directory == "out":
-      path = self.out_path
+    else: raise ValueError("Can only visualize annotations from train/val/test.")
 
     # Image visualization
-    im = Image.open(os.path.join(path, 'images', f'{index}.jpg'))
-    im_arr = np.array(im)
     fig, ax = plt.subplots(nrows=1, ncols=1)
 
-    # Works better for bitmaps
-    im = Image.fromarray(im_arr, mode='RGB')
-    drawer = ImageDraw.Draw(im)
-
     with open(os.path.join(path, 'annotations', f'{index}.json')) as f:
-      try:
-        annotation = json.load(f)
-      except:
-        annotation = {}
-
-    h, w, _ = self.image_size
-    C = len(self.seg_classes)
+      try: annotation = json.load(f)
+      except: annotation = {}
 
     class_masks = np.array(annotation["annotation"])#.reshape(C, h, w)
 
-    # Check our results
-    for i, mask in enumerate(class_masks):
-      mask_im = Image.fromarray(mask.astype(np.uint8) * 64, mode='L')
-      drawer.bitmap((0,0), mask_im, fill=self.class_colors[i % len(self.class_colors)])
-    
-    ax.imshow(im)
+    # Draw masks on image
+    im_path = os.path.join(path, 'images', f'{index}.jpg')
+    masked_im = self.draw_mask_on_im(im_path, class_masks)
+    ax.imshow(masked_im)
     plt.show()
 
 

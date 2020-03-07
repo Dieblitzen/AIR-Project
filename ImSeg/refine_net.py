@@ -1,6 +1,7 @@
 import tensorflow as tf
-from tensorflow.keras import Model, Sequential
-from tensorflow.keras import layers, models
+import ImSeg.resnet as fresh_resnet
+from tensorflow.keras import Model, Sequential, layers, models
+import tensorflow.keras.applications.resnet as pretrained_resnet
 
 
 """
@@ -19,15 +20,19 @@ class RCU_Block(Model):
                kernel_size=(3,3), strides=(1,1), padding='same'):
     super(RCU_Block, self).__init__()
 
+    # Scale down input channels if need be
+    self.out_channels = out_channels
+    self.down_sample = layers.Conv2D(out_channels, (1,1), strides=(1,1), padding='same')
+
     # Define as sequential list of layers
     self.rcu_block = Sequential()
     for _ in range(n_layers):
       self.rcu_block.add(layers.ReLU())
       self.rcu_block.add(layers.Conv2D(out_channels, kernel_size, strides=strides, padding=padding))
   
-  def call(self, input_t):
-    identity = input_t
-    x = self.rcu_block(input_t)
+  def call(self, t):
+    identity = t if t.shape[-1] == self.out_channels else self.down_sample(t)
+    x = self.rcu_block(t)
     return x + identity
 
 
@@ -73,6 +78,9 @@ class MRF_Block(Model):
 
     # Upsample to largest (h, w) resolution
     largest_res = max(inputs, key=lambda t: t.shape[1] * t.shape[2])
+
+    # Sort inputs by smallest to largest resolution (for conv_transpose)
+    convolved = sorted(convolved, key=lambda t: t.shape[1] * t.shape[2])
     resized = []
     for i, t in enumerate(convolved):
       deconv = getattr(self, f'deconv_{i}', lambda t: t)
@@ -139,17 +147,19 @@ RefineNet block.
 Requires:
   channels: list of output channels [c1, c2, ...]. Each c_i is output #channels (depth) of 
     layer i that is fed into this RefineNet Block.
+  reduce_channels_scale: Multiplier to scale down #channels from feature extractor.
   rcu/mrf/crp_kwargs: optional dictionary of keyword arguments for each of RCU, MRF, CRP blocks.
 """
 class RefineNet_Block(Model):
-  def __init__(self, channels, rcu_kwargs={}, mrf_kwargs={}, crp_kwargs={}):
+  def __init__(self, channels, reduce_channel_scale=4, 
+               rcu_kwargs={}, mrf_kwargs={}, crp_kwargs={}):
     super(RefineNet_Block, self).__init__()
 
     for i, c in enumerate(channels):
-      rcu_block = RCU_Block(out_channels=c, **rcu_kwargs)
+      rcu_block = RCU_Block(out_channels=c//reduce_channel_scale, **rcu_kwargs)
       setattr(self, f'rcu_block_{i}', rcu_block)
     
-    self.out_channels = min(channels)
+    self.out_channels = min(channels)//reduce_channel_scale
 
     self.mrf = MRF_Block(out_channels=self.out_channels, num_inputs=len(channels), **mrf_kwargs)
 
@@ -163,7 +173,7 @@ class RefineNet_Block(Model):
       rcu_block = getattr(self, f'rcu_block_{i}')
       rcu_out.append(rcu_block(t))
     
-    mrf_out = self.mrf(rcu_out)
+    mrf_out = self.mrf(inputs)
 
     crp_out = self.crp(mrf_out)
 
@@ -185,10 +195,10 @@ Requires:
     All inner lists (except first) use previous RefineNet's output as an input as well.
   input_shape: Tuple/list denoting size of image (h, w, #channels)
   num_classes: The number of classes #c. This denotes the output size.
-  rcu/mrf/crp_kwargs: optional dictionary of keyword arguments for each of RCU, MRF, CRP blocks.
+  ref_block_kwargs: Dictionary of keyword arguments for refine_net_block.
 """
 def create_refine_net(backbone, refine_net_blocks, num_classes, input_shape=(None, None, 3),
-                      rcu_kwargs={}, mrf_kwargs={}, crp_kwargs={}):
+                      ref_block_kwargs={}):
   # Define the downsampling using the backbone model.
   intermediate_layers = [layer_name for block in refine_net_blocks for layer_name in block]
   intermediate_out = {name: backbone.get_layer(name).output for name in intermediate_layers}
@@ -203,12 +213,13 @@ def create_refine_net(backbone, refine_net_blocks, num_classes, input_shape=(Non
   for layer_names in refine_net_blocks:
     input_features = [features[name] for name in layer_names]
     input_channels = [feature.shape[-1] for feature in input_features]
-
-    if prev_refine_net_out is not None:
-      input_features.append(prev_refine_net_out)
-      input_channels.append(prev_refine_net_out.shape[-1])
     
-    refine_net_block = RefineNet_Block(input_channels, rcu_kwargs, mrf_kwargs, crp_kwargs)
+    # Order of tensors to refine net block ordered by smallest to largest resolution.
+    if prev_refine_net_out is not None:
+      input_features = [prev_refine_net_out] + input_features
+      input_channels = [prev_refine_net_out.shape[-1]] + input_channels
+    
+    refine_net_block = RefineNet_Block(input_channels, **ref_block_kwargs)
     refine_net_out = refine_net_block(input_features)
     prev_refine_net_out = refine_net_out
   
@@ -217,3 +228,63 @@ def create_refine_net(backbone, refine_net_blocks, num_classes, input_shape=(Non
   x = layers.Conv2D(num_classes, (1,1), strides=(1,1), padding='same')(x)
   
   return Model(inputs=img_input, outputs=x)
+
+
+"""
+Creates RefineNet model given a model config file.
+- Creates a pre-trained resnet backbone if specified (or one from scratch)
+- Sets up the RefineNet blocks given intermediate outputs.
+Requires:
+  config: A dict as follows...
+  {
+    "type": "RefineNet",
+    "name": "model_name",
+    "backbone": "resnet name, must correspond to valid local/keras name",
+    "backbone_kwargs": {},
+    "pretrained": true/false,
+    "refine_net_blocks":
+      [
+        [intermediate_out1, intermediate_out2, ...], 
+        ...
+      ],
+    "input_shape": [224, 224, 3],
+    "classes":
+      [
+        "building:other",
+        ...
+      ],
+    "refine_net_kwargs": 
+      {
+        "reduce_channel_scale": scale,
+          "rcu_kwargs": {},
+          "mrf_kwargs": {},
+          "crp_kwargs": {}
+      }
+    other training hyper params...
+  }
+"""
+def refine_net_from_config(config):
+  backbone_name = config["backbone"]
+  backbone_kwargs = config["backbone_kwargs"]
+
+  # Get backbone from local resnet, or from keras pre-trained resnet.
+  try:
+    if config["pretrained"]:
+      backbone = pretrained_resnet.__dict__[backbone_name](**backbone_kwargs)
+    else:
+      backbone = fresh_resnet.__dict__[backbone_name](**backbone_kwargs)
+  except:
+    raise ValueError("Invalid backbone model name")
+
+  # Set up other model kwargs.
+  refine_net_blocks = config["refine_net_blocks"]
+  num_classes = len(config["classes"])
+  input_shape = tuple(config["input_shape"])
+  ref_block_kwargs = config.get("refine_net_kwargs", {})
+
+  model = create_refine_net(backbone,
+                            refine_net_blocks,
+                            num_classes,
+                            input_shape=input_shape,
+                            ref_block_kwargs=ref_block_kwargs)
+  return model
