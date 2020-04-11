@@ -18,9 +18,10 @@ def read_tiff_image(path_to_tiff):
   col_mask = (clean_arr[..., 0] > -128).any(axis=0)
   clean_arr = clean_arr[:, col_mask, :]
 
+  clean_im = Image.fromarray(clean_arr).convert('RGB')
+  clean_im.save(path_to_tiff.replace('.tif', '.jpg'))
+
   return clean_arr
-  # clean_im = Image.fromarray(clean_arr).convert('RGB')
-  # clean_im.save(path_to_tiff.replace('.tif', '.jpg'))
 
 ## Tile and save image
 # Per-pixel resolution goal: 1 pix ~ 1 m
