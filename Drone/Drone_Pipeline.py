@@ -202,7 +202,7 @@ def create_dataset(data_path, query_url_path=None):
   
   # Tile image and save them.
   for im_path, meta_path in zip(raw_im_paths, raw_meta_paths):
-    print(f"\nTiling image: {im_path}\n")
+    print(f"\nTiling image: {im_path}")
     tile_and_save(ds, im_path, meta_path)
     print(f"Done tiling image.\n")
 
