@@ -39,7 +39,7 @@ class ImSeg_Dataset(Dataset):
     assert train_val_test[0] > 0 and train_val_test[1] > 0 and train_val_test[
         2] > 0, 'Train, val and test percentages should be non-negative'
 
-    super().__init__(self, data_path, classes_path=classes_path)
+    super().__init__(data_path, classes_path=classes_path)
 
     self.image_size = image_resize if image_resize else self.get_img_size()
     self.seg_classes = self.sorted_classes(self.classes)
