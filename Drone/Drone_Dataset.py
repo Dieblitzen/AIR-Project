@@ -27,7 +27,8 @@ class Drone_Dataset(ImSeg_Dataset):
     
     dest_dir = os.path.join(set_path, 'images')
     for i, im_path in enumerate(self.img_list):
-      self.format_image(im_path, os.path.join(dest_dir, f'{i}.jpg'))
+      self.format_image(os.path.join(self.images_path, im_path), 
+                        os.path.join(dest_dir, f'{i}.jpg'))
 
 
 def passed_arguments():
