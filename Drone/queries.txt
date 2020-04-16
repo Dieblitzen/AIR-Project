@@ -5,3 +5,37 @@
 5cm, https://map.openaerialmap.org/#/-39.19921875,40.97989806962013,2/square/03202/5d8ac063b34cb60005ebc2cb?_k=aq93bn
 3cm, https://map.openaerialmap.org/#/-73.125,44.95119866668919,3/square/03023/5abae76b65bd8f00110f3e44?_k=g4m1lt 
 3cm, https://map.openaerialmap.org/#/-73.125,44.95119866668919,3/square/03023/59e62b9a3d6412ef7220a51f?_k=vy2p83
+
+https://map.openaerialmap.org/#/-120.9375,38.85682013474361,4/square/023010/5a3560a8bac48e5b1c79fa81?_k=qyo4r0
+https://map.openaerialmap.org/#/-120.9375,38.85682013474361,4/square/023010/5d1d1d0a93e1130005fc0ec3?_k=ywcqkv
+https://map.openaerialmap.org/#/-120.9375,38.85682013474361,4/square/023010/5a355eabbac48e5b1c79f41d?_k=3oow30
+https://map.openaerialmap.org/#/-120.9375,38.85682013474361,4/square/023010/59e62b933d6412ef7220a240?_k=4rpcqh
+
+3cm
+
+https://map.openaerialmap.org/#/-120.9375,38.85682013474361,4/square/023010/59e62be23d6412ef7220c212?_k=yjx754
+https://map.openaerialmap.org/#/-120.9375,38.85682013474361,4/square/023010/59e62b8b3d6412ef72209dae?_k=ev75p0
+
+4cm
+
+https://map.openaerialmap.org/#/-120.9375,38.85682013474361,4/square/023010/59e62b8f3d6412ef72209f79?_k=2b6sjn
+https://map.openaerialmap.org/#/-120.9375,38.85682013474361,4/square/023010/59e62b903d6412ef7220a038?_k=230e69
+
+
+Taken from Boston Region
+
+3cm
+
+https://map.openaerialmap.org/#/-70.3125,43.03677585761058,4/square/030233/5abae76b65bd8f00110f3e44?_k=ynmp1k
+
+
+Taken from New York Region
+
+3cm
+
+https://map.openaerialmap.org/#/-75.9375,38.85682013474361,4/square/032010/59e62b9b3d6412ef7220a5b7?_k=bvd2eo
+
+5cm
+
+https://map.openaerialmap.org/#/-75.9375,38.85682013474361,4/square/032010/5cf034d1b9ff690005693583?_k=xp8zm1
+https://map.openaerialmap.org/#/-134.38476562499997,38.16911413556086,4/square/032010/5cf33031ea27fd00062492bb?_k=9mn7sl

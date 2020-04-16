@@ -181,6 +181,8 @@ def create_dataset(data_path, query_url_path=None):
       download_urls = f.read().splitlines()
     
     for url in download_urls:
+      if url.find("https") == -1: 
+        continue
       print(f"\nDownloading image: {url}\n")
       download_tiff(url, ds.raw_data_path)
       print("Done downloading image.\n")
