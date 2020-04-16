@@ -70,21 +70,19 @@ class ImSeg_Dataset(Dataset):
     If the directories already exist, then initialises the data_sizes based on existing 
     directories.
     """
-    if not os.path.isdir(os.path.join(self.data_path, 'im_seg')):
-      print(f"Creating directory to store semantic segmentation formatted dataset.")
-      os.mkdir(os.path.join(self.data_path, 'im_seg'))
-
+    Dataset._create_dirs(
+      os.path.join(self.data_path, 'im_seg'),
+      self.train_path,
+      self.val_path,
+      self.test_path,
+    )
     # Create train, validation, test directories, each with an images and
     # annotations sub-directories
     for i, directory in enumerate([self.train_path, self.val_path, self.test_path]):
-      if not os.path.isdir(directory):
-        os.mkdir(directory)
-
-      if not os.path.isdir(os.path.join(directory, 'images')):
-        os.mkdir(os.path.join(directory, 'images'))
-
-      if not os.path.isdir(os.path.join(directory, 'annotations')):
-        os.mkdir(os.path.join(directory, 'annotations'))
+      Dataset._create_dirs(
+        os.path.join(directory, 'images'),
+        os.path.join(directory, 'annotations')
+      )
 
       # Size of each training, val and test directories  
       num_samples = len([name for name in os.listdir(os.path.join(directory, 'images'))\
@@ -103,23 +101,18 @@ class ImSeg_Dataset(Dataset):
     except AttributeError as e:
       pass
 
-    if not os.path.isdir(self.out_path):
-      os.mkdir(self.out_path)
-    
     self.model_path = os.path.join(self.out_path, model_name)
-    if not os.path.isdir(self.model_path):
-      os.mkdir(self.model_path)
-
     self.checkpoint_path = os.path.join(self.model_path, 'checkpoints')
-    if not os.path.isdir(self.checkpoint_path):
-      os.mkdir(self.checkpoint_path)
-    
     self.metrics_path = os.path.join(self.model_path, 'metrics')
-    if not os.path.isdir(self.metrics_path):
-      os.mkdir(self.metrics_path)
-    
-    if not os.path.isdir(os.path.join(self.model_path, 'preds')):
-      os.mkdir(os.path.join(self.model_path, 'preds'))
+    self.preds_path = os.path.join(self.model_path, 'preds')
+
+    Dataset._create_dirs(
+      self.out_path,
+      self.model_path,
+      self.checkpoint_path,
+      self.metrics_path,
+      self.preds_path
+    )
 
   
   def get_seg_class_name(self, super_class_name, sub_class_name, delim=':'):
@@ -314,22 +307,22 @@ class ImSeg_Dataset(Dataset):
     return data_gen_X, data_gen_Y, multiplier, seed
 
 
-  def get_batch(self, indices, train_val_test, classes_of_interset=[]):
+  def get_batch(self, indices, set_type, classes_of_interset=[]):
     """
     Returns the batch of images and labels associated with the images,
-    based on the list of indicies to look up.
+    based on the list of indicies to look up.\n
     Requires:
-      indices: list of indices with which to make a batch
-      classes_of_interest: list of class names to get annotations for
+      indices: list of indices with which to make a batch\n
+      classes_of_interest: list of class names to get annotations for\n
 
     Format: (block of images, block of labels)
     """
 
     # Initialise path based on argument
     path = self.train_path
-    if train_val_test == "val":
+    if set_type.find("val") != -1:
       path = self.val_path
-    elif train_val_test == "test":
+    elif set_type.find("test") != -1:
       path = self.test_path
 
     # Filter label classes by classes_of_interest
@@ -352,9 +345,17 @@ class ImSeg_Dataset(Dataset):
       image = np.array(image)
 
       # Filter out classes we don't want then reshape to (h,w,C) dimensions
-      with open(os.path.join(path, 'annotations', f'{i}.json'), 'r') as ann:
-        annotation = np.array(json.load(ann)['annotation'])
-        annotation = np.moveaxis(annotation[indices_of_interest], 0, -1)
+      try:
+        with open(os.path.join(path, 'annotations', f'{i}.json'), 'r') as ann:
+          annotation = np.array(json.load(ann)['annotation'])
+          annotation = np.moveaxis(annotation[indices_of_interest], 0, -1)
+      except FileNotFoundError:
+        # Create dummy ground truths for inference tasks.
+        if set_type.find("inf") != -1:
+          h, w, _ = image.shape
+          annotation = np.zeros((h, w, len(indices_of_interest)))
+        else:
+          raise FileNotFoundError(f"Annotation {i}.json doesn't exist.")
 
       images.append(image)
       annotations.append(annotation)
@@ -395,6 +396,7 @@ class ImSeg_Dataset(Dataset):
     Saves the model's predictions as annotated images in `../model_path/images/`. 
     Corresponding images from image_indices are accessed from image_dir.
     Also copies the ground truth annotation to the `../model_path/annotations/` dir.\n
+    If set_type contains the string "inf" (for inference), then ignores ground truth.\n
     Requires:\n
       image_indices: A list of indices corresponding to images stored in directory
                      image_dir/images \n
@@ -419,20 +421,21 @@ class ImSeg_Dataset(Dataset):
       
       # Draw pred masks on image, save prediction
       pred_im = self.draw_mask_on_im(im_path, pred_masks)
-      pred_im.save(os.path.join(self.model_path, 'preds', f'{set_type}_pred_{image_ind}.jpg'))
+      pred_im.save(os.path.join(self.preds_path, f'{set_type}_pred_{image_ind}.jpg'))
 
       # Save metrics for prediction
-      metric_path = os.path.join(self.model_path, 'preds', f'{set_type}_metrics_{image_ind}.json')
+      metric_path = os.path.join(self.preds_path, f'{set_type}_metrics_{image_ind}.json')
       with open(metric_path, 'w') as f:
         json.dump(metrics[i], f, indent=2)
 
-      # Save associated image annotated with ground truth masks
-      with open(os.path.join(path, 'annotations', f'{image_ind}.json')) as f:
-        try: annotation = json.load(f)
-        except: annotation = {}
-      gt_masks = np.array(annotation["annotation"])
-      gt_im = self.draw_mask_on_im(im_path, gt_masks)
-      gt_im.save(os.path.join(self.model_path, 'preds', f'{set_type}_gt_{image_ind}.jpg'))
+      # Save associated image annotated with ground truth masks (if not inference)
+      if set_type.find("inf") == -1:
+        with open(os.path.join(path, 'annotations', f'{image_ind}.json')) as f:
+          try: annotation = json.load(f)
+          except: annotation = {}
+        gt_masks = np.array(annotation["annotation"])
+        gt_im = self.draw_mask_on_im(im_path, gt_masks)
+        gt_im.save(os.path.join(self.preds_path, f'{set_type}_gt_{image_ind}.jpg'))
       
 
   def visualize_tile(self, index, directory="train"):
