@@ -52,12 +52,13 @@ class ImSeg_Dataset(Dataset):
 
     # Set up data file paths
     self.train_val_test = train_val_test
-    self.train_path = os.path.join(self.data_path, 'im_seg', 'train')
-    self.val_path = os.path.join(self.data_path, 'im_seg', 'val')
-    self.test_path = os.path.join(self.data_path, 'im_seg', 'test')
-    self.out_path = os.path.join(self.data_path, 'im_seg', 'out')
+    self.im_seg_path = os.path.join(self.data_path, 'im_seg')
+    self.train_path = os.path.join(self.im_seg_path, 'train')
+    self.val_path = os.path.join(self.im_seg_path, 'val')
+    self.test_path = os.path.join(self.im_seg_path, 'test')
+    self.out_path = os.path.join(self.im_seg_path, 'out')
 
-    self.data_sizes = [0] * 4
+    self.data_sizes = {"train": 0, "val": 0, "test": 0, "out": 0}
     self.init_directories()
 
     # Set up data augmentor if need be
@@ -72,14 +73,14 @@ class ImSeg_Dataset(Dataset):
     directories.
     """
     Dataset._create_dirs(
-      os.path.join(self.data_path, 'im_seg'),
+      self.im_seg_path,
       self.train_path,
       self.val_path,
       self.test_path,
     )
-    # Create train, validation, test directories, each with an images and
-    # annotations sub-directories
-    for i, directory in enumerate([self.train_path, self.val_path, self.test_path]):
+    # Create train, val, test dirs, each with an images and annotations sub-directories
+    dirs = {"train": self.train_path, "val": self.val_path, "test": self.test_path}
+    for set_type, directory in dirs.items():
       Dataset._create_dirs(
         os.path.join(directory, 'images'),
         os.path.join(directory, 'annotations')
@@ -88,7 +89,7 @@ class ImSeg_Dataset(Dataset):
       # Size of each training, val and test directories  
       num_samples = len([name for name in os.listdir(os.path.join(directory, 'images'))\
                          if name.endswith('.jpg')])
-      self.data_sizes[i] = num_samples
+      self.data_sizes[set_type] = num_samples
   
 
   def create_model_out_dir(self, model_name):
@@ -163,26 +164,28 @@ class ImSeg_Dataset(Dataset):
         ind = i
         out_path = self.train_path
         set_type = "train"
-        self.data_sizes[0] += 1
+        self.data_sizes[set_type] += 1
 
       elif i < math.floor((train+val)*len(shuffled_img)):
         # Add to val folder
         ind = i - math.floor(train*len(shuffled_img))
         out_path = self.val_path
         set_type = "val"
-        self.data_sizes[1] += 1
+        self.data_sizes[set_type] += 1
         
       else:
         # Add to test folder
         ind = i - math.floor((train+val)*len(shuffled_img))
         out_path = self.test_path
         set_type = "test"
-        self.data_sizes[2] += 1
+        self.data_sizes[set_type] += 1
 
+      # Copy over image to new [train/val/test] destination dir
       im_source_path = os.path.join(self.images_path, shuffled_img[i])
       im_dest_path = os.path.join(out_path, "images", f"{ind}.jpg")
       self.format_image(im_source_path, im_dest_path)
 
+      # Create mask and save annotation in new [train/val/test] destination dir
       ann_source_path = os.path.join(self.annotations_path, shuffled_annotations[i])
       ann_dest_path = os.path.join(out_path, "annotations", f"{ind}.json")
       self.format_json(ann_source_path, ann_dest_path, f"{ind}.jpg")
@@ -503,13 +506,13 @@ if __name__ == "__main__":
   ds = ImSeg_Dataset(args.data_path, args.classes_path)
 
   # Create dataset.
-  if ds.data_sizes[0] == 0:
+  if ds.data_sizes["train"] == 0:
     ds.build_dataset()
   print(ds.seg_classes)
 
   # Visualize tiles.
   if args.tile:
-    inds = random.sample(range(ds.data_sizes[0]), 20)
+    inds = random.sample(range(ds.data_sizes["train"]), 20)
     for i in inds:
       ds.visualize_tile(i, directory='train')
 

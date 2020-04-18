@@ -391,7 +391,7 @@ def passed_arguments():
                       type=int, 
                       default=0,
                       help="Amount of overlapping pixels between adjacent tiles.")
-  parser.add_argument("--query_path", 
+  parser.add_argument("-q", "--query_path", 
                       type=str, 
                       default=os.path.join(".", "PAIRS_Queries", "Query_WhitePlains.json"),
                       help="Path to file containing json query for PAIRS data.")
