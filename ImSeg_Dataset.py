@@ -198,7 +198,7 @@ class ImSeg_Dataset(Dataset):
       i += 1
     
     with open(os.path.join(self.im_seg_path, 'path_map.json'), 'w') as outfile:
-      json.dump(new_path_map, outfile)
+      json.dump(new_path_map, outfile, indent=2)
 
 
   def format_image(self, path_to_file, path_to_dest):
