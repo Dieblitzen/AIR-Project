@@ -155,80 +155,54 @@ class ImSeg_Dataset(Dataset):
 
     train, val, test = self.train_val_test
 
-    data = {}
-
-    data['train'] = {}
-    data['val'] = {}
-    data['test'] = {}
-
-    data['train']['imgs'] = []
-    data['val']['imgs'] = []
-    data['test']['imgs'] = []
-
-    data['train']['anno'] = []
-    data['val']['anno'] = []
-    data['test']['anno'] = []
+    # Mapping from image/ann path in train/val/test folder to original source
+    # in images/annotations folder
+    new_path_map = {
+      set_type: {"images":{}, "annotations":{}} 
+      for set_type in ["train", "val", "test"]
+    }
 
     # index counter i
     i = 0
     while i < len(shuffled_img):
       if i < math.floor(train*len(shuffled_img)):
         # Add to train folder
-
-        self.format_image(os.path.join(self.images_path, shuffled_img[i]), \
-                          os.path.join(self.train_path, "images", f"{i}.jpg"))
-
-        self.format_json(os.path.join(self.annotations_path, shuffled_annotations[i]), \
-                         os.path.join(self.train_path, "annotations", f"{i}.json"), f"{i}.jpg")
-        
-        data['train']['imgs'].append({
-        os.path.join(self.images_path, shuffled_img[i]): os.path.join(self.train_path, "images", f"{i}.jpg")
-        })
-        data['train']['anno'].append({
-        os.path.join(self.annotations_path, shuffled_annotations[i]): os.path.join(self.train_path, "annotations", f"{i}.json")
-        })
+        ind = i
+        out_path = self.train_path
+        set_type = "train"
         self.data_sizes[0] += 1
 
       elif i < math.floor((train+val)*len(shuffled_img)):
         # Add to val folder
         ind = i - math.floor(train*len(shuffled_img))
-
-        self.format_image(os.path.join(self.images_path, shuffled_img[i]), \
-                          os.path.join(self.val_path, "images", f"{ind}.jpg"))
-
-        self.format_json(os.path.join(self.annotations_path, shuffled_annotations[i]), \
-                         os.path.join(self.val_path, "annotations", f"{ind}.json"), f"{ind}.jpg")
-        
-        data['val']['imgs'].append({
-        os.path.join(self.images_path, shuffled_img[i]): os.path.join(self.train_path, "images", f"{i}.jpg")
-        })
-        data['val']['anno'].append({
-        os.path.join(self.annotations_path, shuffled_annotations[i]): os.path.join(self.train_path, "annotations", f"{i}.json")
-        })
+        out_path = self.val_path
+        set_type = "val"
         self.data_sizes[1] += 1
         
       else:
         # Add to test folder
         ind = i - math.floor((train+val)*len(shuffled_img))
-
-        self.format_image(os.path.join(self.images_path, shuffled_img[i]), \
-                          os.path.join(self.test_path, "images", f"{ind}.jpg"))
-
-        self.format_json(os.path.join(self.annotations_path, shuffled_annotations[i]), \
-                         os.path.join(self.test_path, "annotations", f"{ind}.json"), f"{ind}.jpg")
-        
-        data['test']['imgs'].append({
-        os.path.join(self.images_path, shuffled_img[i]): os.path.join(self.train_path, "images", f"{i}.jpg")
-        })
-        data['test']['anno'].append({
-        os.path.join(self.annotations_path, shuffled_annotations[i]): os.path.join(self.train_path, "annotations", f"{i}.json")
-        })
+        out_path = self.test_path
+        set_type = "test"
         self.data_sizes[2] += 1
+
+      im_source_path = os.path.join(self.images_path, shuffled_img[i])
+      im_dest_path = os.path.join(out_path, "images", f"{ind}.jpg")
+      self.format_image(im_source_path, im_dest_path)
+
+      ann_source_path = os.path.join(self.annotations_path, shuffled_annotations[i])
+      ann_dest_path = os.path.join(out_path, "annotations", f"{ind}.json")
+      self.format_json(ann_source_path, ann_dest_path, f"{ind}.jpg")
+
+      # Add mapping from new destination path back to origin source
+      new_path_map[set_type]["images"][im_dest_path] = im_source_path
+      new_path_map[set_type]["annotations"][ann_dest_path] = ann_source_path
+                       
       # increment index counter
       i += 1
     
-    with open('data_versions/version_' + date.today() + '.json', 'w') as outfile:
-        json.dump(data, outfile)
+    with open(date.today() + '.json', 'w') as outfile:
+        json.dump(new_path_map, outfile)
 
 
   def format_image(self, path_to_file, path_to_dest):
