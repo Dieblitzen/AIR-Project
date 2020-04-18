@@ -27,7 +27,7 @@ class ImSeg_Dataset(Dataset):
   """
 
   def __init__(self, data_path, classes_path=os.path.join('.', 'classes.json'), 
-              train_val_test=(0.8, 0.1, 0.1), image_resize=None, augment_kwargs={}):
+               train_val_test=(0.8, 0.1, 0.1), image_resize=None, augment_kwargs={}):
     """
     Initialises a ImSeg_Dataset object by calling the superclass initialiser.
 
@@ -480,7 +480,51 @@ class ImSeg_Dataset(Dataset):
     masked_im = self.draw_mask_on_im(im_path, class_masks)
     ax.imshow(masked_im)
     plt.show()
+  
 
+  @staticmethod
+  def _combine_datasets(new_data_path, classes_path='classes.json', image_resize=None,
+                        *data_paths):
+    """
+    Create a combined dataset from already created ImSeg_Datasets. \n
+    Copies over the `images` and `annotations` directories from given datasets.\n
+    Copies over the `train`, `val` and `test` directories from given datasets.\n
+    Requires:\n
+      new_data_path: Path to directory where combined data will be stored.
+    """
+    # First copy over image and annotation dirs
+    Dataset._combine_datasets(new_data_path, classes_path, *data_paths)
+    
+    new_ds = ImSeg_Dataset(new_data_path, classes_path=classes_path)
+
+    # inds keeps track of file name index for each of train/val/test
+    inds = {set_type: {"images":0, "annotations":0} 
+            for set_type in ["train", "val", "test"]}
+    for data_path in data_paths:
+      ds = ImSeg_Dataset(data_path, classes_path=classes_path)
+
+      # Do for each of train/val/test
+      for set_type in ["train", "val", "test"]:
+        size = ds.data_sizes[set_type]
+        assert size > 0, f"Dataset {data_path} must have data in {set_type} dir."
+
+        # Do for each of images/annotations within train/val/test
+        set_path = lambda ds: getattr(ds, f"{set_type}_path")
+        im_ann = {"images":[".jpg", ".jpeg"], "annotations":[".json"]}
+        for d_type, ext in im_ann.items():
+          d_path = os.path.join(set_path(ds), d_type)
+          files = Dataset.file_names(d_path, *ext)
+
+          # Iterate through the .jpg/.json files and copy to new train/val/test dir
+          for f in files:
+            out_ind = inds[set_type][d_type]
+            source_path = os.path.join(set_path(ds), d_type, f)
+            dest_path = os.path.join(set_path(new_ds), d_type, f"{out_ind}{ext[0]}")
+            copyfile(source_path, dest_path)
+
+            # Update the index for the trian/val/test type
+            inds[set_type][d_type] += 1
+      
 
 def passed_arguments():
   parser = argparse.ArgumentParser(description="Script to create Image Segmentation dataset from raw dataset.")
@@ -496,12 +540,22 @@ def passed_arguments():
                       action='store_true',
                       default=False,
                       help='Visualize a random sequence of 20 tiles in the dataset.')
+  parser.add_argument('--combine',
+                      nargs='+',
+                      type=str,
+                      default=None,
+                      help='Sequence of data_paths to combine into one new ImSeg dataset.')
   args = parser.parse_args()
   return args
 
 
 if __name__ == "__main__":
   args = passed_arguments()
+
+  # Combine datasets if specified.
+  if args.combine:
+    ImSeg_Dataset._combine_datasets(args.data_path, args.classes_path, None,
+                                    *args.combine)
   
   ds = ImSeg_Dataset(args.data_path, args.classes_path)
 

@@ -62,10 +62,10 @@ class Dataset:
       self.classes = json.load(f)
       
     # Attribute 3)
-    self.img_list = sorted(os.listdir(self.images_path), key=self.sort_key)
-
+    self.img_list = Dataset.file_names(self.images_path, '.jpg','.jpeg', key=self.sort_key)
+    
     # Attritbute 4)
-    self.annotation_list = sorted(os.listdir(self.annotations_path), key=self.sort_key)
+    self.annotation_list = Dataset.file_names(self.annotations_path, '.json', key=self.sort_key)
   
   @staticmethod
   def _create_dirs(*dirs):
@@ -78,37 +78,29 @@ class Dataset:
         os.makedirs(p)
 
     for p in dirs: f_mkdir(p)
-
+  
   @staticmethod
-  def _combine_datasets(new_data_path, classes_path='classes.json', *data_paths):
+  def file_names(path, *file_exts, key=None):
     """
-    Create a combined dataset from already created Datasets. \n
-    Copies over the `images` and `annotations` directories from given datasets.
+    Returns a list of all files in `path` ending in `file_ext`,
+    optionally sorted by `key`.
     Requires:
-      new_data_path: Path to directory where combined data will be stored.
+      dir: path/to/dir \n
+      *file_ext: String file extension (eg: '.jpg') to match.\n
+      key: Function to sort by file name\n
     """
-    print("Creating directories store images, annotations...")
-    new_images_path = os.path.join(new_data_path, 'images')
-    new_ann_path = os.path.join(new_data_path, 'annotations')
-    for path in [new_data_path, new_images_path, new_ann_path]:
-      if not os.path.isdir(path):
-        os.mkdir(path)
-    new_ds = Dataset(new_data_path, classes_path=classes_path)
+    files = []
+    for f in os.listdir(path):
+      if file_exts:
+        for ext in file_exts:
+          if f.endswith(ext):
+            files.append(f)
+            break
+      else:
+        files.append(f)
 
-    i = 0
-    for data_path in data_paths:
-      assert os.path.isdir(data_path), f"Can't use non-existent data path: {data_path}"
-      ds = Dataset(data_path, classes_path=classes_path)
-      assert len(ds) > 0, "Previous dataset must have data."
+    return sorted(files, key=key) if key else files
 
-      # Iterate over each image, annotation, copying to new dataset
-      for img_path, ann_path in zip(ds.img_list, ds.annotation_list):
-        copyfile(os.path.join(ds.images_path, img_path), 
-                 os.path.join(new_ds.images_path, f'img_{i}.jpg'))
-
-        copyfile(os.path.join(ds.annotations_path, ann_path),
-                 os.path.join(new_ds.annotations_path, f'annotation_{i}.json'))
-        i += 1
 
   def sort_key(self, file_name):
     """
@@ -125,8 +117,8 @@ class Dataset:
     Updates the img_list and annotation_list attributes and returns the number
     of images in the dataset.
     """
-    self.img_list = sorted(os.listdir(self.images_path), key=self.sort_key)
-    self.annotation_list = sorted(os.listdir(self.annotations_path), key=self.sort_key)
+    self.img_list = Dataset.file_names(self.images_path, '.jpg', '.jpeg', key=self.sort_key)
+    self.annotation_list = Dataset.file_names(self.annotations_path, '.json', key=self.sort_key)
     return len(self.img_list)
 
   def get_img_size(self):
@@ -209,9 +201,9 @@ class Dataset:
         
         file_index += 1
 
-    # Update attributes 1)
-    self.img_list = sorted(os.listdir(self.images_path), key=self.sort_key)
-    self.annotation_list = sorted(os.listdir(self.annotations_path), key=self.sort_key)
+    # Update attributes 4)
+    self.img_list = Dataset.file_names(self.images_path, '.jpg','.jpeg', key=self.sort_key)
+    self.annotation_list = Dataset.file_names(self.annotations_path, '.json', key=self.sort_key)
 
   def visualize_tile(self, index):
     """
@@ -302,6 +294,33 @@ class Dataset:
     # plt.xticks(np.arange(0, 6000, 228), range(0, 23))
     # plt.yticks(np.arange(0, 6000, 228), range(0, 23))
     plt.show()
+  
+
+  @staticmethod
+  def _combine_datasets(new_data_path, classes_path='classes.json', *data_paths):
+    """
+    Create a combined dataset from already created Datasets. \n
+    Copies over the `images` and `annotations` directories from given datasets.
+    Requires:
+      new_data_path: Path to directory where combined data will be stored.
+    """
+    print("Creating directories store images, annotations...")
+    new_ds = Dataset(new_data_path, classes_path=classes_path)
+
+    i = 0
+    for data_path in data_paths:
+      assert os.path.isdir(data_path), f"Can't use non-existent data path: {data_path}"
+      ds = Dataset(data_path, classes_path=classes_path)
+      assert len(ds) > 0, "Previous dataset must have data."
+
+      # Iterate over each image, annotation, copying to new dataset
+      for img_path, ann_path in zip(ds.img_list, ds.annotation_list):
+        copyfile(os.path.join(ds.images_path, img_path), 
+                 os.path.join(new_ds.images_path, f'img_{i}.jpg'))
+
+        copyfile(os.path.join(ds.annotations_path, ann_path),
+                 os.path.join(new_ds.annotations_path, f'annotation_{i}.json'))
+        i += 1
 
 
 def passed_arguments():
