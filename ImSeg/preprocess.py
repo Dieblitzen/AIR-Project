@@ -1,5 +1,4 @@
 import numpy as np
-import tensorflow as tf
 
 
 ## Calculate  mean of dataset.
@@ -32,7 +31,7 @@ def augment_data(images, annotations, data_gen_X, data_gen_Y, multiplier=1, seed
     aug_annotations: ((multiplier + 1) * n) x IMAGE_SIZE x IMAGE_SIZE x c
       numpy array of masks where c is the number of classes
   """
-
+  import tensorflow as tf
   batch_size = images.shape[0]
   imageGen = data_gen_X.flow(images, batch_size=batch_size, seed=seed)
   labelGens = []
