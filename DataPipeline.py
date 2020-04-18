@@ -356,15 +356,14 @@ def tile_image(label_coords, im_arr, im_size, data_info):
   [im_size] is the shape of the numpy array
   """
   tile_size = data_info.tile_size
-  overlap = data_info.overlap
+  step = tile_size-data_info.overlap
 
   height, width, _ = im_size
-  total_rows = height//(tile_size-overlap)
-  total_cols = width//(tile_size-overlap)
+  # total_rows, total_cols = height//step, width//step
 
   index = 0
-  for row_start in range(0, height, tile_size-overlap):
-    for col_start in range(0, width, tile_size-overlap):
+  for row_start in range(0, height-step, step):
+    for col_start in range(0, width-step, step):
       # row_start,row_end, col_start, col_end in pixels relative to entire img
       row_end, col_end = row_start+tile_size, col_start+tile_size
       tile = im_arr[row_start:row_end, col_start:col_end, :]

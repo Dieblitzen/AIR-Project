@@ -207,10 +207,10 @@ class ImSeg_Dataset(Dataset):
     path_to_file, resizes it to IMAGE_SIZE x IMAGE_SIZE x 3, and saves
     it in the destination folder. 
     """
-    # copyfile(path_to_file, path_to_dest)
+    h, w, d = self.image_size
     im = Image.open(path_to_file)
-    if (im.size[1], im.size[0], len(im.getbands())) != self.image_size:
-      im = im.resize(self.image_size, resample=Image.BILINEAR)
+    if (im.size[1], im.size[0], len(im.getbands())) != (h, w, d):
+      im = im.resize((w, h), resample=Image.BILINEAR)
     im.save(path_to_dest)
 
 
@@ -484,15 +484,15 @@ class ImSeg_Dataset(Dataset):
 
 def passed_arguments():
   parser = argparse.ArgumentParser(description="Script to create Image Segmentation dataset from raw dataset.")
-  parser.add_argument('--data_path',\
+  parser.add_argument('-d', '--data_path',\
                       type=str,
                       required=True,
                       help='Path to directory where extracted dataset is stored.')
-  parser.add_argument('--classes_path',\
+  parser.add_argument('-c', '--classes_path',\
                       type=str,
-                      default='./classes.json',
+                      default=os.path.join('.', 'classes.json'),
                       help='Path to directory where extracted dataset is stored.')
-  parser.add_argument('--tile',\
+  parser.add_argument('-t', '--tile',\
                       action='store_true',
                       default=False,
                       help='Visualize a random sequence of 20 tiles in the dataset.')
