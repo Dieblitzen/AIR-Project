@@ -21,7 +21,8 @@ def passed_arguments():
   parser.add_argument('--set_type',
                       type=str,
                       default='val',
-                      help='Run inference on either train/val/test images and annotations.')
+                      help='Run inference on either train/val/test images and annotations.'+\
+                        "If you want to ignore ground truth, append 'inf' (eg: inf_val)")
   parser.add_argument('--config',
                       type=str,
                       required=True,
@@ -41,8 +42,8 @@ def passed_arguments():
 
 if __name__ == "__main__":
   args = passed_arguments()
-  set_type = args.set_type
-  assert set_type in {"train", "val", "test"}, "Must specify one of train/val/test sets."
+  _set_type = args.set_type.split("_")[-1]
+  assert _set_type in {"train", "val", "test"}, "Must specify one of train/val/test sets."
   checkpoint_path = args.checkpoint
 
   # Get args from config.
@@ -55,14 +56,15 @@ if __name__ == "__main__":
 
   ## Set up dataset
   dataset = ImSeg_Dataset(data_path=args.data_path, classes_path=args.classes_path)
-  assert dataset.data_sizes[0] != 0, "Dataset should be built before inference."
-  
+
   # Number of samples, number of batches and interested classes.
   sizes_index = {"train": 0, "val": 1, "test": 2}
-  num_samples = dataset.data_sizes[sizes_index[set_type]]
+  num_samples = dataset.data_sizes[sizes_index[_set_type]]
   num_batches = num_samples//batch_size
   config["classes"] = dataset.seg_classes if not config["classes"] else config["classes"]
   interest_classes = config["classes"]
+  
+  assert num_samples != 0, "Dataset should be built before inference."
 
   # Create model output dir where preds will be stored. Save config here.
   dataset.create_model_out_dir(model_name)
@@ -78,7 +80,7 @@ if __name__ == "__main__":
   data_indices = list(range(num_samples))
   for batch in range(num_batches):
     iter_indices = data_indices[batch*batch_size : (batch+1)*batch_size]
-    img_input, label_masks = dataset.get_batch(iter_indices, set_type, 
+    img_input, label_masks = dataset.get_batch(iter_indices, args.set_type, 
                                                classes_of_interset=interest_classes)
 
     # Feed inputs to model
@@ -105,4 +107,4 @@ if __name__ == "__main__":
     batch_preds = (preds.numpy() >= 0).astype(np.uint8)
 
     # Save preds
-    dataset.save_preds(iter_indices, batch_preds, batch_metrics, set_type=set_type)
+    dataset.save_preds(iter_indices, batch_preds, batch_metrics, set_type=args.set_type)

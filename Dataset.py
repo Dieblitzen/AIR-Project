@@ -27,20 +27,20 @@ class Dataset:
   2) The dictionary of classes defined for the dataset.\n
   3) A sorted list of image file names\n
   4) A sorted list of annotation/ building label file names\n
-  5) The length of the dataset.\n
 
   Static methods (invariant of object):\n
   1) Copy over data from already created datasets into a combined dataset\n
 
   Instance Methods:\n
-  1) Getting the size of each image in the dataset (assumed to be the same for all images).\n
-  2) Getting an image and its associated building labels given an index.\n
-  3) Getting a batch of images and assoicated building labels given a start index and batch size.\n
-  4) Removing a set of images and assoicated building labels given a set of indices.\n
-  5) Visualizing a single image in images_path with its assoicated building labels.\n
-  6) Visualizing a sequence of tiles (images) in images_path with associated building labels, given
+  1) Getting the length of the dataset (the number of images/ image file names)\n
+  2) Getting the size of each image in the dataset (assumed to be the same for all images).\n
+  3) Getting an image and its associated building labels given an index.\n
+  4) Getting a batch of images and assoicated building labels given a start index and batch size.\n
+  5) Removing a set of images and assoicated building labels given a set of indices.\n
+  6) Visualizing a single image in images_path with its assoicated building labels.\n
+  7) Visualizing a sequence of tiles (images) in images_path with associated building labels, given
      a start and end index.\n
-  7) Visualizing the entire area with all bounding boxes (assuming such an image exists in the
+  8) Visualizing the entire area with all bounding boxes (assuming such an image exists in the
       raw_data directory of the data_path).\n
   """
 
@@ -51,8 +51,11 @@ class Dataset:
 
     # The path to the entire data, the images and the annotations. Attributes 1)
     self.data_path = data_path
+    self.raw_data_path = os.path.join(data_path, 'raw_data')
     self.images_path = os.path.join(data_path, 'images')
     self.annotations_path = os.path.join(data_path, 'annotations')
+    Dataset._create_dirs(self.data_path, self.raw_data_path, 
+                         self.images_path, self.annotations_path)
 
     # Attribute 2)
     with open(classes_path, 'r') as f:
@@ -63,10 +66,18 @@ class Dataset:
 
     # Attritbute 4)
     self.annotation_list = sorted(os.listdir(self.annotations_path), key=self.sort_key)
-
-    # Attribute 5)
-    self.length = len(self.img_list)
   
+  @staticmethod
+  def _create_dirs(*dirs):
+    """
+    Creates directories based on paths passed in as arguments.
+    """
+    def f_mkdir(p):
+      if not os.path.isdir(p):
+        os.makedirs(p)
+
+    for p in dirs: f_mkdir(p)
+
   @staticmethod
   def _combine_datasets(new_data_path, classes_path='classes.json', *data_paths):
     """
@@ -87,7 +98,7 @@ class Dataset:
     for data_path in data_paths:
       assert os.path.isdir(data_path), f"Can't use non-existent data path: {data_path}"
       ds = Dataset(data_path, classes_path=classes_path)
-      assert ds.length > 0, "Previous dataset must have data."
+      assert len(ds) > 0, "Previous dataset must have data."
 
       # Iterate over each image, annotation, copying to new dataset
       for img_path, ann_path in zip(ds.img_list, ds.annotation_list):
@@ -106,10 +117,20 @@ class Dataset:
     """
     d = re.search('[0-9]+', file_name)
     return int(file_name[d.start():d.end()]) if d else file_name
+  
+  def __len__(self):
+    """
+    Method 1)
+    Updates the img_list and annotation_list attributes and returns the number
+    of images in the dataset.
+    """
+    self.img_list = sorted(os.listdir(self.images_path), key=self.sort_key)
+    self.annotation_list = sorted(os.listdir(self.annotations_path), key=self.sort_key)
+    return len(self.img_list)
 
   def get_img_size(self):
     """
-    Method 1)
+    Method 2)
     Gets the size of the images in the dataset (assumed to be uniform)
     """
     # Gets first image in dataset
@@ -119,7 +140,7 @@ class Dataset:
   
   def get_tile_and_label(self, index):
     """
-    Method 2)
+    Method 3)
     Gets the tile and label associated with data index.
 
     Returns:
@@ -144,7 +165,7 @@ class Dataset:
   
   def get_batch(self, start_index, batch_size):
     """
-    Method 3)
+    Method 4)
     Gets batch of tiles and labels associated with data start_index.
 
     Returns:
@@ -158,7 +179,7 @@ class Dataset:
 
   def remove_tiles(self, indices_to_remove):
     """
-    Method 4)
+    Method 5)
     Removes the tiles associated with the indices in indices_to_remove, and renames all files
     in self.images_path and self.annotations.path (as appropriate)
 
@@ -167,7 +188,7 @@ class Dataset:
 
     # file_index keeps track of the correct index for the images in the directory 
     file_index = 0
-    for i in range(self.length):
+    for i in range(len(self)):
       img_path = os.path.join(self.images_path, f'img_{i}.jpg')
       ann_path = os.path.join(self.annotations_path, f'annotation_{i}.json')
 
@@ -190,11 +211,10 @@ class Dataset:
     # Update attributes 1)
     self.img_list = sorted(os.listdir(self.images_path), key=self.sort_key)
     self.annotation_list = sorted(os.listdir(self.annotations_path), key=self.sort_key)
-    self.length = len(self.img_list)
 
   def visualize_tile(self, index):
     """
-    Method 5)
+    Method 6)
     Provides a visualization of the tile with the tile and its corresponding annotation/ label. 
     """
     im = Image.open(os.path.join(self.images_path, self.img_list[index]))
@@ -231,7 +251,7 @@ class Dataset:
     
   def visualize_tiles(self, start_idx, end_idx):
     """
-    Method 6)
+    Method 7)
     Provides a visualization of a sequence of tiles with associated annotations/labels
     between the start index and the end index (not including end index) of the tiles.
     """
@@ -242,7 +262,7 @@ class Dataset:
 
   def visualize_dataset(self):
     """
-    Method 7)
+    Method 8)
     Provides visualization of entire dataset image area, 
     including annotations.
 
@@ -314,7 +334,7 @@ if __name__ == "__main__":
 
   ds = Dataset(args.data_path, args.classes_path)
   if args.tile:
-    inds = random.sample(range(ds.length), 20)
+    inds = random.sample(range(len(ds)), 20)
     for i in inds:
       ds.visualize_tile(i)
   else:
