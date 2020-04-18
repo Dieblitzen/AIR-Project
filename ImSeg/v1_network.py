@@ -388,11 +388,11 @@ if __name__ == "__main__":
     # . print testing accuracy for each epoch
     
     # Number of training samples and number of batches
-    num_train = data.data_sizes[0]
+    num_train = data.data_sizes["train"]
     num_train_batches = num_train//batch_size
 
     # Number of validation samples and number of batches
-    num_val = data.data_sizes[1]
+    num_val = data.data_sizes["val"]
     num_val_batches = num_val//batch_size
 
     # Mean and std-dev of training data

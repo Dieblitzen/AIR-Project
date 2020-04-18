@@ -164,9 +164,9 @@ if __name__ == "__main__":
   ## Set up dataset, number of train/val samples, number of batches and interested classes.
   dataset = ImSeg_Dataset(data_path=args.data_path, classes_path=args.classes_path,
                           augment_kwargs=augment_kwargs)
-  if dataset.data_sizes[0] == 0:
+  if dataset.data_sizes["train"] == 0 or dataset.data_sizes["val"] == 0:
     dataset.build_dataset()
-  num_train, num_val = dataset.data_sizes[0], dataset.data_sizes[1]
+  num_train, num_val = dataset.data_sizes["train"], dataset.data_sizes["val"]
   num_train_batches, num_val_batches = num_train//batch_size, num_val//batch_size
   config["classes"] = dataset.seg_classes if not config["classes"] else config["classes"]
   interest_classes = config["classes"]

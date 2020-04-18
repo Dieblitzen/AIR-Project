@@ -23,7 +23,7 @@ class Dataset:
   An object of this class will provide the following functionality:\n
 
   Attributes:
-  1) The path to the dataset, images and annotations.\n
+  1) The path to the dataset, raw image area, tiled images and annotations.\n
   2) The dictionary of classes defined for the dataset.\n
   3) A sorted list of image file names\n
   4) A sorted list of annotation/ building label file names\n
@@ -74,6 +74,7 @@ class Dataset:
     """
     def f_mkdir(p):
       if not os.path.isdir(p):
+        print(f"Creating directory {p}")
         os.makedirs(p)
 
     for p in dirs: f_mkdir(p)

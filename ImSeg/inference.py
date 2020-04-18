@@ -58,8 +58,7 @@ if __name__ == "__main__":
   dataset = ImSeg_Dataset(data_path=args.data_path, classes_path=args.classes_path)
 
   # Number of samples, number of batches and interested classes.
-  sizes_index = {"train": 0, "val": 1, "test": 2}
-  num_samples = dataset.data_sizes[sizes_index[_set_type]]
+  num_samples = dataset.data_sizes[_set_type]
   num_batches = num_samples//batch_size
   config["classes"] = dataset.seg_classes if not config["classes"] else config["classes"]
   interest_classes = config["classes"]
