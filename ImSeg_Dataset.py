@@ -197,8 +197,8 @@ class ImSeg_Dataset(Dataset):
       # increment index counter
       i += 1
     
-    with open(date.today() + '.json', 'w') as outfile:
-        json.dump(new_path_map, outfile)
+    with open(os.path.join(self.im_seg_path, 'path_map.json'), 'w') as outfile:
+      json.dump(new_path_map, outfile)
 
 
   def format_image(self, path_to_file, path_to_dest):
