@@ -306,15 +306,15 @@ class Dataset:
 
 def passed_arguments():
   parser = argparse.ArgumentParser(description="Script to visualize labels on entire queried area.")
-  parser.add_argument('--data_path',
+  parser.add_argument('-d', '--data_path',
                       type=str,
                       default=True,
                       help='Path to directory where extracted dataset is stored.')
-  parser.add_argument('--classes_path',
+  parser.add_argument('-c', '--classes_path',
                       type=str,
                       default='classes.json',
                       help='Path to directory where extracted dataset is stored.')
-  parser.add_argument('--tile',
+  parser.add_argument('-t', '--tile',
                       action='store_true',
                       default=False,
                       help='Visualize a random sequence of 20 tiles in the dataset.')
