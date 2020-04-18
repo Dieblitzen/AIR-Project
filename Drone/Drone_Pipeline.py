@@ -97,9 +97,10 @@ def tile_and_save(dataset, path_to_im, path_to_meta, out_res=1, tile_size=(224, 
   end = len(dataset)
 
   # Save the metadata associated with the range of tiles
-  im_meta["image_indices"] = list(range(start, end))
-  with open(os.path.join(dataset.meta_path, f"meta_{start}-{end-1}.json"), 'w') as f:
-    json.dump(im_meta, f, indent=2)
+  if end - start > 0:
+    im_meta["image_indices"] = list(range(start, end))
+    with open(os.path.join(dataset.meta_path, f"meta_{start}-{end-1}.json"), 'w') as f:
+      json.dump(im_meta, f, indent=2)
 
   
 def parse_image_url(url):
