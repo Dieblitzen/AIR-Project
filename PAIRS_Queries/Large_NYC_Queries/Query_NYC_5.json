@@ -1,0 +1,28 @@
+{
+  "layers": [
+    {
+      "type": "raster",
+      "id": "49238"
+    },
+    {
+      "type": "raster",
+      "id": "49239"
+    },
+    {
+      "type": "raster",
+      "id": "49240"
+    }
+  ],
+  "spatial": {
+    "type": "square",
+    "coordinates": [40.810271, -73.929765, 40.843442, -73.900615]
+  },
+  "temporal": {
+    "intervals": [
+      {
+        "start": "2015-01-01T0:0:0",
+        "end": "2015-12-31T0:0:0"
+      }
+    ]
+  }
+}
