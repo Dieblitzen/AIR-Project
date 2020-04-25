@@ -1,3 +1,5 @@
+import sys
+sys.path.append('.')
 import os
 import math
 import json
@@ -27,7 +29,7 @@ class ImSeg_Dataset(Dataset):
   """
 
   def __init__(self, data_path, classes_path=os.path.join('.', 'classes.json'), 
-               train_val_test=(0.8, 0.1, 0.1), image_resize=None, augment_kwargs={}):
+               train_val_test=[0.8, 0.1, 0.1], image_resize=None, augment_kwargs={}):
     """
     Initialises a ImSeg_Dataset object by calling the superclass initialiser.
 
@@ -35,10 +37,10 @@ class ImSeg_Dataset(Dataset):
     This object will therefore override the self.annotations_path and
     self.annotation_list attributes.
     """
-    assert (train_val_test[0] + train_val_test[1] + train_val_test[2]
-            ) == 1, 'Train, val and test percentages should add to 1'
-    assert train_val_test[0] > 0 and train_val_test[1] > 0 and train_val_test[
-        2] > 0, 'Train, val and test percentages should be non-negative'
+    assert len(train_val_test) == 3, 'Split must only contain percentages for train/val/test'
+    assert sum(train_val_test) == 1, 'Train, val and test percentages should add to 1'
+    for s in train_val_test:
+      assert s >= 0, 'Train, val, test percentages should be non-negative'
 
     super().__init__(data_path, classes_path=classes_path)
 
@@ -536,6 +538,11 @@ def passed_arguments():
                       type=str,
                       default=os.path.join('.', 'classes.json'),
                       help='Path to directory where extracted dataset is stored.')
+  parser.add_argument('-s', '--split',\
+                      type=float,
+                      nargs='+',
+                      default=[0.8, 0.1, 0.1],
+                      help='Train/val/test split percentages.')
   parser.add_argument('-t', '--tile',\
                       action='store_true',
                       default=False,
@@ -557,9 +564,10 @@ if __name__ == "__main__":
     ImSeg_Dataset._combine_datasets(args.data_path, args.classes_path, None,
                                     *args.combine)
   
-  ds = ImSeg_Dataset(args.data_path, args.classes_path)
+  # Initialise dataset.
+  ds = ImSeg_Dataset(args.data_path, args.classes_path, train_val_test=args.split)
 
-  # Create dataset.
+  # Build dataset.
   if ds.data_sizes["train"] == 0:
     ds.build_dataset()
   print(ds.seg_classes)

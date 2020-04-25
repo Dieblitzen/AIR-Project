@@ -1,7 +1,7 @@
 import sys
 sys.path.append('.')
 import json
-from ImSeg_Dataset import ImSeg_Dataset
+from ImSeg.ImSeg_Dataset import ImSeg_Dataset
 import ImSeg.refine_net as refine_net
 
 import os
