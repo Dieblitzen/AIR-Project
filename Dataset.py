@@ -332,7 +332,7 @@ def passed_arguments():
   parser.add_argument('-c', '--classes_path',
                       type=str,
                       default='classes.json',
-                      help='Path to directory where extracted dataset is stored.')
+                      help='Path to .json file denoting classes of labels used in dataset.')
   parser.add_argument('-t', '--tile',
                       action='store_true',
                       default=False,

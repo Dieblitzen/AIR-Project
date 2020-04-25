@@ -1,6 +1,6 @@
 import sys
 sys.path.append('.')
-from ImSeg_Dataset import ImSeg_Dataset
+from ImSeg.ImSeg_Dataset import ImSeg_Dataset
 from ImSeg.train import model_from_config, calculate_iou_prec_recall
 
 import os
