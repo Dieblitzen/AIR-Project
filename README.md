@@ -98,9 +98,9 @@ Each image segementation annotation contains a list of `c` 1-d arrays correspond
 ## Combining Datasets
 You can combine already created datasets in two ways:  
 1. Using  
-  ```
-  python Dataset.py --data_path [/path/to/data_path_new] --classes_path [path/to/classes.json] --combine [path/to/data_path_1] [path/to/data_path_2] ...
-  ```  
+    ```
+    python Dataset.py --data_path [/path/to/data_path_new] --classes_path [path/to/classes.json] --combine [path/to/data_path_1] [path/to/data_path_2] ...
+    ```  
    * `--data_path`: The name of the new directory that will contain the combined dataset (if doesn't already exist, it will be created).
    * `--classes_path`: This is the path to the .json file that contains exactly the classes (or keys) for which we want labelled info.
    * `--combine`: Separate the paths to the datasets you want to combine using spaces.  
