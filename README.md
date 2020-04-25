@@ -3,7 +3,7 @@
 This repository provides information to build geo-spatial datasets and train models to 
 automatically map regions of interest. The goal of this project is to assist automated mapping efforts for use in providing humanitarian relief after natural disasters, for example.
 
-So far, our project has a structured pipeline to extract satellite imagery using [IBM's `PAIRS` API](https://github.com/IBM/ibmpairs), and labelled bounding boxes using `overpy`; an [OpenStreetMap](https://www.openstreetmap.org/) Python API. We then provide pipelines to furhter transform the raw data into specific formats required by a couple of object detection and semantic segmentation deep learning models. After passing the data through these trasnforms, we provide scripts to train and evaluate the model performance on the extracted datasets. Currently, training must be done on personal resources. (In the coming weeks, we will provide checkpoint files for pre-trained models that have worked well on our data.)
+So far, our project has a structured pipeline to extract satellite imagery using [IBM's `PAIRS` API](https://github.com/IBM/ibmpairs), and labelled bounding boxes using `overpy`; an [OpenStreetMap](https://www.openstreetmap.org/) Python API. We then provide pipelines to fruther transform the raw data into specific formats required by a couple of object detection and semantic segmentation deep learning models. After passing the data through these trasnforms, we provide scripts to train and evaluate the model performance on the extracted datasets. Currently, training must be done on personal resources. (In the coming weeks, we will provide checkpoint files for pre-trained models that have worked well on our data.)
 
 The overall strcuture of the project can be divided into the following components:
 1. A pipleine to extract raw labelled data. 
@@ -47,21 +47,17 @@ Running the above command will generate three directories: `data_path/images`, `
   {
     'sub_class_1': 
     [
-      [list of (pixel_x, pixel_y) nodes for label 1],
-      [list of (pixel_x, pixel_y) nodes for label 2],
-      ...
+      [list of (pixel_x, pixel_y) nodes for label 1], [list of (pixel_x, pixel_y) nodes for label 2], ...
     ],
     'sub_class_2':
     [
-      [list of (pixel_x, pixel_y) nodes for label 1],
-      ...
+      [list of (pixel_x, pixel_y) nodes for label 1], ...
     ],
     ...
   },
   'super_class_2':
   {
-    'sub_class_1': 
-    ...
+    'sub_class_1': ...
   },
   ...
 } 
@@ -89,7 +85,7 @@ Each aspect of the above script is explained below:
 
 Running the above command will generate the `data_path/im_seg/` directory which will contain 4 additional directories: `train`, `val`, `test` and `out`. These four directories simply correspond to the train, test, validation datasets for model training/inference. They contain the images and labels in the image segmentation format. Each directory will contain two folders, `images` and `annotations`, to store the processed images in `.jpg` format and corresponding image segmentation labels in `.json` format respectively. Notice that `out` is empty when initializing the dataset and will be used to store model prediction results.
 
-The images and annotations in `data_path/images` and `data_path/annotations` are first randomly shuffled (together, so as to preserve the correct image -> annotation mapping). Then, based on the `--split`, the corresponding proportion of the suffled images and annotations are copied over to the `data_path/im_seg/train/...`, `data_path/im_seg/val/...` and `data_path/im_seg/test/...` directories (eg: inside the `data_path/im_seg/train/images/` and `data_path/im_seg/train/annotations/` directories). The names of the images/annotations inside the `train/val/test` directories are simply `i.jpg` and `i.json` (respectively). The mapping containing `data_path/im_seg/train/images/i.jpg` to its original image in `data_path/images/img_j.jpg` is stored in the json file `path_map.json` (for each image and annotation in the `train`, `val` and `test` directories).  
+The images and annotations in `data_path/images` and `data_path/annotations` are first randomly shuffled (together, so as to preserve the correct image -> annotation mapping). Then, based on the `--split`, the corresponding proportion of the shuffled images and annotations are copied over to the `data_path/im_seg/train/...`, `data_path/im_seg/val/...` and `data_path/im_seg/test/...` directories (eg: inside the `data_path/im_seg/train/images/` and `data_path/im_seg/train/annotations/` directories). The names of the images/annotations inside the `train/val/test` directories are simply `i.jpg` and `i.json` (respectively). The mapping containing `data_path/im_seg/train/images/i.jpg` to its original image in `data_path/images/img_j.jpg` is stored in the json file `path_map.json` (for each image and annotation in the `train`, `val` and `test` directories).  
 
 Each image segementation annotation contains a list of `c` 1-d arrays corresponding to each of the `c` classes. Each of these arrays is a bit-mask for the pixels in the image tile. Eg: if the 2nd array has a `1` in the 384th position and a `0` in the 385th position, that means that the 384th pixel in the image tile belongs to the 2nd class, while the 385th pixel does not. Note that the classes are sorted in alphabetical order according to the string `[super_class]:[sub_class]`. Each label will be in the format of a dictionary that contains two keys, `"annotation"` and `"img"`, and will be stored as `i.json` for the `i`'th image. More concretely, `i.json` will be in the following format:
 ```
@@ -102,21 +98,25 @@ Each image segementation annotation contains a list of `c` 1-d arrays correspond
 ## Combining Datasets
 You can combine already created datasets in two ways:  
 1. Using  
-  ```python Dataset.py --data_path [/path/to/data_path_new] --classes_path [path/to/classes.json] --combine [path/to/data_path_1] [path/to/data_path_2] ...```  
+  ```
+  python Dataset.py --data_path [/path/to/data_path_new] --classes_path [path/to/classes.json] --combine [path/to/data_path_1] [path/to/data_path_2] ...
+  ```  
    * `--data_path`: The name of the new directory that will contain the combined dataset (if doesn't already exist, it will be created).
    * `--classes_path`: This is the path to the .json file that contains exactly the classes (or keys) for which we want labelled info.
    * `--combine`: Separate the paths to the datasets you want to combine using spaces.  
    
-   This will assume that each of `data_path_1`, `data_path_2` etc. are datasets created using `DataPipeline.py` and have their `images/` and `annotations/` directories set up. Then, combining these datasets will create a new dataset under the name `[data_path_new]` with its `data_path_new/images/` directory a concatenation of the images in `data_path_1/images`, `data_path_2/images` etc. (similarly for `data_path_new/annotations/`).  
-  Note that using this script will *not* copy over any of the images or annotations you might have in the `data_path_1/im_seg/train/...` or `data_path_2/im_seg/train/...` directories (for any of `train`, `val` or `test`.) Therefore, you can create a new `data_path_new/im_seg/...` directory by using `ImSeg_Dataset.py` (explained above).  
+   This will assume that each of `data_path_1`, `data_path_2` etc. are datasets created using `DataPipeline.py` and have their `images/` and `annotations/` directories set up. Then, combining these datasets will create a new dataset under the name `[data_path_new]` with its `data_path_new/images/` directory a concatenation of the images in `data_path_1/images`, `data_path_2/images` etc. (similarly for annotations).  
+  Note that using this script will *not* copy over any of the images or annotations you might have in the `data_path_[i]/im_seg/train/...` directories (for any of `train`, `val` or `test`.) Therefore, you can create a new `data_path_new/im_seg/...` directory by using `ImSeg_Dataset.py` (explained above).  
 
 2. Using  
-   ```python ImSeg/ImSeg_Dataset.py --data_path [/path/to/data_path_new] --classes_path [path/to/classes.json] --combine [path/to/data_path_1] [path/to/data_path_2] ... ```  
+   ```
+   python ImSeg/ImSeg_Dataset.py --data_path [/path/to/data_path_new] --classes_path [path/to/classes.json] --combine [path/to/data_path_1] [path/to/data_path_2] ... 
+   ```  
    * `--data_path`: The name of the new directory that will contain the combined dataset (if doesn't already exist, it will be created)
    * `--classes_path`: This is the path to the .json file that contains exactly the classes (or keys) for which we want labelled info.
    * `--combine`: Separate the paths to the datasets you want to combine using spaces.  
 
-    This will assume that directories for `data_path_1/im_seg/...`, `data_path_2/im_seg/...` etc. already exist (i.e. each of the `data_path_[i]` are image segmentation datasets). This script also copies over the images (and annotations) in the `data_path_1/images`, `data_path_2/images` etc. directories into the `data_path_new/images` directory (same for `annotations`). However, it also preserves the train/val/test splits in each of the `data_path_[i]/im_seg/...` directories by copying over the images and annotations in `data_path_[i]/im_seg/train/...` into the `data_path_new/im_seg/train/...` directory (same for the `val` and `test` directories). This makes it possible to compare models trained on individual datasets with those trained on combined datasets (since the training/validation images don't get mixed up).
+    This will assume that directories for `data_path_1/im_seg/...`, `data_path_2/im_seg/...` etc. already exist (i.e. each of the `data_path_[i]` are image segmentation datasets). This script also copies over the images (and annotations) in the `data_path_[i]/images` directories into the `data_path_new/images` directory (same for `annotations`) just like the previous method. However, it also preserves the train/val/test splits in each of the `data_path_[i]/im_seg/...` directories by copying over the images and annotations in `data_path_[i]/im_seg/train/...` into the `data_path_new/im_seg/train/...` directory (same for the `val` and `test` directories). This makes it possible to compare models trained on individual datasets with those trained on combined datasets (since the training/validation images don't get mixed up).
 
 
 ## PIXOR Dataset Generation (deprecated)
