@@ -3,7 +3,7 @@ sys.path.append('.')
 import os
 import argparse
 from Dataset import Dataset
-from ImSeg_Dataset import ImSeg_Dataset
+from ImSeg.ImSeg_Dataset import ImSeg_Dataset
 
 class Drone_Dataset(ImSeg_Dataset):
   def __init__(self, data_path, classes_path='classes.json'):

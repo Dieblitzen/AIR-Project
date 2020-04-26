@@ -182,8 +182,8 @@ class Dataset:
     # file_index keeps track of the correct index for the images in the directory 
     file_index = 0
     for i in range(len(self)):
-      img_path = os.path.join(self.images_path, f'img_{i}.jpg')
-      ann_path = os.path.join(self.annotations_path, f'annotation_{i}.json')
+      img_path = os.path.join(self.images_path, f'{i}.jpg')
+      ann_path = os.path.join(self.annotations_path, f'{i}.json')
 
       # Check if index is to be removed
       if i in indices_to_remove:
@@ -193,10 +193,10 @@ class Dataset:
 
         # If not to be removed, then check if index of file is in line with new file_index
         if i != file_index:
-          new_img_path = os.path.join(self.images_path, f'img_{file_index}.jpg')
+          new_img_path = os.path.join(self.images_path, f'{file_index}.jpg')
           os.rename(img_path, new_img_path)
 
-          new_ann_path = os.path.join(self.annotations_path, f'annotation_{file_index}.json')
+          new_ann_path = os.path.join(self.annotations_path, f'{file_index}.json')
           os.rename(ann_path, new_ann_path)
         
         file_index += 1
@@ -316,10 +316,10 @@ class Dataset:
       # Iterate over each image, annotation, copying to new dataset
       for img_path, ann_path in zip(ds.img_list, ds.annotation_list):
         copyfile(os.path.join(ds.images_path, img_path), 
-                 os.path.join(new_ds.images_path, f'img_{i}.jpg'))
+                 os.path.join(new_ds.images_path, f'{i}.jpg'))
 
         copyfile(os.path.join(ds.annotations_path, ann_path),
-                 os.path.join(new_ds.annotations_path, f'annotation_{i}.json'))
+                 os.path.join(new_ds.annotations_path, f'{i}.json'))
         i += 1
 
 

@@ -239,14 +239,15 @@ def query_OSM(coords, classes):
   return query_data
 
 
-def coords_to_pixels(raw_OSM, coords, im_size, raw_data_path):
+def coords_to_pixels(raw_OSM, coords, im_size, raw_data_path, out_file="annotations"):
   """
   Converts the OSM coordinates to pixels relative to the image data.
   Also stores the returned list of buildings in a pickle file called 'annotations.pkl'
 
   Requires:
-  [coords] is is in [LAT_MIN, LON_MIN, LAT_MAX, LON_MAX] format
-  [im_size] is the shape of the shape of the entire image numpy array
+  `coords` is is in [LAT_MIN, LON_MIN, LAT_MAX, LON_MAX] format \n
+  `im_size` is the shape of the entire image numpy array as (h, w, ...) \n
+  `out_f` is the name of the file in `data_path/raw_data/[out_f].pkl` \n
 
   Returns: 
   {building:
@@ -271,7 +272,7 @@ def coords_to_pixels(raw_OSM, coords, im_size, raw_data_path):
           nodeY = math.floor(((lat_max-lat)/height)*im_size[0])
           label_coords[super_class][sub_class][w_index][n_index] = (nodeX, nodeY)
     
-  with open(os.path.join(raw_data_path, "annotations.pkl"), "wb") as filename:
+  with open(os.path.join(raw_data_path, f"{out_file}.pkl"), "wb") as filename:
     pickle.dump(label_coords, filename)
 
   # Reutrn the pixel building coords
@@ -287,8 +288,8 @@ def save_tile_and_bboxes(tile, label_coords, file_index, data_info):
   [label_coords] is a dictionary of label coordinates (in pixel value) associated with tile.
   [file_index] is an integer.
   """
-  img_name = "img_" + str(file_index) + '.jpg'
-  bbox_name = "annotation_" + str(file_index) + '.json'
+  img_name = str(file_index) + '.jpg'
+  bbox_name = str(file_index) + '.json'
 
   # save jpeg
   filename = os.path.join(data_info.ds.images_path, img_name)
@@ -369,7 +370,7 @@ def tile_image(label_coords, im_arr, im_size, data_info):
       tile = im_arr[row_start:row_end, col_start:col_end, :]
 
       # All the building bounding boxes in the tile range
-      labels_in_tile = boxes_in_tile(label_coords, col_start, col_end, row_start,row_end)
+      labels_in_tile = boxes_in_tile(label_coords, col_start, col_end, row_start, row_end)
       save_tile_and_bboxes(tile, labels_in_tile, index, data_info)
       
       index += 1

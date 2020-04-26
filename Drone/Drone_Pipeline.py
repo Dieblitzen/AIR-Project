@@ -1,3 +1,5 @@
+import sys
+sys.path.append('.')
 import os
 import gdal
 import json
@@ -7,15 +9,16 @@ import numpy as np
 from PIL import Image
 from tqdm import tqdm
 import concurrent.futures
-from Drone_Dataset import Drone_Dataset
+from Drone.Drone_Dataset import Drone_Dataset
+from DataPipeline import query_OSM, coords_to_pixels, boxes_in_tile
 
 
 def read_image(path_to_im):
   """
   Reads an image file and converts it to a numpy array.
   If the file is a .tif file, then deletes the .tiff file, saves
-  it as a .jpg instead and returns the numpy array.
-  Requires:
+  it as a .jpg instead and returns the numpy array. \n
+  Requires: \n
     path_to_im: Path to .tif or .jpg image file.
   """
   if path_to_im.endswith(".tif") or path_to_im.endswith(".tiff"):
@@ -42,58 +45,86 @@ def read_image(path_to_im):
   return clean_arr
 
 
-def tile_image(im_arr, im_meta, dataset, out_res=1, tile_size=(224, 224)):
+def save_tile_and_labels(tile_arr, tile_labels, out_index, dataset, resize=None):
+  """
+  Saves a single tile and the labels associated with that tile. Resizes the
+  tile if specified, assumes that `tile_labels` coords won't need to be resized.\n
+  Requires:\n
+    tile_arr: numpy array denoting the specific tile.\n
+    tile_labels: dictionary of label coords (in pixel value) associated with tile.\n
+    out_index: named index of the tile/bbox to be saved\n
+    resize: (h, w) in pixels defining target size of tiles
+  """
+  tile_im = Image.fromarray(tile_arr).convert('RGB')
+  if resize:
+    tile_im = tile_im.resize(resize, resample=Image.BICUBIC)
+  tile_name = os.path.join(dataset.images_path, f"{out_index}.jpg")
+  tile_im.save(tile_name)
+
+  bbox_name = os.path.join(dataset.annotations_path, f"{out_index}.json")
+  with open(bbox_name, 'w') as f:
+    json.dump(tile_labels, f)
+
+
+def tile_and_annotate(dataset, path_to_im, path_to_meta, 
+                      out_res=1, tile_size=(224, 224), overlap=0):
   """
   Tiles and saves an image. The tiles that are saved are resized to the intended
-  resolution determined by out_res. The input resolution of the file (in metres) 
-  is accessed using the `gsd` attribute of the metadata dictionary.
+  resolution determined by `out_res`. The input resolution of the file (in metres) 
+  is accessed using the `gsd` attribute of the metadata dictionary. \n
+  Also queries OpenStreetMap (OSM) for labels in specified region based on the
+  `bbox` attribute of the metadata dictionary. \n
   Requires:
-    im_arr: numpy array of entire image to be tiled.
-    im_meta: dictionary containing image's metadata (including resolution)
-             as specified by the `gsd` attribute (in metres)
-    dataset: the dataset object this image is tied to
-    out_res: target per-pixel resolution, where 1 pixel ~ `out_res` meters
-    tile_size: (h, w) in pixels defining target size of tiles
-  """
-  print(im_arr.shape)
-
-  # Tile according to expanded tile size
-  in_res = im_meta["gsd"]
-  res = int(out_res/in_res)
-  in_size = (res * tile_size[0], res * tile_size[1])
-  
-  # Tile up input high res image
-  h, w, _ = im_arr.shape
-  total_rows, total_cols = h//in_size[0], w//in_size[1]
-
-  image_ind = len(dataset)
-  for r in range(total_rows):
-    for c in range(total_cols):
-      # row_start, row_end, col_start, col_end in pixels relative to entire img
-      row_start, row_end = r*in_size[0], (r+1)*in_size[0]
-      col_start, col_end = c*in_size[1], (c+1)*in_size[1]
-      tile_arr = im_arr[row_start:row_end, col_start:col_end, :]
-
-      tile_im = Image.fromarray(tile_arr).convert('RGB')
-      tile_im = tile_im.resize(tile_size, resample=Image.BICUBIC)
-      tile_im.save(os.path.join(dataset.images_path, f"img_{image_ind}.jpg"))
-      
-      image_ind += 1
-
-
-def tile_and_save(dataset, path_to_im, path_to_meta, out_res=1, tile_size=(224, 224)):
-  """
-  Tiles and saves an image and the metadata associated with the tiles.
-  See `tile_and_save` for argument description.
-  This method loads the image from its path as a numpy array, and loads the 
-  metadata .json file as a dictionary.
+    dataset: the dataset object this image is tied to \n
+    path_to_im: path to file of entire image that is to be tiled \n
+    path_to_meta: path to .json dictionary containing image's metadata 
+      (including resolution as specified by the `gsd` attribute (in metres)) \n
+    out_res: target per-pixel resolution, where 1 pixel ~ `out_res` meters \n
+    tile_size: (h, w) in pixels defining target size of tiles \n
+    overlap: Amount of overlapping pixels between adjacent tiles (after resizing)
   """
   im_arr = read_image(path_to_im)
   with open(path_to_meta, 'r') as f:
     im_meta = json.load(f)
+  uuid = im_meta['uuid']
+
+  # Tile according to expanded tile size
+  in_res = im_meta["gsd"]
+  ratio = int(out_res/in_res)
+  in_size = (ratio * tile_size[0], ratio * tile_size[1])
+  overlap = ratio * overlap
+
+  # Get step sizes for tiles based on overlap
+  h, w, _ = im_arr.shape
+  step_h, step_w = in_size[0] - overlap, in_size[1] - overlap
+
+  # Get bounding box region of image as (lat_min, lon_min, lat_max, lon_max)
+  bbox = im_meta['geojson']['bbox']
+  coords = [bbox[1], bbox[0], bbox[3], bbox[2]]
+
+  # Get OSM data, and convert from lat-lon to pixel coords (in terms of resized image)
+  print(f"Querying OpenStreetMap data for labels...")
+  raw_osm = query_OSM(coords, dataset.classes)
+  label_coords = coords_to_pixels(raw_osm, coords, (h/ratio, w/ratio), 
+                                  dataset.raw_data_path, out_file=f"{uuid}")
   
+  # Tile up input high res image
   start = len(dataset)
-  tile_image(im_arr, im_meta, dataset, out_res=out_res, tile_size=tile_size) 
+  image_ind = start
+  for row_start in range(0, h - step_h, step_h):
+    for col_start in range(0, w - step_w, step_w):
+      # row_start, row_end, col_start, col_end in pixels relative to entire img
+      row_end, col_end = row_start + in_size[0], col_start + in_size[1]
+      
+      # Get the tile array and the labels in the (resized) tile
+      tile_arr = im_arr[row_start:row_end, col_start:col_end, :]
+      tile_labels = boxes_in_tile(label_coords, col_start, col_end, row_start, row_end)
+
+      # Save the tile and labels, resizing the tile to the `tile_size`
+      save_tile_and_labels(tile_arr, tile_labels, image_ind, dataset, resize=tile_size)
+      
+      image_ind += 1
+
   end = len(dataset)
 
   # Save the metadata associated with the range of tiles
@@ -116,12 +147,12 @@ def parse_image_url(url):
 def query_image_metadata(url):
   """
   Given a url (either image id or URL containing image id), queries
-  and downloads the image metadata as a .json object
+  and downloads the image metadata as a .json object \n
   Raises an exception if the query fails or if the metadata can't be parsed
-  as a json dictionary.
-  Requires:
-    url: a string that is either an image id or is a URL containing the image id
-  Returns:
+  as a json dictionary. \n
+  Requires: \n
+    url: a string that is either an image id or is a URL containing the image id \n
+  Returns: \n
     A dictionary containing the metadata of the image.
   """
   image_id = parse_image_url(url)
@@ -163,7 +194,7 @@ def download_tiff(url, out_path):
       f.write(data)
 
 
-def create_dataset(data_path, query_url_path=None):
+def create_dataset(data_path, classes_path, query_url_path=None, overlap=0):
   """
   Creates a dataset of drone imagery (no annotations) given the directory path
   to store the data. If specified, will download OpenAerialMap imagery from 
@@ -173,7 +204,7 @@ def create_dataset(data_path, query_url_path=None):
     query_url_path: Path to .txt file containing URLs or image ids of OpenAerialMap
                     drone images.
   """
-  ds = Drone_Dataset(data_path)
+  ds = Drone_Dataset(data_path, classes_path=classes_path)
   im_ext1, im_ext2 = ".jpg", ".jpeg"
 
   # Download .tiff files if specified.
@@ -184,7 +215,7 @@ def create_dataset(data_path, query_url_path=None):
     for url in download_urls:
       if url.find("https") == -1: 
         continue
-      print(f"\nDownloading image: {url}\n")
+      print(f"\nDownloading image: {url}")
       download_tiff(url, ds.raw_data_path)
       print("Done downloading image.\n")
 
@@ -201,10 +232,10 @@ def create_dataset(data_path, query_url_path=None):
   assert len(raw_im_paths) == len(raw_meta_paths),\
     "Number of images != number of image metadata files."
   
-  # Tile image and save them.
+  # Query OSM, tile image and save them.
   for im_path, meta_path in zip(raw_im_paths, raw_meta_paths):
     print(f"\nTiling image: {im_path}")
-    tile_and_save(ds, im_path, meta_path)
+    tile_and_annotate(ds, im_path, meta_path, overlap=overlap)
     print(f"Done tiling image.\n")
 
 
@@ -218,9 +249,22 @@ def passed_arguments():
                       type=str,
                       default=None,
                       help="Path to .txt file containing urls of OpenAerialMap queries.")
+  parser.add_argument("-o", "--overlap", 
+                      type=int, 
+                      default=0,
+                      help="Amount of overlapping pixels between adjacent tiles.")
+  parser.add_argument("-c", "--classes", 
+                      type=str, 
+                      default=os.path.join(".", "classes.json"),
+                      help="Path to json file determining OSM classes.")
   args = parser.parse_args()
   return args
 
 if __name__ == "__main__":
   args = passed_arguments()
-  create_dataset(args.data_path, query_url_path=args.query_path)
+  create_dataset(
+    args.data_path, 
+    classes_path=args.classes, 
+    query_url_path=args.query_path,
+    overlap=args.overlap
+  )
