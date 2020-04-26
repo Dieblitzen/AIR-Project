@@ -86,7 +86,7 @@ def tile_and_annotate(dataset, path_to_im, path_to_meta,
   im_arr = read_image(path_to_im)
   with open(path_to_meta, 'r') as f:
     im_meta = json.load(f)
-  uuid = im_meta['uuid']
+  im_id = im_meta['_id']
 
   # Tile according to expanded tile size
   in_res = im_meta["gsd"]
@@ -106,7 +106,7 @@ def tile_and_annotate(dataset, path_to_im, path_to_meta,
   print(f"Querying OpenStreetMap data for labels...")
   raw_osm = query_OSM(coords, dataset.classes)
   label_coords = coords_to_pixels(raw_osm, coords, (h/ratio, w/ratio), 
-                                  dataset.raw_data_path, out_file=f"{uuid}")
+                                  dataset.raw_data_path, out_file=f"{im_id}")
   
   # Tile up input high res image
   start = len(dataset)
@@ -118,7 +118,8 @@ def tile_and_annotate(dataset, path_to_im, path_to_meta,
       
       # Get the tile array and the labels in the (resized) tile
       tile_arr = im_arr[row_start:row_end, col_start:col_end, :]
-      tile_labels = boxes_in_tile(label_coords, col_start, col_end, row_start, row_end)
+      tile_range = np.array([col_start, col_end, row_start, row_end])/ratio
+      tile_labels = boxes_in_tile(label_coords, tile_range)
 
       # Save the tile and labels, resizing the tile to the `tile_size`
       save_tile_and_labels(tile_arr, tile_labels, image_ind, dataset, resize=tile_size)

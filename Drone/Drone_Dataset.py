@@ -7,8 +7,7 @@ from ImSeg.ImSeg_Dataset import ImSeg_Dataset
 
 class Drone_Dataset(ImSeg_Dataset):
   def __init__(self, data_path, classes_path='classes.json'):
-    super().__init__(data_path, classes_path=classes_path)
-
+    super().__init__(data_path, classes_path=classes_path, image_resize=1)
     self.meta_path = os.path.join(self.data_path, 'metadata')
     Dataset._create_dirs(self.meta_path)
 

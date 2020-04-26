@@ -354,7 +354,7 @@ if __name__ == "__main__":
 
   ds = Dataset(args.data_path, args.classes_path)
   if args.tile:
-    inds = random.sample(range(len(ds)), 20)
+    inds = random.sample(range(len(ds)), min(20, len(ds)))
     for i in inds:
       ds.visualize_tile(i)
   else:
