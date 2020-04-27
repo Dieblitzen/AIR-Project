@@ -124,12 +124,17 @@ class Dataset:
   def get_img_size(self):
     """
     Method 2)
-    Gets the size of the images in the dataset (assumed to be uniform)
+    Gets the size of images in the dataset as (h, w, d).
+    Returns:
+     size of `.../images/0.jpg` since other images assumed to have uniform size
     """
+    if not self.img_list:
+      print(f"Warning! Your {self.images_path} directory is currently empty.")
+      return None
     # Gets first image in dataset
     im = Image.open(os.path.join(self.images_path, self.img_list[0]))
-    # Returns the shape of the image
     return np.array(im).shape
+
   
   def get_tile_and_label(self, index):
     """
