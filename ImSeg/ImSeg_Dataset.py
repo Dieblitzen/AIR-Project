@@ -431,9 +431,9 @@ class ImSeg_Dataset(Dataset):
     """
     # Path from where images will be copied
     path = self.val_path
-    if set_type == "train":
+    if set_type.find("train") != -1:
       path = self.train_path
-    elif set_type == "test":
+    elif set_type.find("test") != -1:
       path = self.test_path
     
     # Save the images annotated with their predicted labels
