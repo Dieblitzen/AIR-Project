@@ -61,11 +61,10 @@ class Dataset:
     with open(classes_path, 'r') as f:
       self.classes = json.load(f)
       
-    # Attribute 3)
-    self.img_list = Dataset.file_names(self.images_path, '.jpg','.jpeg', key=self.sort_key)
-    
-    # Attritbute 4)
-    self.annotation_list = Dataset.file_names(self.annotations_path, '.json', key=self.sort_key)
+    # Attributes 3), 4)
+    key = Dataset.sort_key
+    self.img_list = Dataset.file_names(self.images_path, '.jpg','.jpeg', key=key)
+    self.annotation_list = Dataset.file_names(self.annotations_path, '.json', key=key)
   
   @staticmethod
   def _create_dirs(*dirs):
@@ -101,8 +100,8 @@ class Dataset:
 
     return sorted(files, key=key) if key else files
 
-
-  def sort_key(self, file_name):
+  @staticmethod
+  def sort_key(file_name):
     """
     Helper method only.
     Finds the integer present in the string file_name. If an integer cannot be found,
@@ -117,8 +116,9 @@ class Dataset:
     Updates the img_list and annotation_list attributes and returns the number
     of images in the dataset.
     """
-    self.img_list = Dataset.file_names(self.images_path, '.jpg', '.jpeg', key=self.sort_key)
-    self.annotation_list = Dataset.file_names(self.annotations_path, '.json', key=self.sort_key)
+    key = Dataset.sort_key
+    self.img_list = Dataset.file_names(self.images_path, '.jpg', '.jpeg', key=key)
+    self.annotation_list = Dataset.file_names(self.annotations_path, '.json', key=key)
     return len(self.img_list)
 
   def get_img_size(self):
@@ -206,9 +206,8 @@ class Dataset:
         
         file_index += 1
 
-    # Update attributes 4)
-    self.img_list = Dataset.file_names(self.images_path, '.jpg','.jpeg', key=self.sort_key)
-    self.annotation_list = Dataset.file_names(self.annotations_path, '.json', key=self.sort_key)
+    # Update attributes 4) by calling len(self)
+    print(f"New length of dataset: {len(self)}")
 
   def visualize_tile(self, index):
     """

@@ -525,12 +525,12 @@ class ImSeg_Dataset(Dataset):
         im_ann = {"images":[".jpg", ".jpeg"], "annotations":[".json"]}
         for d_type, ext in im_ann.items():
           d_path = os.path.join(set_path(ds), d_type)
-          files = Dataset.file_names(d_path, *ext)
+          files = Dataset.file_names(d_path, *ext, key=Dataset.sort_key)
 
           # Iterate through the .jpg/.json files and copy to new train/val/test dir
           for f in files:
             out_ind = inds[set_type][d_type]
-            source_path = os.path.join(set_path(ds), d_type, f)
+            source_path = os.path.join(d_path, f)
             dest_path = os.path.join(set_path(new_ds), d_type, f"{out_ind}{ext[0]}")
             copyfile(source_path, dest_path)
 
