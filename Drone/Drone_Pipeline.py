@@ -127,7 +127,8 @@ def tile_and_annotate(dataset, path_to_im, path_to_meta,
     # Save the tile and labels, resizing the tile to the `tile_size`
     save_tile_and_labels(tile_arr, tile_labels, image_ind, dataset, resize=tile_size)
 
-  max_workers = min(8, os.cpu_count())
+  # Concurrently tile up and save tiles.
+  max_workers = min(10, os.cpu_count())
   with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as ex:
     future_to_ind = {
       ex.submit(tile_and_save, image_ind, row_start, col_start): image_ind\
