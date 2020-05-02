@@ -101,6 +101,7 @@ def tile_and_annotate(dataset, path_to_im, path_to_meta,
   raw_osm = query_OSM(coords, dataset.classes)
   label_coords = coords_to_pixels(raw_osm, coords, (h/ratio, w/ratio), 
                                   dataset.raw_data_path, out_file=f"{im_id}")
+  print(f"Done querying OpenStreetMap.")
   
   # Tile up input high res image
   start = len(dataset)
@@ -247,7 +248,8 @@ def passed_arguments():
   parser.add_argument("-o", "--overlap", 
                       type=int, 
                       default=0,
-                      help="Amount of overlapping pixels between adjacent tiles.")
+                      help="Amount of overlapping pixels between adjacent tiles" +\
+                            " in resized resolution.")
   parser.add_argument("-c", "--classes", 
                       type=str, 
                       default=os.path.join(".", "classes.json"),
