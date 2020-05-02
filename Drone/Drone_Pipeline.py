@@ -1,48 +1,17 @@
 import sys
 sys.path.append('.')
 import os
-import gdal
 import json
 import requests
 import argparse
 import numpy as np
+import rasterio
+from rasterio.windows import Window
 from PIL import Image
 from tqdm import tqdm
 import concurrent.futures
 from Drone.Drone_Dataset import Drone_Dataset
 from DataPipeline import query_OSM, coords_to_pixels, boxes_in_tile
-
-
-def read_image(path_to_im):
-  """
-  Reads an image file and converts it to a numpy array.
-  If the file is a .tif file, then deletes the .tiff file, saves
-  it as a .jpg instead and returns the numpy array. \n
-  Requires: \n
-    path_to_im: Path to .tif or .jpg image file.
-  """
-  if path_to_im.endswith(".tif") or path_to_im.endswith(".tiff"):
-    im = gdal.Open(path_to_im)
-    im_arr = im.ReadAsArray()
-    im_arr = im_arr.transpose(1, 2, 0)
-
-    # Try and remove NaNs
-    im_arr[np.isnan(im_arr)] = -128
-    row_mask = (im_arr[..., 0] > -128).any(axis=1)
-    clean_arr = im_arr[row_mask, :, :]
-    col_mask = (clean_arr[..., 0] > -128).any(axis=0)
-    clean_arr = clean_arr[:, col_mask, :]
-
-    file_end = ".tif" if path_to_im.endswith(".tif") else ".tiff"
-    clean_im = Image.fromarray(clean_arr).convert('RGB')
-    clean_im.save(path_to_im.replace(file_end, '.jpg'))
-
-    os.remove(path_to_im)
-  elif path_to_im.endswith(".jpg") or path_to_im.endswith(".jpeg"):
-    im = Image.open(path_to_im).convert('RGB')
-    clean_arr = np.array(im)
-
-  return clean_arr
 
 
 def save_tile_and_labels(tile_arr, tile_labels, out_index, dataset, resize=None):
@@ -57,13 +26,37 @@ def save_tile_and_labels(tile_arr, tile_labels, out_index, dataset, resize=None)
   """
   tile_im = Image.fromarray(tile_arr).convert('RGB')
   if resize:
-    tile_im = tile_im.resize(resize, resample=Image.BICUBIC)
+    tile_im = tile_im.resize(resize, resample=Image.BILINEAR)
   tile_name = os.path.join(dataset.images_path, f"{out_index}.jpg")
   tile_im.save(tile_name)
 
   bbox_name = os.path.join(dataset.annotations_path, f"{out_index}.json")
   with open(bbox_name, 'w') as f:
     json.dump(tile_labels, f)
+
+
+def read_tile(im_path, tile_range):
+  """
+  Reads a single tile from the `.tiff` file of the entire area corresponding
+  to the specified `tile_range`. Cleans the tile and returns a numpy array. \n
+  Requires:
+    `path_to_im`: Path to `.tif` file of the entire area.
+    `tile_range`: A list in the format `[col_start, col_end, row_start, row_end]`\n
+  """
+  col_start, col_end, row_start, row_end = tile_range
+  window = Window.from_slices((row_start, row_end), (col_start, col_end))
+  with rasterio.open(im_path) as im:
+    im_arr = im.read(window=window)
+  
+  im_arr = im_arr.transpose(1, 2, 0)
+  # Try and remove NaNs
+  im_arr[np.isnan(im_arr)] = -128
+  row_mask = (im_arr[..., 0] > -128).any(axis=1)
+  clean_arr = im_arr[row_mask, :, :]
+  col_mask = (clean_arr[..., 0] > -128).any(axis=0)
+  clean_arr = clean_arr[:, col_mask, :]
+
+  return clean_arr
 
 
 def tile_and_annotate(dataset, path_to_im, path_to_meta, 
@@ -83,7 +76,9 @@ def tile_and_annotate(dataset, path_to_im, path_to_meta,
     tile_size: (h, w) in pixels defining target size of tiles \n
     overlap: Amount of overlapping pixels between adjacent tiles (after resizing)
   """
-  im_arr = read_image(path_to_im)
+  with rasterio.open(path_to_im) as im:
+    h, w = im.shape
+
   with open(path_to_meta, 'r') as f:
     im_meta = json.load(f)
   im_id = im_meta['_id']
@@ -95,7 +90,6 @@ def tile_and_annotate(dataset, path_to_im, path_to_meta,
   overlap = ratio * overlap
 
   # Get step sizes for tiles based on overlap
-  h, w, _ = im_arr.shape
   step_h, step_w = in_size[0] - overlap, in_size[1] - overlap
 
   # Get bounding box region of image as (lat_min, lon_min, lat_max, lon_max)
@@ -117,9 +111,9 @@ def tile_and_annotate(dataset, path_to_im, path_to_meta,
       row_end, col_end = row_start + in_size[0], col_start + in_size[1]
       
       # Get the tile array and the labels in the (resized) tile
-      tile_arr = im_arr[row_start:row_end, col_start:col_end, :]
-      tile_range = np.array([col_start, col_end, row_start, row_end])/ratio
-      tile_labels = boxes_in_tile(label_coords, tile_range)
+      tile_range = np.array([col_start, col_end, row_start, row_end])
+      tile_arr = read_tile(path_to_im, tile_range)
+      tile_labels = boxes_in_tile(label_coords, tile_range/ratio)
 
       # Save the tile and labels, resizing the tile to the `tile_size`
       save_tile_and_labels(tile_arr, tile_labels, image_ind, dataset, resize=tile_size)
@@ -206,7 +200,7 @@ def create_dataset(data_path, classes_path, query_url_path=None, overlap=0):
                     drone images.
   """
   ds = Drone_Dataset(data_path, classes_path=classes_path)
-  im_ext1, im_ext2 = ".jpg", ".jpeg"
+  im_ext1, im_ext2 = ".tif", ".tiff"
 
   # Download .tiff files if specified.
   if query_url_path:
