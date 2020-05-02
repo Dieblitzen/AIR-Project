@@ -9,6 +9,7 @@ import rasterio
 from rasterio.windows import Window
 from PIL import Image
 from tqdm import tqdm
+import multiprocessing
 import concurrent.futures
 from Drone.Drone_Dataset import Drone_Dataset
 from DataPipeline import query_OSM, coords_to_pixels, boxes_in_tile
@@ -102,25 +103,44 @@ def tile_and_annotate(dataset, path_to_im, path_to_meta,
   label_coords = coords_to_pixels(raw_osm, coords, (h/ratio, w/ratio), 
                                   dataset.raw_data_path, out_file=f"{im_id}")
   print(f"Done querying OpenStreetMap.")
-  
-  # Tile up input high res image
+
   start = len(dataset)
+
+  # Maps from image_ind --> (row_start, col_start)
+  ind_to_tile_range = {}
   image_ind = start
   for row_start in range(0, h - step_h, step_h):
     for col_start in range(0, w - step_w, step_w):
-      # row_start, row_end, col_start, col_end in pixels relative to entire img
-      row_end, col_end = row_start + in_size[0], col_start + in_size[1]
-      
-      # Get the tile array and the labels in the (resized) tile
-      tile_range = np.array([col_start, col_end, row_start, row_end])
-      tile_arr = read_tile(path_to_im, tile_range)
-      tile_labels = boxes_in_tile(label_coords, tile_range/ratio)
-
-      # Save the tile and labels, resizing the tile to the `tile_size`
-      save_tile_and_labels(tile_arr, tile_labels, image_ind, dataset, resize=tile_size)
-      
+      ind_to_tile_range[image_ind] = (row_start, col_start)
       image_ind += 1
+  
+  ## Executor function that saves tile for specific (row_start, col_start) inds.
+  def tile_and_save(image_ind, row_start, col_start):
+    # row_start, row_end, col_start, col_end in pixels relative to entire img
+    row_end, col_end = row_start + in_size[0], col_start + in_size[1]
+    
+    # Get the tile array and the labels in the (resized) tile
+    tile_range = np.array([col_start, col_end, row_start, row_end])
+    tile_arr = read_tile(path_to_im, tile_range)
+    tile_labels = boxes_in_tile(label_coords, tile_range/ratio)
 
+    # Save the tile and labels, resizing the tile to the `tile_size`
+    save_tile_and_labels(tile_arr, tile_labels, image_ind, dataset, resize=tile_size)
+
+  max_workers = min(8, os.cpu_count())
+  with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as ex:
+    future_to_ind = {
+      ex.submit(tile_and_save, image_ind, row_start, col_start): image_ind\
+        for image_ind, (row_start, col_start) in ind_to_tile_range.items()
+    }
+
+    # Throw error raised during tiling.
+    for future in concurrent.futures.as_completed(future_to_ind):
+      ind = future_to_ind[future]
+      err = future.exception()
+      if err:
+        raise err
+  
   end = len(dataset)
 
   # Save the metadata associated with the range of tiles
@@ -208,12 +228,25 @@ def create_dataset(data_path, classes_path, query_url_path=None, overlap=0):
     with open(query_url_path, 'r') as f:
       download_urls = f.read().splitlines()
     
-    for url in download_urls:
-      if url.find("https") == -1: 
-        continue
-      print(f"\nDownloading image: {url}")
-      download_tiff(url, ds.raw_data_path)
-      print("Done downloading image.\n")
+    download_urls = [url for url in download_urls if url.find("https") > -1]
+
+    # Download concurrently.
+    max_workers = min(8, os.cpu_count())
+    with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as ex:
+      future_to_url = {}
+      for url in download_urls:
+        print(f"\nDownloading image: {url}")
+        future = ex.submit(download_tiff, url, ds.raw_data_path)
+        future_to_url[future] = url
+      
+      # Throw error raised during downloading.
+      for future in concurrent.futures.as_completed(future_to_url):
+        url = future_to_url[future]
+        err = future.exception()
+        if err:
+          raise err
+        else:
+          print(f"Done downloading image {url}\n")
 
     im_ext1, im_ext2 = ".tif", ".tiff"
 
