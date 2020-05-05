@@ -338,9 +338,9 @@ def passed_arguments():
                       default='classes.json',
                       help='Path to .json file denoting classes of labels used in dataset.')
   parser.add_argument('-t', '--tile',
-                      action='store_true',
-                      default=False,
-                      help='Visualize a random sequence of 20 tiles in the dataset.')
+                      type=int,
+                      default=0,
+                      help='Visualize a random sequence of t tiles in the dataset.')
   parser.add_argument('--combine',
                       nargs='+',
                       type=str,
@@ -358,7 +358,7 @@ if __name__ == "__main__":
 
   ds = Dataset(args.data_path, args.classes_path)
   if args.tile:
-    inds = random.sample(range(len(ds)), min(20, len(ds)))
+    inds = random.sample(range(len(ds)), min(args.tile, len(ds)))
     for i in inds:
       ds.visualize_tile(i)
   else:
