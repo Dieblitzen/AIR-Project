@@ -252,6 +252,7 @@ def create_dataset(data_path, classes_path, query_url_path=None, overlap=0):
     im_ext1, im_ext2 = ".tif", ".tiff"
 
   # Construct list of image paths and metadata paths.
+  # Image and metadata base file names should be the same.
   raw_im_paths, raw_meta_paths = [], []
   for f in os.listdir(ds.raw_data_path):
     if f.endswith(im_ext1) or f.endswith(im_ext2):
@@ -263,6 +264,7 @@ def create_dataset(data_path, classes_path, query_url_path=None, overlap=0):
     "Number of images != number of image metadata files."
   
   # Query OSM, tile image and save them.
+  raw_im_paths, raw_meta_paths = sorted(raw_im_paths), sorted(raw_meta_paths)
   for im_path, meta_path in zip(raw_im_paths, raw_meta_paths):
     print(f"\nTiling image: {im_path}")
     tile_and_annotate(ds, im_path, meta_path, overlap=overlap)
