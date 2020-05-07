@@ -44,7 +44,7 @@ class ImSeg_Dataset(Dataset):
 
     super().__init__(data_path, classes_path=classes_path)
 
-    self.image_size = image_resize if image_resize else self.get_img_size()
+    self.image_resize = image_resize
     self.seg_classes = self.sorted_classes(self.classes)
     self.class_colors = []
     # power set of colors across RBG for visualizing
@@ -138,6 +138,16 @@ class ImSeg_Dataset(Dataset):
     for super_class, sub_classes in classes_dict.items():
       seg_classes.extend([self.get_seg_class_name(super_class, sub_class) for sub_class in sub_classes])
     return sorted(seg_classes)
+  
+
+  def get_img_size(self):
+    """
+    Returns image size of `data_path/images/0.jpg` as (h,w,d)
+    if `image_resize` not specified.
+    """
+    if self.image_resize:
+      return self.image_resize
+    return super().get_img_size()
 
 
   def build_dataset(self):
@@ -209,7 +219,7 @@ class ImSeg_Dataset(Dataset):
     path_to_file, resizes it to IMAGE_SIZE x IMAGE_SIZE x 3, and saves
     it in the destination folder. 
     """
-    h, w, d = self.image_size
+    h, w, d = self.get_img_size()
     im = Image.open(path_to_file)
     if (im.size[1], im.size[0], len(im.getbands())) != (h, w, d):
       im = im.resize((w, h), resample=Image.BILINEAR)
@@ -253,7 +263,7 @@ class ImSeg_Dataset(Dataset):
     Reference: https://stackoverflow.com/questions/21339448/how-to-get-list-of-points-inside-a-polygon-in-python
     """
     # Image size of tiles.
-    h, w, _ = self.image_size
+    h, w, _ = self.get_img_size()
     C = len(self.seg_classes)
 
     # make a canvas with pixel coordinates
@@ -421,9 +431,9 @@ class ImSeg_Dataset(Dataset):
     """
     # Path from where images will be copied
     path = self.val_path
-    if set_type == "train":
+    if set_type.find("train") != -1:
       path = self.train_path
-    elif set_type == "test":
+    elif set_type.find("test") != -1:
       path = self.test_path
     
     # Save the images annotated with their predicted labels
@@ -515,12 +525,12 @@ class ImSeg_Dataset(Dataset):
         im_ann = {"images":[".jpg", ".jpeg"], "annotations":[".json"]}
         for d_type, ext in im_ann.items():
           d_path = os.path.join(set_path(ds), d_type)
-          files = Dataset.file_names(d_path, *ext)
+          files = Dataset.file_names(d_path, *ext, key=Dataset.sort_key)
 
           # Iterate through the .jpg/.json files and copy to new train/val/test dir
           for f in files:
             out_ind = inds[set_type][d_type]
-            source_path = os.path.join(set_path(ds), d_type, f)
+            source_path = os.path.join(d_path, f)
             dest_path = os.path.join(set_path(new_ds), d_type, f"{out_ind}{ext[0]}")
             copyfile(source_path, dest_path)
 

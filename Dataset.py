@@ -61,11 +61,10 @@ class Dataset:
     with open(classes_path, 'r') as f:
       self.classes = json.load(f)
       
-    # Attribute 3)
-    self.img_list = Dataset.file_names(self.images_path, '.jpg','.jpeg', key=self.sort_key)
-    
-    # Attritbute 4)
-    self.annotation_list = Dataset.file_names(self.annotations_path, '.json', key=self.sort_key)
+    # Attributes 3), 4)
+    key = Dataset.sort_key
+    self.img_list = Dataset.file_names(self.images_path, '.jpg','.jpeg', key=key)
+    self.annotation_list = Dataset.file_names(self.annotations_path, '.json', key=key)
   
   @staticmethod
   def _create_dirs(*dirs):
@@ -101,8 +100,8 @@ class Dataset:
 
     return sorted(files, key=key) if key else files
 
-
-  def sort_key(self, file_name):
+  @staticmethod
+  def sort_key(file_name):
     """
     Helper method only.
     Finds the integer present in the string file_name. If an integer cannot be found,
@@ -117,19 +116,25 @@ class Dataset:
     Updates the img_list and annotation_list attributes and returns the number
     of images in the dataset.
     """
-    self.img_list = Dataset.file_names(self.images_path, '.jpg', '.jpeg', key=self.sort_key)
-    self.annotation_list = Dataset.file_names(self.annotations_path, '.json', key=self.sort_key)
+    key = Dataset.sort_key
+    self.img_list = Dataset.file_names(self.images_path, '.jpg', '.jpeg', key=key)
+    self.annotation_list = Dataset.file_names(self.annotations_path, '.json', key=key)
     return len(self.img_list)
 
   def get_img_size(self):
     """
     Method 2)
-    Gets the size of the images in the dataset (assumed to be uniform)
+    Gets the size of images in the dataset as (h, w, d).
+    Returns:
+     size of `.../images/0.jpg` since other images assumed to have uniform size
     """
+    if not self.img_list:
+      print(f"Warning! Your {self.images_path} directory is currently empty.")
+      return None
     # Gets first image in dataset
     im = Image.open(os.path.join(self.images_path, self.img_list[0]))
-    # Returns the shape of the image
     return np.array(im).shape
+
   
   def get_tile_and_label(self, index):
     """
@@ -182,8 +187,8 @@ class Dataset:
     # file_index keeps track of the correct index for the images in the directory 
     file_index = 0
     for i in range(len(self)):
-      img_path = os.path.join(self.images_path, f'img_{i}.jpg')
-      ann_path = os.path.join(self.annotations_path, f'annotation_{i}.json')
+      img_path = os.path.join(self.images_path, f'{i}.jpg')
+      ann_path = os.path.join(self.annotations_path, f'{i}.json')
 
       # Check if index is to be removed
       if i in indices_to_remove:
@@ -193,17 +198,16 @@ class Dataset:
 
         # If not to be removed, then check if index of file is in line with new file_index
         if i != file_index:
-          new_img_path = os.path.join(self.images_path, f'img_{file_index}.jpg')
+          new_img_path = os.path.join(self.images_path, f'{file_index}.jpg')
           os.rename(img_path, new_img_path)
 
-          new_ann_path = os.path.join(self.annotations_path, f'annotation_{file_index}.json')
+          new_ann_path = os.path.join(self.annotations_path, f'{file_index}.json')
           os.rename(ann_path, new_ann_path)
         
         file_index += 1
 
-    # Update attributes 4)
-    self.img_list = Dataset.file_names(self.images_path, '.jpg','.jpeg', key=self.sort_key)
-    self.annotation_list = Dataset.file_names(self.annotations_path, '.json', key=self.sort_key)
+    # Update attributes 4) by calling len(self)
+    print(f"New length of dataset: {len(self)}")
 
   def visualize_tile(self, index):
     """
@@ -316,10 +320,10 @@ class Dataset:
       # Iterate over each image, annotation, copying to new dataset
       for img_path, ann_path in zip(ds.img_list, ds.annotation_list):
         copyfile(os.path.join(ds.images_path, img_path), 
-                 os.path.join(new_ds.images_path, f'img_{i}.jpg'))
+                 os.path.join(new_ds.images_path, f'{i}.jpg'))
 
         copyfile(os.path.join(ds.annotations_path, ann_path),
-                 os.path.join(new_ds.annotations_path, f'annotation_{i}.json'))
+                 os.path.join(new_ds.annotations_path, f'{i}.json'))
         i += 1
 
 
@@ -354,7 +358,7 @@ if __name__ == "__main__":
 
   ds = Dataset(args.data_path, args.classes_path)
   if args.tile:
-    inds = random.sample(range(len(ds)), 20)
+    inds = random.sample(range(len(ds)), min(20, len(ds)))
     for i in inds:
       ds.visualize_tile(i)
   else:

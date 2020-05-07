@@ -239,14 +239,15 @@ def query_OSM(coords, classes):
   return query_data
 
 
-def coords_to_pixels(raw_OSM, coords, im_size, raw_data_path):
+def coords_to_pixels(raw_OSM, coords, im_size, raw_data_path, out_file="annotations"):
   """
   Converts the OSM coordinates to pixels relative to the image data.
   Also stores the returned list of buildings in a pickle file called 'annotations.pkl'
 
   Requires:
-  [coords] is is in [LAT_MIN, LON_MIN, LAT_MAX, LON_MAX] format
-  [im_size] is the shape of the shape of the entire image numpy array
+  `coords` is is in [LAT_MIN, LON_MIN, LAT_MAX, LON_MAX] format \n
+  `im_size` is the shape of the entire image numpy array as (h, w, ...) \n
+  `out_f` is the name of the file in `data_path/raw_data/[out_f].pkl` \n
 
   Returns: 
   {building:
@@ -271,7 +272,7 @@ def coords_to_pixels(raw_OSM, coords, im_size, raw_data_path):
           nodeY = math.floor(((lat_max-lat)/height)*im_size[0])
           label_coords[super_class][sub_class][w_index][n_index] = (nodeX, nodeY)
     
-  with open(os.path.join(raw_data_path, "annotations.pkl"), "wb") as filename:
+  with open(os.path.join(raw_data_path, f"{out_file}.pkl"), "wb") as filename:
     pickle.dump(label_coords, filename)
 
   # Reutrn the pixel building coords
@@ -287,8 +288,8 @@ def save_tile_and_bboxes(tile, label_coords, file_index, data_info):
   [label_coords] is a dictionary of label coordinates (in pixel value) associated with tile.
   [file_index] is an integer.
   """
-  img_name = "img_" + str(file_index) + '.jpg'
-  bbox_name = "annotation_" + str(file_index) + '.json'
+  img_name = str(file_index) + '.jpg'
+  bbox_name = str(file_index) + '.json'
 
   # save jpeg
   filename = os.path.join(data_info.ds.images_path, img_name)
@@ -300,42 +301,53 @@ def save_tile_and_bboxes(tile, label_coords, file_index, data_info):
     json.dump(label_coords, filename, indent=2)
   
   
-def boxes_in_tile(label_coords, col_start, col_end, row_start, row_end):
+def boxes_in_tile(label_coords, tile_range):
   """
   Helper function that returns the dictionary of boxes that are in the tile specified by
   col_start..col_end (the x range) and row_start..row_end (the y range). 
 
   Requires: 
-  [label_coords] are in pixels not in lat,lon
+  `label_coords` are in pixels not in lat,lon \n
+  `tile_range` is a list in the format `[col_start, col_end, row_start, row_end]`\n
 
   Returns:
   {building: 
     building_class1: [label1_nodes, label2_nodes, ...], ...} 
   of the labels inside given tile range, with coords of label_nodes converted relative to tile.
   """
-  
+  col_start, col_end, row_start, row_end = tile_range
+
   # Output buildings that are in the tile
   labels_in_tile = {super_class: {} for super_class in label_coords}
 
   for super_class, sub_class_labels in label_coords.items():
     for sub_class, labels in sub_class_labels.items():
-      
       labels_in_tile[super_class][sub_class] = []
+
       for label in labels:
-        # All the x and y coordinates of the nodes in a building, separated
-        x_coords, y_coords = [node[0] for node in label], [node[1] for node in label]
+        label = np.array(label)
 
-        min_x, max_x= min(x_coords), max(x_coords)
-        min_y, max_y = min(y_coords), max(y_coords)
+        # Check for label (x,y) coordinates that fall inside tile
+        x_in_tile = (col_start <= label[:, 0]) & (label[:, 0] < col_end)
+        y_in_tile = (row_start <= label[:, 1]) & (label[:, 1] < row_end)
 
-        centre_x, centre_y = (min_x + max_x) / 2, (min_y + max_y) / 2
+        # Only add label to tile if it has nodes that lie inside the tile
+        if (x_in_tile & y_in_tile).any():
 
-        if col_start <= centre_x < col_end and row_start <= centre_y < row_end:
-          
-          # Goes through each node in building, converts coords relative to entire image to 
-          # coords relative to tile
-          new_label_nodes = [(node[0] - col_start, node[1] - row_start) for node in label]
-          labels_in_tile[super_class][sub_class].append(new_label_nodes)
+          if super_class == "highway":
+            # Only keep nodes of road that fully lie in the tile.
+            label = label[x_in_tile & y_in_tile]
+          else:
+            # Clip the out of bounds x,y coordinates of buildings to tile edge
+            label[:, 0] = np.clip(label[:, 0], col_start, col_end) 
+            label[:, 1] = np.clip(label[:, 1], row_start, row_end)
+
+          # Convert coords relative to entire image to coords relative to tile
+          label[:, 0] = label[:, 0] - col_start
+          label[:, 1] = label[:, 1] - row_start
+
+          # Flatten the label to a list and append
+          labels_in_tile[super_class][sub_class].append(label.tolist())
 
   return labels_in_tile
 
@@ -369,7 +381,8 @@ def tile_image(label_coords, im_arr, im_size, data_info):
       tile = im_arr[row_start:row_end, col_start:col_end, :]
 
       # All the building bounding boxes in the tile range
-      labels_in_tile = boxes_in_tile(label_coords, col_start, col_end, row_start,row_end)
+      tile_range = [col_start, col_end, row_start, row_end]
+      labels_in_tile = boxes_in_tile(label_coords, tile_range)
       save_tile_and_bboxes(tile, labels_in_tile, index, data_info)
       
       index += 1
