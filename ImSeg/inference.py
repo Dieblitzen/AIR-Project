@@ -2,7 +2,7 @@ import sys
 sys.path.append('.')
 from ImSeg.ImSeg_Dataset import ImSeg_Dataset
 from ImSeg.segmentation import load_model
-from ImSeg.train import calculate_iou_prec_recall
+from ImSeg.train import calculate_iou_prec_recall, create_metrics_dict
 
 import os
 import json
@@ -94,13 +94,14 @@ if __name__ == "__main__":
 
       iou, prec, recall = calculate_iou_prec_recall(pred, label_mask)
 
-      metrics = {}
-      for i, class_name in enumerate(interest_classes):
-        metrics[f'class_{class_name}_iou'] = iou[i]
-        metrics[f'class_{class_name}_prec'] = prec[i]
-        metrics[f'class_{class_name}_recall'] = recall[i]
+      metrics_dict = create_metrics_dict(
+        interest_classes,
+        iou=iou,
+        prec=prec,
+        recall=recall
+      )
 
-      batch_metrics.append(metrics)
+      batch_metrics.append(metrics_dict)
 
     # Make pixel values between 0 and 1
     batch_preds = (preds.numpy() >= 0).astype(np.uint8)
