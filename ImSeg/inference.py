@@ -1,7 +1,8 @@
 import sys
 sys.path.append('.')
 from ImSeg.ImSeg_Dataset import ImSeg_Dataset
-from ImSeg.train import model_from_config, calculate_iou_prec_recall
+from ImSeg.segmentation import load_model
+from ImSeg.train import calculate_iou_prec_recall
 
 import os
 import json
@@ -72,8 +73,7 @@ if __name__ == "__main__":
 
   ## Load model from config, load weights
   checkpoint_path = checkpoint_path if checkpoint_path else dataset.checkpoint_path
-  model = model_from_config(model_type, config)
-  model.load_weights(os.path.join(checkpoint_path, model_name))
+  model = load_model(config, from_checkpoint=checkpoint_path)
 
   ## Iterate over dataset.
   data_indices = list(range(num_samples))

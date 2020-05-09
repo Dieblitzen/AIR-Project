@@ -1,18 +1,15 @@
 import sys
 sys.path.append('.')
 import json
-from ImSeg.ImSeg_Dataset import ImSeg_Dataset
 import ImSeg.refine_net as refine_net
+from ImSeg.ImSeg_Dataset import ImSeg_Dataset
+from ImSeg.segmentation import load_model, save_model
 
 import os
 import logging
 import argparse
 import numpy as np
 import tensorflow as tf
-
-
-## Supported model variants, along with model loading function given a config dictionary.
-MODEL_TYPES = {"RefineNet": refine_net.refine_net_from_config}
 
 
 def passed_arguments():
@@ -25,24 +22,16 @@ def passed_arguments():
                       type=str,
                       required=True,
                       help='Path to model config .json file defining model hyperparams.')
+  parser.add_argument('--checkpoint',
+                      type=str,
+                      default=None,
+                      help='(Optional) path to model weight checkpoint directory.')
   parser.add_argument('--classes_path',\
                       type=str,
                       default='./classes.json',
                       help='Path to directory where extracted dataset is stored.')
   args = parser.parse_args()
   return args
-
-
-"""
-Initialises image segmentation model given a config dictionary.
-Requires: 
-  model_type: A name from the dictionary `MODEL_TYPES` in `train.py`.
-  config: A valid config dictionary for the type of model
-"""
-def model_from_config(model_type, config):
-  assert model_type in MODEL_TYPES, "Input model type is not supported yet."
-  model = MODEL_TYPES[model_type](config)
-  return model
 
 
 """
@@ -94,6 +83,31 @@ def calculate_iou_prec_recall(preds, label_masks, pred_threshold=0.0):
   recall[np.isnan(recall)] = 0.0
 
   return iou_scores, precision, recall
+
+"""
+Creates a metrics dictionary, mapping `metric_name`--> `metric_val`. \n
+Requires: \n
+  `classes`: List of sorted `class_name`. \n
+  `loss`: Either `None`, or if specified, loss value for the epoch \n
+  `metrics`: Each metric should be a numpy array of shape (num_classes) \n
+"""
+def create_metrics_dict(classes, loss=None, **metrics):
+  metrics_dict = {}
+
+  if loss:
+    metrics_dict["epoch_loss"] = loss
+
+  # First log mean metrics
+  for metric_name, metric in metrics.items():
+    metrics_dict[f"mean/{metric_name}"] = np.mean(metric)
+
+    # Break down metric by class
+    for i, class_name in enumerate(classes):
+      class_metric_name = f'class_{class_name}/{metric_name}'
+      class_metric = metric[i]
+      metrics_dict[class_metric_name] = class_metric
+  
+  return metrics_dict
 
 
 """
@@ -155,7 +169,6 @@ if __name__ == "__main__":
   config_path = args.config
   with open(config_path, 'r') as f:
     config = json.load(f)
-  model_type = config.get("type", "RefineNet")
   model_name = config["name"]
   epochs = config["epochs"]
   batch_size = config["batch_size"]
@@ -182,7 +195,7 @@ if __name__ == "__main__":
   logging.basicConfig(filename=os.path.join(dataset.metrics_path, f"{model_name}.log"), level=logging.INFO)
 
   ## Set up model from config.
-  model = model_from_config(model_type, config)
+  model = load_model(config, from_checkpoint=args.checkpoint)
 
   ## Get loss and optimizer from config
   loss_function, optimizer = get_loss_optimizer(config)
@@ -193,6 +206,8 @@ if __name__ == "__main__":
   train_loss = tf.keras.metrics.Mean(name='train_loss')
   val_loss = tf.keras.metrics.Mean(name='val_loss')
   best_val_iou = float('-inf')
+  epochs_since_last_save = 0
+  benchmark_class = config.get("benchmark_class", None)
   
   for epoch in range(epochs):
     print(f"\nEpoch {epoch+1}")
@@ -239,28 +254,36 @@ if __name__ == "__main__":
         epoch_prec.update_state(prec)
         epoch_recall.update_state(recall)
       
-      # Add loss to metrics 
-      metrics_dict = {'epoch_loss':epoch_loss.result(), 
-                      'mean_iou':np.mean(epoch_ious.result().numpy()),
-                      'mean_prec':np.mean(epoch_prec.result().numpy()), 
-                      'mean_recall':np.mean(epoch_recall.result().numpy())}
-
-      # Break down IoU, precision and recall by class
-      for i, class_name in enumerate(interest_classes):
-        sub_metric_dict = {'iou':epoch_ious, 'prec':epoch_prec, 'recall':epoch_recall}
-        for metric_type, metrics in sub_metric_dict.items():
-          metrics = metrics.result().numpy()
-          class_metric_name = f'class_{class_name}_{metric_type}'
-          class_metric = metrics[i]
-          metrics_dict[class_metric_name] = class_metric
+      # Add metrics to metrics dictionary. 
+      metrics_dict = create_metrics_dict(
+        interest_classes,
+        loss=epoch_loss.result(),
+        iou=epoch_ious.result().numpy(),
+        prec=epoch_prec.result().numpy(),
+        recall=epoch_recall.result().numpy()
+      )
       
       # Log metrics, print metrics, write metrics to summary_writer
       log_metrics(metrics_dict, writer, epoch, phase)
 
-      # Checkpoint model weights if mean iou is good. Also save model config.
-      if phase == 'val' and np.mean(epoch_ious.result().numpy()) >= best_val_iou:
-        best_val_iou = np.mean(epoch_ious.result().numpy())
-        model.save_weights(os.path.join(dataset.checkpoint_path, model_name))
+      if phase == 'val':
+
+        # Save by mean IoU if benchmark class not specified.
+        val_iou = np.mean(epoch_ious.result().numpy())
+        if benchmark_class and interest_classes.count(benchmark_class) == 1:
+          ind = interest_classes.index(benchmark_class)
+          val_iou = epoch_ious.result().numpy()[ind]
+        
+        # Save if val_iou best, or if 10 epochs since last save and 
+        # difference between best and current IoU is < 1 percent.
+        diff = val_iou - best_val_iou
+        if diff > 0 or (epochs_since_last_save > 10 and abs(diff) < 0.02):
+          print("Saving model weights...")
+          best_val_iou = val_iou
+          epochs_since_last_save = 0
+          save_model(model, config, dataset.checkpoint_path)
+        else:
+          epochs_since_last_save += 1
 
       # End of epoch, reset metrics
       epoch_loss.reset_states()

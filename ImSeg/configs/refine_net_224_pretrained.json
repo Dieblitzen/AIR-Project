@@ -8,6 +8,8 @@
       "weights": "imagenet"
     },
   "pretrained": true,
+  "backbone_trainable": true,
+  
   "refine_net_blocks":
     [
       ["conv5_block3_out", "conv4_block6_out"],

@@ -202,7 +202,7 @@ def create_refine_net(backbone, refine_net_blocks, num_classes, input_shape=(Non
   # Define the downsampling using the backbone model.
   intermediate_layers = [layer_name for block in refine_net_blocks for layer_name in block]
   intermediate_out = {name: backbone.get_layer(name).output for name in intermediate_layers}
-  feature_extract = Model(inputs=backbone.input, outputs=intermediate_out)
+  feature_extract = Model(inputs=backbone.input, outputs=intermediate_out, name="backbone")
 
   # Extract intermediate features by downsampling
   img_input = layers.Input(shape=input_shape, name='input')
@@ -275,6 +275,9 @@ def refine_net_from_config(config):
       backbone = fresh_resnet.__dict__[backbone_name](**backbone_kwargs)
   except:
     raise ValueError("Invalid backbone model name")
+
+  # Freeze backbone if specified.
+  backbone.trainable = config.get("backbone_trainable", True)
 
   # Set up other model kwargs.
   refine_net_blocks = config["refine_net_blocks"]
