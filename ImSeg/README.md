@@ -59,50 +59,86 @@ Consult this post for more [tensorboard remote usage details](https://stackoverf
 
 ## Model Config 
 
-This section describes the layout of the model configuration files used to describe image segmentation models. We use `.json` files to describe the model configurations, and examples can be found int `ImSet/configs/...`. The strcture of the configuration files are described here:
+This section describes the layout of the model configuration files used to describe image segmentation models. We use `.json` files to describe the model configurations, and examples can be found int `ImSet/configs/...`. The strcture of the configuration files are described here, using the following config as an example:
 ```
-{  
-   type: type of model [eg: "RefineNet"],  
-   name: unique model name [eg: "refine_net_test"],  
-   backbone: model architecture backbone [eg: "resnet50"],  
-   backbone_kwargs: keyword arguments for chosen backbone architecture [eg: {  
-      "include_top": false,  
-      "weights": "imagenet"  
-    }],
-   pretrained: Whether to use a pretrained Tensorflow backbone. [eg: True]  
-   refine_net_blocks: List of layer names that specify the output position of different feature maps in backbone model. [eg:  
-      [  
-         ["layer4", "layer3"],  
-         ["layer2", "layer1"]  
-      ]  
-   ],  
-   input_shape: Shape of input image in h x w x c [eg: [224, 224, 3]],  
-   classes: The specific classes you want the model to train on. Don't include this if you want the model to train on all classes defined in classes.json [eg: ["building:other"]],  
-   refine_net_kwargs: Keyword arguments for the RefineNet model. Set this to an empyt dictionary if you want the default keyword arguments. [eg:   
-      {   
-         "reduce_channel_scale": 4,  
-         "rcu_kwargs": {},  
-         "mrf_kwargs": {},  
-         "crp_kwargs": {}  
-      }  
-    ],  
-    augment: Keyword arguments for data augmentation. Set this to an empty dictionary if you don't want any augmentation. [eg:   
-      {  
-         "rotate_range":30,  
-         "flip":true,   
-         "channel_shift_range":50,   
-         "multiplier":1,   
-         "seed":0  
-      }  
-    ],  
-    epochs: Number of training epochs [eg: 200],  
-    batch_size: Number of images per batch fed into model [eg; 16],  
-    loss: Tensorflow Keras loss name (should match one of their losses) [eg: "BinaryCrossentropy"],  
-    loss_kwargs: Keyword arguments for loss object. [eg: {"from_logits":true}],  
-    optimizer: Tensorflow Keras optimizer name (should match one of their optimizers) [eg: "Adam"],  
-    optimizer_kwargs: Keyowrd arguments for optimizer object [eg: {"learning_rate":0.0001}]  
-}  
-```
+{
+  "type": "RefineNet",
+  "name": "refine_net_pretrained_augment_all_classes",
+  "backbone": "ResNet50",
+  "backbone_kwargs": 
+    {
+      "include_top": false,
+      "weights": "imagenet"
+    },
+  "pretrained": true,
+  "backbone_trainable": true,
+  
+  "refine_net_blocks":
+    [
+      ["conv5_block3_out", "conv4_block6_out"],
+      ["conv3_block4_out", "conv2_block3_out"]
+    ],
+  "input_shape": [224, 224, 3],
+  "classes":
+    ["building:other", "highway:other"],
+  "refine_net_kwargs": 
+    {
+      "reduce_channel_scale": 4,
+      "rcu_kwargs": {},
+      "mrf_kwargs": {},
+      "crp_kwargs": {}
+    },
+
+  "augment":
+  {
+    "rotate_range":30,
+    "flip":true, 
+    "channel_shift_range":50, 
+    "multiplier":1, 
+    "seed":0
+  },
+
+  "epochs": 300,
+  "batch_size": 16,
+  "loss": "BinaryCrossentropy",
+  "loss_kwargs": 
+    {
+      "from_logits": true
+    },
+  "optimizer": "Adam",
+  "optimizer_kwargs": 
+    {
+      "learning_rate":0.0001
+    },
+  "benchmark_class": "building:other"
+}
+```  
+The configuration parameters are explained as follows:  
+
+Backbone section  
+* `type`: type of model [eg: "RefineNet"]
+* `name`: unique model name [eg: "refine_net_test"]
+* `backbone`: model architecture backbone [eg: "resnet50"]
+* `backbone_kwargs`: keyword arguments for chosen backbone architecture. Leave empty to use defaults.
+* `pretrained`: Whether to use a pretrained Tensorflow backbone. [eg: True]  
+* `backbone_trainable`: Whether to freeze backbone weights during training.
+
+ImSeg section  
+* `refine_net_blocks`: List of layer names that specify the output position of different feature maps in backbone model (must correspond with layer names in backbone model)
+* `input_shape`: Shape of input image in `(h, w, c)`
+* `classes`: The specific classes you want the model to train on. Don't include this (or leave it empty) if you want the model to train on all classes defined in `classes.json`
+* `refine_net_kwargs`:  Keyword arguments for the RefineNet model. Set this to an empyt dictionary if you want the default keyword arguments.
+* `augment`: Keyword arguments for data augmentation. Set this to an empty dictionary if you don't want any augmentation.
+
+Model training hyperparameters  
+* `epochs`: Number of training epochs   
+* `batch_size`: Number of images per batch fed into model 
+* `loss`: Tensorflow Keras loss name (should match one of their losses) 
+* `loss_kwargs`: Keyword arguments for loss object. 
+* `optimizer`: Tensorflow Keras optimizer name (should match one of their optimizers)  
+* `optimizer_kwargs`: Keyowrd arguments for optimizer object 
+* `benchmark_class`: Save model weights based on best IoU result of this class. Should match one of the segmentation dataset classes, or a class in the `classes` field defined above.  
+
 
 ## Inference
 After training, you can run the model on the validation or test sets to generate output segmentation maps. 

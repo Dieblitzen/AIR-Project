@@ -8,6 +8,8 @@
       "weights": "imagenet"
     },
   "pretrained": true,
+  "backbone_trainable": true,
+  
   "refine_net_blocks":
     [
       ["conv5_block3_out", "conv4_block6_out"],
@@ -44,5 +46,6 @@
   "optimizer_kwargs": 
     {
       "learning_rate":0.0001
-    }
+    },
+  "benchmark_class": "building:other"
 }
