@@ -275,7 +275,7 @@ if __name__ == "__main__":
           val_iou = epoch_ious.result().numpy()[ind]
         
         # Save if val_iou best, or if 10 epochs since last save and 
-        # difference between best and current IoU is < 1 percent.
+        # difference between best and current IoU is < 2 percent.
         diff = val_iou - best_val_iou
         if diff > 0 or (epochs_since_last_save > 10 and abs(diff) < 0.02):
           print("Saving model weights...")
