@@ -51,8 +51,8 @@ class ImSeg_Dataset(Dataset):
     def get_color_choice(i):
       sh = lambda m: (i << m) % 255 
       color_choice = {
-        0: (255, sh(6), sh(3)), 1: (sh(6), 255, sh(3)), 2:(sh(6), sh(3), 255),
-        3: (255, sh(2), sh(4)), 4: (sh(2), 255, sh(4)), 5: (sh(2), sh(4), 255),
+        0: (255, sh(7), sh(4)), 1: (sh(7), 255, sh(4)), 2:(sh(6), sh(4), 255),
+        3: (255, sh(3), sh(5)), 4: (sh(3), 255, sh(5)), 5: (sh(3), sh(5), 255),
         6: (255, 255, sh(3)), 7:(255, sh(3), 255), 8:(sh(3), 255, 255)
       }
       return color_choice.get(i % 9)
@@ -338,15 +338,38 @@ class ImSeg_Dataset(Dataset):
                                     cval=0)
     return data_gen_X, data_gen_Y, multiplier, seed
 
+  
+  def indices_of_interest(self, classes_of_interest=[]):
+    """
+    Helper method that returns the list of class indices corresponding
+    to the interested class names specified in `classes_of_interest`. \n
+    Requires:\n 
+      `classes_of_interest`: List of class names (must match segmentation class 
+      name format) from which to get annotations. If empty, assumes all classes.
+    """
+    # Interested in all classes if no classes specified
+    if not classes_of_interest:
+      return list(range(len(self.seg_classes)))
+    
+    # Filter label classes by classes_of_interest
+    indices_of_interest = []
+    for class_ in classes_of_interest:
+      try:
+        index = self.seg_classes.index(class_)
+      except ValueError:
+        raise ValueError("Invalid class name in classes_of_interest.")
+      indices_of_interest.append(index)
+    return indices_of_interest
 
-  def get_batch(self, indices, set_type, classes_of_interset=[]):
+
+  def get_batch(self, indices, set_type, classes_of_interest=[]):
     """
     Returns the batch of images and labels associated with the images,
     based on the list of indicies to look up.\n
-    Requires:
-      indices: list of indices with which to make a batch\n
-      classes_of_interest: list of class names to get annotations for\n
-
+    Requires:\n
+      `indices`: list of indices with which to make a batch\n
+      `classes_of_interest`: List of class names (must match segmentation class 
+       name format) from which to get annotations. If empty, assumes all classes.\n
     Format: (block of images, block of labels)
     """
 
@@ -358,17 +381,7 @@ class ImSeg_Dataset(Dataset):
       path = self.test_path
 
     # Filter label classes by classes_of_interest
-    indices_of_interest = []
-    for class_ in classes_of_interset:
-      try:
-        index = self.seg_classes.index(class_)
-      except ValueError:
-        raise ValueError("Invalid class name in classes_of_interest.")
-      indices_of_interest.append(index)
-
-    # interested in all classes if no classes specified
-    if indices_of_interest == []:
-      indices_of_interest = list(range(len(self.seg_classes)))
+    indices_of_interest = self.indices_of_interest(classes_of_interest)
 
     # Accumulators for images and annotations in batch
     images, annotations = [], []
@@ -406,10 +419,10 @@ class ImSeg_Dataset(Dataset):
   def draw_mask_on_im(self, im_path, masks):
     """
     Helper method that opens an image, draws the segmentation masks in `masks`
-    as bitmaps, and then returns the masked image.
-    Requires:
-      im_path: Path to .jpg image
-      masks: Array shaped as: #C x h x h
+    as bitmaps, and then returns the masked image.\n
+    Requires: \n
+      `im_path`: Path to .jpg image \n
+      `masks`: Array shaped as: #C x h x w \n
     """
     # Open the image and set up an ImageDraw object
     im = Image.open(im_path).convert('RGB')
@@ -423,18 +436,21 @@ class ImSeg_Dataset(Dataset):
     return im
 
 
-  def save_preds(self, image_indices, batch_preds, metrics, set_type="val"):
+  def save_preds(self, image_indices, batch_preds, metrics, 
+                 classes_of_interest=[], set_type="val"):
     """
     Saves the model's predictions as annotated images in `../model_path/images/`. 
     Corresponding images from image_indices are accessed from image_dir.
     Also copies the ground truth annotation to the `../model_path/annotations/` dir.\n
     If set_type contains the string "inf" (for inference), then ignores ground truth.\n
     Requires:\n
-      image_indices: A list of indices corresponding to images stored in directory
+      `image_indices`: A list of indices corresponding to images stored in directory
                      image_dir/images \n
-      batch_preds: The model predictions, shaped: (n x h x w x #C), each pixel between 0,1.\n
-      metrics: List of metric dict containing image iou/prec/... (per class, average etc.)\n
-      set_type: The directory that image_indices corresponds to. (Usually val)\n
+      `batch_preds`: The model predictions, shaped: (n, h, w, #C), each pixel between 0,1.\n
+      `metrics`: List of metric dict containing image iou/prec/... (per class, average etc.)\n
+      `classes_of_interest`: List of class names (must match segmentation class name format) 
+       from which to get annotations. If empty, assumes all classes.\n
+      `set_type`: The directory that image_indices corresponds to. (Usually val)\n
     """
     # Path from where images will be copied
     path = self.val_path
@@ -443,13 +459,15 @@ class ImSeg_Dataset(Dataset):
     elif set_type.find("test") != -1:
       path = self.test_path
     
+    indices_of_interest = self.indices_of_interest(classes_of_interest)
+    
     # Save the images annotated with their predicted labels
     for i, image_ind in enumerate(image_indices):
       im_path = os.path.join(path, 'images', f'{image_ind}.jpg')
 
-      # Reshape to #C x h x w dimensions
+      # Reshape from (h, w, #C) to (#C, h, w) dimensions
       pred_masks = batch_preds[i]
-      pred_masks = np.moveaxis(pred_masks, -1, 0)
+      pred_masks = np.transpose(pred_masks, (2, 0, 1))
       
       # Draw pred masks on image, save prediction
       pred_im = self.draw_mask_on_im(im_path, pred_masks)
@@ -463,9 +481,10 @@ class ImSeg_Dataset(Dataset):
       # Save associated image annotated with ground truth masks (if not inference)
       if set_type.find("inf") == -1:
         with open(os.path.join(path, 'annotations', f'{image_ind}.json')) as f:
-          try: annotation = json.load(f)
-          except: annotation = {}
-        gt_masks = np.array(annotation["annotation"])
+          annotation = json.load(f)
+        annotation = np.array(annotation['annotation'])  # shape (C, h, w)
+
+        gt_masks = annotation[indices_of_interest]
         gt_im = self.draw_mask_on_im(im_path, gt_masks)
         gt_im.save(os.path.join(self.preds_path, f'{set_type}_gt_{image_ind}.jpg'))
       
