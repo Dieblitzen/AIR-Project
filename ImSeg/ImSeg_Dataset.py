@@ -46,11 +46,18 @@ class ImSeg_Dataset(Dataset):
 
     self.image_resize = image_resize
     self.seg_classes = self.sorted_classes(self.classes)
-    self.class_colors = []
-    # power set of colors across RBG for visualizing
-    for i in range(2**3):
-      c = [((i >> s) % 2) * 255 for s in range(2, -1, -1)]
-      self.class_colors.append(tuple(c))
+
+    # Generates an (r, g, b) tuple for each class index
+    def get_color_choice(i):
+      sh = lambda m: (i << m) % 255 
+      color_choice = {
+        0: (255, sh(6), sh(3)), 1: (sh(6), 255, sh(3)), 2:(sh(6), sh(3), 255),
+        3: (255, sh(2), sh(4)), 4: (sh(2), 255, sh(4)), 5: (sh(2), sh(4), 255),
+        6: (255, 255, sh(3)), 7:(255, sh(3), 255), 8:(sh(3), 255, 255)
+      }
+      return color_choice.get(i % 9)
+
+    self.color_choice = get_color_choice
 
     # Set up data file paths
     self.train_val_test = train_val_test
@@ -411,7 +418,7 @@ class ImSeg_Dataset(Dataset):
     # Draw the bitmap for each class
     for i, mask in enumerate(masks):
       mask_im = Image.fromarray(mask.astype(np.uint8) * 64, mode='L')
-      im_draw.bitmap((0,0), mask_im, fill=self.class_colors[i % len(self.class_colors)])
+      im_draw.bitmap((0,0), mask_im, fill=self.color_choice(i))
     
     return im
 
