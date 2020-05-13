@@ -238,8 +238,8 @@ if __name__ == "__main__":
       # Actual train/val over all batches.
       for batch in range(num_batches):
         img_input, label_masks =\
-          dataset.get_batch(indices[batch*batch_size : (batch+1)*batch_size], phase, 
-                            classes_of_interset=interest_classes)
+          dataset.get_batch(indices[batch*batch_size : (batch+1)*batch_size], phase,
+                            classes_of_interest=interest_classes)
         
         # Feed inputs to model
         img_input = np.array(img_input, dtype=np.float32)
