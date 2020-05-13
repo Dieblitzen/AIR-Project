@@ -79,11 +79,11 @@ if __name__ == "__main__":
   data_indices = list(range(num_samples))
   for batch in range(num_batches):
     iter_indices = data_indices[batch*batch_size : (batch+1)*batch_size]
-    img_input, label_masks = dataset.get_batch(iter_indices, args.set_type, 
-                                               classes_of_interset=interest_classes)
+    imgs, label_masks = dataset.get_batch(iter_indices, args.set_type, 
+                                          classes_of_interest=interest_classes)
 
     # Feed inputs to model
-    img_input = np.array(img_input, dtype=np.float32)
+    img_input = np.array(imgs, dtype=np.float32)
     preds = model(img_input)
 
     # Get metrics for each image in batch
