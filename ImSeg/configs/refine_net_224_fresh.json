@@ -4,6 +4,8 @@
   "backbone": "resnet50",
   "backbone_kwargs": {},
   "pretrained": false,
+  "backbone_trainable": true,
+  
   "refine_net_blocks":
     [
       ["layer4", "layer3"],
@@ -35,5 +37,6 @@
   "optimizer_kwargs": 
     {
       "learning_rate":0.0001
-    }
+    },
+  "benchmark_class": "building:other"
 }

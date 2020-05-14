@@ -1,3 +1,5 @@
+import sys
+sys.path.append('.')
 from Dataset import Dataset
 from minimum_bounding_box import MinimumBoundingBox
 import os

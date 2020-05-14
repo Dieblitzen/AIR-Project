@@ -23,24 +23,24 @@ class Dataset:
   An object of this class will provide the following functionality:\n
 
   Attributes:
-  1) The path to the dataset, images and annotations.\n
+  1) The path to the dataset, raw image area, tiled images and annotations.\n
   2) The dictionary of classes defined for the dataset.\n
   3) A sorted list of image file names\n
   4) A sorted list of annotation/ building label file names\n
-  5) The length of the dataset.\n
 
   Static methods (invariant of object):\n
   1) Copy over data from already created datasets into a combined dataset\n
 
   Instance Methods:\n
-  1) Getting the size of each image in the dataset (assumed to be the same for all images).\n
-  2) Getting an image and its associated building labels given an index.\n
-  3) Getting a batch of images and assoicated building labels given a start index and batch size.\n
-  4) Removing a set of images and assoicated building labels given a set of indices.\n
-  5) Visualizing a single image in images_path with its assoicated building labels.\n
-  6) Visualizing a sequence of tiles (images) in images_path with associated building labels, given
+  1) Getting the length of the dataset (the number of images/ image file names)\n
+  2) Getting the size of each image in the dataset (assumed to be the same for all images).\n
+  3) Getting an image and its associated building labels given an index.\n
+  4) Getting a batch of images and assoicated building labels given a start index and batch size.\n
+  5) Removing a set of images and assoicated building labels given a set of indices.\n
+  6) Visualizing a single image in images_path with its assoicated building labels.\n
+  7) Visualizing a sequence of tiles (images) in images_path with associated building labels, given
      a start and end index.\n
-  7) Visualizing the entire area with all bounding boxes (assuming such an image exists in the
+  8) Visualizing the entire area with all bounding boxes (assuming such an image exists in the
       raw_data directory of the data_path).\n
   """
 
@@ -51,54 +51,57 @@ class Dataset:
 
     # The path to the entire data, the images and the annotations. Attributes 1)
     self.data_path = data_path
+    self.raw_data_path = os.path.join(data_path, 'raw_data')
     self.images_path = os.path.join(data_path, 'images')
     self.annotations_path = os.path.join(data_path, 'annotations')
+    Dataset._create_dirs(self.data_path, self.raw_data_path, 
+                         self.images_path, self.annotations_path)
 
     # Attribute 2)
     with open(classes_path, 'r') as f:
       self.classes = json.load(f)
       
-    # Attribute 3)
-    self.img_list = sorted(os.listdir(self.images_path), key=self.sort_key)
-
-    # Attritbute 4)
-    self.annotation_list = sorted(os.listdir(self.annotations_path), key=self.sort_key)
-
-    # Attribute 5)
-    self.length = len(self.img_list)
+    # Attributes 3), 4)
+    key = Dataset.sort_key
+    self.img_list = Dataset.file_names(self.images_path, '.jpg','.jpeg', key=key)
+    self.annotation_list = Dataset.file_names(self.annotations_path, '.json', key=key)
   
   @staticmethod
-  def _combine_datasets(new_data_path, classes_path='classes.json', *data_paths):
+  def _create_dirs(*dirs):
     """
-    Create a combined dataset from already created Datasets. \n
-    Copies over the `images` and `annotations` directories from given datasets.
+    Creates directories based on paths passed in as arguments.
+    """
+    def f_mkdir(p):
+      if not os.path.isdir(p):
+        print(f"Creating directory {p}")
+        os.makedirs(p)
+
+    for p in dirs: f_mkdir(p)
+  
+  @staticmethod
+  def file_names(path, *file_exts, key=None):
+    """
+    Returns a list of all files in `path` ending in `file_ext`,
+    optionally sorted by `key`.
     Requires:
-      new_data_path: Path to directory where combined data will be stored.
+      dir: path/to/dir \n
+      *file_ext: String file extension (eg: '.jpg') to match.\n
+      key: Function to sort by file name\n
     """
-    print("Creating directories store images, annotations...")
-    new_images_path = os.path.join(new_data_path, 'images')
-    new_ann_path = os.path.join(new_data_path, 'annotations')
-    for path in [new_data_path, new_images_path, new_ann_path]:
-      if not os.path.isdir(path):
-        os.mkdir(path)
-    new_ds = Dataset(new_data_path, classes_path=classes_path)
+    files = []
+    for f in os.listdir(path):
+      if file_exts:
+        for ext in file_exts:
+          if f.endswith(ext):
+            files.append(f)
+            break
+      else:
+        files.append(f)
 
-    i = 0
-    for data_path in data_paths:
-      assert os.path.isdir(data_path), f"Can't use non-existent data path: {data_path}"
-      ds = Dataset(data_path, classes_path=classes_path)
-      assert ds.length > 0, "Previous dataset must have data."
+    return sorted(files, key=key) if key else files
 
-      # Iterate over each image, annotation, copying to new dataset
-      for img_path, ann_path in zip(ds.img_list, ds.annotation_list):
-        copyfile(os.path.join(ds.images_path, img_path), 
-                 os.path.join(new_ds.images_path, f'img_{i}.jpg'))
-
-        copyfile(os.path.join(ds.annotations_path, ann_path),
-                 os.path.join(new_ds.annotations_path, f'annotation_{i}.json'))
-        i += 1
-
-  def sort_key(self, file_name):
+  @staticmethod
+  def sort_key(file_name):
     """
     Helper method only.
     Finds the integer present in the string file_name. If an integer cannot be found,
@@ -106,20 +109,36 @@ class Dataset:
     """
     d = re.search('[0-9]+', file_name)
     return int(file_name[d.start():d.end()]) if d else file_name
+  
+  def __len__(self):
+    """
+    Method 1)
+    Updates the img_list and annotation_list attributes and returns the number
+    of images in the dataset.
+    """
+    key = Dataset.sort_key
+    self.img_list = Dataset.file_names(self.images_path, '.jpg', '.jpeg', key=key)
+    self.annotation_list = Dataset.file_names(self.annotations_path, '.json', key=key)
+    return len(self.img_list)
 
   def get_img_size(self):
     """
-    Method 1)
-    Gets the size of the images in the dataset (assumed to be uniform)
+    Method 2)
+    Gets the size of images in the dataset as (h, w, d).
+    Returns:
+     size of `.../images/0.jpg` since other images assumed to have uniform size
     """
+    if not self.img_list:
+      print(f"Warning! Your {self.images_path} directory is currently empty.")
+      return None
     # Gets first image in dataset
     im = Image.open(os.path.join(self.images_path, self.img_list[0]))
-    # Returns the shape of the image
     return np.array(im).shape
+
   
   def get_tile_and_label(self, index):
     """
-    Method 2)
+    Method 3)
     Gets the tile and label associated with data index.
 
     Returns:
@@ -144,7 +163,7 @@ class Dataset:
   
   def get_batch(self, start_index, batch_size):
     """
-    Method 3)
+    Method 4)
     Gets batch of tiles and labels associated with data start_index.
 
     Returns:
@@ -158,7 +177,7 @@ class Dataset:
 
   def remove_tiles(self, indices_to_remove):
     """
-    Method 4)
+    Method 5)
     Removes the tiles associated with the indices in indices_to_remove, and renames all files
     in self.images_path and self.annotations.path (as appropriate)
 
@@ -167,9 +186,9 @@ class Dataset:
 
     # file_index keeps track of the correct index for the images in the directory 
     file_index = 0
-    for i in range(self.length):
-      img_path = os.path.join(self.images_path, f'img_{i}.jpg')
-      ann_path = os.path.join(self.annotations_path, f'annotation_{i}.json')
+    for i in range(len(self)):
+      img_path = os.path.join(self.images_path, f'{i}.jpg')
+      ann_path = os.path.join(self.annotations_path, f'{i}.json')
 
       # Check if index is to be removed
       if i in indices_to_remove:
@@ -179,22 +198,20 @@ class Dataset:
 
         # If not to be removed, then check if index of file is in line with new file_index
         if i != file_index:
-          new_img_path = os.path.join(self.images_path, f'img_{file_index}.jpg')
+          new_img_path = os.path.join(self.images_path, f'{file_index}.jpg')
           os.rename(img_path, new_img_path)
 
-          new_ann_path = os.path.join(self.annotations_path, f'annotation_{file_index}.json')
+          new_ann_path = os.path.join(self.annotations_path, f'{file_index}.json')
           os.rename(ann_path, new_ann_path)
         
         file_index += 1
 
-    # Update attributes 1)
-    self.img_list = sorted(os.listdir(self.images_path), key=self.sort_key)
-    self.annotation_list = sorted(os.listdir(self.annotations_path), key=self.sort_key)
-    self.length = len(self.img_list)
+    # Update attributes 4) by calling len(self)
+    print(f"New length of dataset: {len(self)}")
 
   def visualize_tile(self, index):
     """
-    Method 5)
+    Method 6)
     Provides a visualization of the tile with the tile and its corresponding annotation/ label. 
     """
     im = Image.open(os.path.join(self.images_path, self.img_list[index]))
@@ -231,7 +248,7 @@ class Dataset:
     
   def visualize_tiles(self, start_idx, end_idx):
     """
-    Method 6)
+    Method 7)
     Provides a visualization of a sequence of tiles with associated annotations/labels
     between the start index and the end index (not including end index) of the tiles.
     """
@@ -242,7 +259,7 @@ class Dataset:
 
   def visualize_dataset(self):
     """
-    Method 7)
+    Method 8)
     Provides visualization of entire dataset image area, 
     including annotations.
 
@@ -281,22 +298,49 @@ class Dataset:
     # plt.xticks(np.arange(0, 6000, 228), range(0, 23))
     # plt.yticks(np.arange(0, 6000, 228), range(0, 23))
     plt.show()
+  
+
+  @staticmethod
+  def _combine_datasets(new_data_path, classes_path='classes.json', *data_paths):
+    """
+    Create a combined dataset from already created Datasets. \n
+    Copies over the `images` and `annotations` directories from given datasets.
+    Requires:
+      new_data_path: Path to directory where combined data will be stored.
+    """
+    print("Creating directories store images, annotations...")
+    new_ds = Dataset(new_data_path, classes_path=classes_path)
+
+    i = 0
+    for data_path in data_paths:
+      assert os.path.isdir(data_path), f"Can't use non-existent data path: {data_path}"
+      ds = Dataset(data_path, classes_path=classes_path)
+      assert len(ds) > 0, "Previous dataset must have data."
+
+      # Iterate over each image, annotation, copying to new dataset
+      for img_path, ann_path in zip(ds.img_list, ds.annotation_list):
+        copyfile(os.path.join(ds.images_path, img_path), 
+                 os.path.join(new_ds.images_path, f'{i}.jpg'))
+
+        copyfile(os.path.join(ds.annotations_path, ann_path),
+                 os.path.join(new_ds.annotations_path, f'{i}.json'))
+        i += 1
 
 
 def passed_arguments():
   parser = argparse.ArgumentParser(description="Script to visualize labels on entire queried area.")
-  parser.add_argument('--data_path',
+  parser.add_argument('-d', '--data_path',
                       type=str,
                       default=True,
                       help='Path to directory where extracted dataset is stored.')
-  parser.add_argument('--classes_path',
+  parser.add_argument('-c', '--classes_path',
                       type=str,
                       default='classes.json',
-                      help='Path to directory where extracted dataset is stored.')
-  parser.add_argument('--tile',
-                      action='store_true',
-                      default=False,
-                      help='Visualize a random sequence of 20 tiles in the dataset.')
+                      help='Path to .json file denoting classes of labels used in dataset.')
+  parser.add_argument('-t', '--tile',
+                      type=int,
+                      default=0,
+                      help='Visualize a random sequence of t tiles in the dataset.')
   parser.add_argument('--combine',
                       nargs='+',
                       type=str,
@@ -314,7 +358,7 @@ if __name__ == "__main__":
 
   ds = Dataset(args.data_path, args.classes_path)
   if args.tile:
-    inds = random.sample(range(ds.length), 20)
+    inds = random.sample(range(len(ds)), min(args.tile, len(ds)))
     for i in inds:
       ds.visualize_tile(i)
   else:

@@ -11,33 +11,29 @@ import pickle
 import math
 import argparse
 from PIL import Image
+from Dataset import Dataset
 
-## Previous Query Coordinates:
-# White Plains: [41.009, -73.779, 41.03, -73.758] (returns image of approx 5280x5280)
 
 class DataInfo:
-  def __init__(self, data_path, tile_size, pairs_query_path, classes_path):
-    # data_path is the path to the directory where the processed and queried data will be saved
-    self.data_path = data_path
+  def __init__(self, data_path, tile_size, overlap, pairs_query_path, classes_path):
+    # A Dataset object handling directory names and paths
+    # It will also create directories for the data if they don't exist.
+    self.ds = Dataset(data_path, classes_path=classes_path)
+    print(f"Your dataset's directory is {self.ds.data_path}")
+    print(f"The raw data is stored in {self.ds.raw_data_path}")
 
     # Square tile size that the large image will be broken up into
     self.tile_size = tile_size
+
+    # Number of overlapping pixels between adjacent tiles
+    assert overlap < tile_size, "Can't overlap pixels beyond actual tile_size"
+    self.overlap = overlap
 
     # Path to the file where json PAIRS query is stored.
     self.pairs_query_path = pairs_query_path
 
     # Path to json file containing the OSM classes.
     self.classes_path = classes_path
-
-    ## Processed data paths
-    # raw_data_path is the path to the directory where raw queried images will be saved
-    self.raw_data_path = os.path.join(self.data_path, 'raw_data')
-
-    # images_path is where the tiled images will be saved.
-    self.images_path = os.path.join(self.data_path, 'images')
-
-    # annotations_path is where the json annotations per tile will be saved.
-    self.annotations_path = os.path.join(self.data_path, 'annotations')
 
     # Name of file where raw OSM data will be dumped as a dictionary.
     self.osm_filename = 'OSM_bbox.pkl'
@@ -79,51 +75,23 @@ def create_dataset(data_info, source="IBM"):
       print("Your classes .json file is not in the right json format (or is empty)")
       return
 
-  # If directory for dataset does not exist, create directory
-  create_directories(data_info)
-
   print("Querying raw image from PAIRS using coordinates given:\n")
-  images = query_PAIRS(query, data_info.raw_data_path)
+  images = query_PAIRS(query, data_info.ds.raw_data_path)
 
   print("\nConverting raw image to numpy array.\nDeleting raw images, saving jpeg instead.")
-  im_arr = image_to_array(data_info.raw_data_path, images)
+  im_arr = image_to_array(data_info.ds.raw_data_path, images)
 
   print("Querying raw bounding box data from OpenStreetMap using coordinates given. ")
   raw_OSM = query_OSM(coords, classes)
 
   # Bounding box data in pixel format
   im_size = im_arr.shape
-  label_coords = coords_to_pixels(raw_OSM, coords, im_size, data_info.raw_data_path)
+  label_coords = coords_to_pixels(raw_OSM, coords, im_size, data_info.ds.raw_data_path)
 
   print("Tiling image and saving .jpeg files (for tile) and .json files (for bounding boxes)")
   tile_image(label_coords, im_arr, im_size, data_info)
 
   print("Success! Your raw dataset is now ready!")
-
-
-def create_directories(data_info):
-  """
-  Creates directory to store dataset specified by DATA_PATH, if one does not exist.
-  Nested inside DATA_PATH, creates directories for the raw data, images and annotations.
-  """
-  if not os.path.isdir(data_info.data_path):
-    print(f"Creating directory to store your dataset.")
-    os.mkdir(data_info.data_path)
-
-  if not os.path.isdir(data_info.raw_data_path):
-    print(f"Creating directory to store raw data, including queried image.")
-    os.mkdir(data_info.raw_data_path)
-
-  if not os.path.isdir(data_info.images_path):
-    print(f"Creating directory to store jpeg images.")
-    os.mkdir(data_info.images_path)
-
-  if not os.path.isdir(data_info.annotations_path):
-    print(f"Creating directory to store json annotations.")
-    os.mkdir(data_info.annotations_path)
-
-  print(f"Your dataset's directory is {data_info.data_path}")
-  print(f"The raw data is stored in {data_info.raw_data_path}")
 
 
 def query_PAIRS(query_json, raw_data_path, path_to_credentials='./ibmpairspass.txt'):
@@ -271,14 +239,15 @@ def query_OSM(coords, classes):
   return query_data
 
 
-def coords_to_pixels(raw_OSM, coords, im_size, raw_data_path):
+def coords_to_pixels(raw_OSM, coords, im_size, raw_data_path, out_file="annotations"):
   """
   Converts the OSM coordinates to pixels relative to the image data.
   Also stores the returned list of buildings in a pickle file called 'annotations.pkl'
 
   Requires:
-  [coords] is is in [LAT_MIN, LON_MIN, LAT_MAX, LON_MAX] format
-  [im_size] is the shape of the shape of the entire image numpy array
+  `coords` is is in [LAT_MIN, LON_MIN, LAT_MAX, LON_MAX] format \n
+  `im_size` is the shape of the entire image numpy array as (h, w, ...) \n
+  `out_f` is the name of the file in `data_path/raw_data/[out_f].pkl` \n
 
   Returns: 
   {building:
@@ -303,7 +272,7 @@ def coords_to_pixels(raw_OSM, coords, im_size, raw_data_path):
           nodeY = math.floor(((lat_max-lat)/height)*im_size[0])
           label_coords[super_class][sub_class][w_index][n_index] = (nodeX, nodeY)
     
-  with open(f"{raw_data_path}/annotations.pkl", "wb") as filename:
+  with open(os.path.join(raw_data_path, f"{out_file}.pkl"), "wb") as filename:
     pickle.dump(label_coords, filename)
 
   # Reutrn the pixel building coords
@@ -319,55 +288,66 @@ def save_tile_and_bboxes(tile, label_coords, file_index, data_info):
   [label_coords] is a dictionary of label coordinates (in pixel value) associated with tile.
   [file_index] is an integer.
   """
-  img_name = "img_" + str(file_index) + '.jpg'
-  bbox_name = "annotation_" + str(file_index) + '.json'
+  img_name = str(file_index) + '.jpg'
+  bbox_name = str(file_index) + '.json'
 
   # save jpeg
-  filename = os.path.join(data_info.images_path, img_name)
+  filename = os.path.join(data_info.ds.images_path, img_name)
   im = Image.fromarray(tile)
   im.save(filename)
 
   # save json
-  with open(os.path.join(data_info.annotations_path, bbox_name), 'w') as filename:
+  with open(os.path.join(data_info.ds.annotations_path, bbox_name), 'w') as filename:
     json.dump(label_coords, filename, indent=2)
   
   
-def boxes_in_tile(label_coords, col_start, col_end, row_start, row_end):
+def boxes_in_tile(label_coords, tile_range):
   """
   Helper function that returns the dictionary of boxes that are in the tile specified by
   col_start..col_end (the x range) and row_start..row_end (the y range). 
 
   Requires: 
-  [label_coords] are in pixels not in lat,lon
+  `label_coords` are in pixels not in lat,lon \n
+  `tile_range` is a list in the format `[col_start, col_end, row_start, row_end]`\n
 
   Returns:
   {building: 
     building_class1: [label1_nodes, label2_nodes, ...], ...} 
   of the labels inside given tile range, with coords of label_nodes converted relative to tile.
   """
-  
+  col_start, col_end, row_start, row_end = tile_range
+
   # Output buildings that are in the tile
   labels_in_tile = {super_class: {} for super_class in label_coords}
 
   for super_class, sub_class_labels in label_coords.items():
     for sub_class, labels in sub_class_labels.items():
-      
       labels_in_tile[super_class][sub_class] = []
+
       for label in labels:
-        # All the x and y coordinates of the nodes in a building, separated
-        x_coords, y_coords = [node[0] for node in label], [node[1] for node in label]
+        label = np.array(label)
 
-        min_x, max_x= min(x_coords), max(x_coords)
-        min_y, max_y = min(y_coords), max(y_coords)
+        # Check for label (x,y) coordinates that fall inside tile
+        x_in_tile = (col_start <= label[:, 0]) & (label[:, 0] < col_end)
+        y_in_tile = (row_start <= label[:, 1]) & (label[:, 1] < row_end)
 
-        centre_x, centre_y = (min_x + max_x) / 2, (min_y + max_y) / 2
+        # Only add label to tile if it has nodes that lie inside the tile
+        if (x_in_tile & y_in_tile).any():
 
-        if col_start <= centre_x < col_end and row_start <= centre_y < row_end:
-          
-          # Goes through each node in building, converts coords relative to entire image to 
-          # coords relative to tile
-          new_label_nodes = [(node[0] - col_start, node[1] - row_start) for node in label]
-          labels_in_tile[super_class][sub_class].append(new_label_nodes)
+          if super_class == "highway":
+            # Only keep nodes of road that fully lie in the tile.
+            label = label[x_in_tile & y_in_tile]
+          else:
+            # Clip the out of bounds x,y coordinates of buildings to tile edge
+            label[:, 0] = np.clip(label[:, 0], col_start, col_end) 
+            label[:, 1] = np.clip(label[:, 1], row_start, row_end)
+
+          # Convert coords relative to entire image to coords relative to tile
+          label[:, 0] = label[:, 0] - col_start
+          label[:, 1] = label[:, 1] - row_start
+
+          # Flatten the label to a list and append
+          labels_in_tile[super_class][sub_class].append(label.tolist())
 
   return labels_in_tile
 
@@ -387,44 +367,62 @@ def tile_image(label_coords, im_arr, im_size, data_info):
   [im_arr] is a numpy array of the entire queried image
   [im_size] is the shape of the numpy array
   """
-
   tile_size = data_info.tile_size
-  height, width, depth = im_size
-  total_rows = height//tile_size
-  total_cols = width//tile_size
+  step = tile_size-data_info.overlap
+
+  height, width, _ = im_size
+  # total_rows, total_cols = height//step, width//step
 
   index = 0
-
-  for row in range(total_rows):
-    for col in range(total_cols):
-      # row_start, row_end, col_start, col_end in pixels relative to entire img
-      row_start, row_end = row*tile_size, (row+1)*tile_size
-      col_start, col_end = col*tile_size, (col+1)*tile_size
+  for row_start in range(0, height-step, step):
+    for col_start in range(0, width-step, step):
+      # row_start,row_end, col_start, col_end in pixels relative to entire img
+      row_end, col_end = row_start+tile_size, col_start+tile_size
       tile = im_arr[row_start:row_end, col_start:col_end, :]
 
       # All the building bounding boxes in the tile range
-      labels_in_tile = boxes_in_tile(label_coords, col_start, col_end, row_start,row_end)
+      tile_range = [col_start, col_end, row_start, row_end]
+      labels_in_tile = boxes_in_tile(label_coords, tile_range)
       save_tile_and_bboxes(tile, labels_in_tile, index, data_info)
       
       index += 1
 
 
 def passed_arguments():
-  parser = argparse.ArgumentParser(description="Script to extract raw data from PAIRS and Open Street Map.")
-  parser.add_argument("--data_path",type=str, required=True, default='./data_path',\
+  parser = argparse.ArgumentParser(
+    description="Script to extract raw data from PAIRS and Open Street Map.")
+  parser.add_argument("-d", "--data_path",
+                      type=str, 
+                      required=True, 
                       help="Path to directory where extracted data will be stored.")
-  parser.add_argument("--tile_size", type=int, default=224,\
+  parser.add_argument("-t", "--tile_size", 
+                      type=int, 
+                      default=224,
                       help="Size of square tile (in pixels) into which to break large image.")
-  parser.add_argument("--query_path", type=str, default="./PAIRS_Queries/Query_WhitePlains.json",\
+  parser.add_argument("-o", "--overlap", 
+                      type=int, 
+                      default=0,
+                      help="Amount of overlapping pixels between adjacent tiles.")
+  parser.add_argument("-q", "--query_path", 
+                      type=str, 
+                      default=os.path.join(".", "PAIRS_Queries", "Query_WhitePlains.json"),
                       help="Path to file containing json query for PAIRS data.")
-  parser.add_argument("--classes", type=str, default="./classes.json",\
+  parser.add_argument("-c", "--classes", 
+                      type=str, 
+                      default=os.path.join(".", "classes.json"),
                       help="Path to json file determining OSM classes. Should not be changed.")
   args = parser.parse_args()
   return args
 
 if __name__ == "__main__":
   args = passed_arguments()
-  data_info = DataInfo(args.data_path, args.tile_size, args.query_path, args.classes)
+  data_info = DataInfo(
+    args.data_path,
+    args.tile_size,
+    args.overlap,
+    args.query_path,
+    args.classes
+  )
 
   # For now only IBM.
   create_dataset(data_info, source="IBM")     

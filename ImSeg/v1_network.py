@@ -7,7 +7,7 @@ import json
 import tensorflow.compat.v1 as tf
 tf.disable_v2_behavior()
 import scipy.misc
-from ImSeg_Dataset import ImSeg_Dataset as Data
+from ImSeg.ImSeg_Dataset import ImSeg_Dataset as Data
 import FCN.preprocess as preprocess
 import os
 from PIL import Image
@@ -388,11 +388,11 @@ if __name__ == "__main__":
     # . print testing accuracy for each epoch
     
     # Number of training samples and number of batches
-    num_train = data.data_sizes[0]
+    num_train = data.data_sizes["train"]
     num_train_batches = num_train//batch_size
 
     # Number of validation samples and number of batches
-    num_val = data.data_sizes[1]
+    num_val = data.data_sizes["val"]
     num_val_batches = num_val//batch_size
 
     # Mean and std-dev of training data
