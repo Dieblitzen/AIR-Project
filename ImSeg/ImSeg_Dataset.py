@@ -609,7 +609,7 @@ if __name__ == "__main__":
 
   # Visualize tiles.
   if args.tile:
-    inds = random.sample(range(ds.data_sizes["train"]), 20)
+    inds = random.sample(range(ds.data_sizes["train"]), min(20, ds.data_sizes["train"]))
     for i in inds:
       ds.visualize_tile(i, directory='train')
 
