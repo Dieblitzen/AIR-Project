@@ -47,18 +47,6 @@ class ImSeg_Dataset(Dataset):
     self.image_resize = image_resize
     self.seg_classes = self.sorted_classes(self.classes)
 
-    # Generates an (r, g, b) tuple for each class index
-    def get_color_choice(i):
-      sh = lambda m: (i << m) % 255 
-      color_choice = {
-        0: (255, sh(7), sh(4)), 1: (sh(7), 255, sh(4)), 2:(sh(6), sh(4), 255),
-        3: (255, sh(3), sh(5)), 4: (sh(3), 255, sh(5)), 5: (sh(3), sh(5), 255),
-        6: (255, 255, sh(3)), 7:(255, sh(3), 255), 8:(sh(3), 255, 255)
-      }
-      return color_choice.get(i % 9)
-
-    self.color_choice = get_color_choice
-
     # Set up data file paths
     self.train_val_test = train_val_test
     self.im_seg_path = os.path.join(self.data_path, 'im_seg')
@@ -416,7 +404,8 @@ class ImSeg_Dataset(Dataset):
     return images, annotations
 
 
-  def draw_mask_on_im(self, im_path, masks):
+  @staticmethod
+  def draw_mask_on_im(im_path, masks):
     """
     Helper method that opens an image, draws the segmentation masks in `masks`
     as bitmaps, and then returns the masked image.\n
@@ -424,6 +413,16 @@ class ImSeg_Dataset(Dataset):
       `im_path`: Path to .jpg image \n
       `masks`: Array shaped as: #C x h x w \n
     """
+    # Generates an (r, g, b) tuple for each class index
+    def get_color_choice(i):
+      sh = lambda m: (i << m) % 255 
+      color_choice = {
+        0: (255, sh(7), sh(4)), 1: (sh(7), 255, sh(4)), 2:(sh(6), sh(4), 255),
+        3: (255, sh(3), sh(5)), 4: (sh(3), 255, sh(5)), 5: (sh(3), sh(5), 255),
+        6: (255, 255, sh(3)), 7:(255, sh(3), 255), 8:(sh(3), 255, 255)
+      }
+      return color_choice.get(i % 9)
+
     # Open the image and set up an ImageDraw object
     im = Image.open(im_path).convert('RGB')
     im_draw = ImageDraw.Draw(im)
@@ -431,7 +430,7 @@ class ImSeg_Dataset(Dataset):
     # Draw the bitmap for each class
     for i, mask in enumerate(masks):
       mask_im = Image.fromarray(mask.astype(np.uint8) * 64, mode='L')
-      im_draw.bitmap((0,0), mask_im, fill=self.color_choice(i))
+      im_draw.bitmap((0,0), mask_im, fill=get_color_choice(i))
     
     return im
 
@@ -470,7 +469,7 @@ class ImSeg_Dataset(Dataset):
       pred_masks = np.transpose(pred_masks, (2, 0, 1))
       
       # Draw pred masks on image, save prediction
-      pred_im = self.draw_mask_on_im(im_path, pred_masks)
+      pred_im = ImSeg_Dataset.draw_mask_on_im(im_path, pred_masks)
       pred_im.save(os.path.join(self.preds_path, f'{set_type}_pred_{image_ind}.jpg'))
 
       # Save metrics for prediction
@@ -485,7 +484,7 @@ class ImSeg_Dataset(Dataset):
         annotation = np.array(annotation['annotation'])  # shape (C, h, w)
 
         gt_masks = annotation[indices_of_interest]
-        gt_im = self.draw_mask_on_im(im_path, gt_masks)
+        gt_im = ImSeg_Dataset.draw_mask_on_im(im_path, gt_masks)
         gt_im.save(os.path.join(self.preds_path, f'{set_type}_gt_{image_ind}.jpg'))
       
 
@@ -515,7 +514,7 @@ class ImSeg_Dataset(Dataset):
 
     # Draw masks on image
     im_path = os.path.join(path, 'images', f'{index}.jpg')
-    masked_im = self.draw_mask_on_im(im_path, class_masks)
+    masked_im = ImSeg_Dataset.draw_mask_on_im(im_path, class_masks)
     ax.imshow(masked_im)
     plt.show()
   
