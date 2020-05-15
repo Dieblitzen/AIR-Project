@@ -1,4 +1,4 @@
-# Scalable Automatic Mapping and Recognition
+# Aerial Intelligence for Responders
 
 This repository provides information to build geo-spatial datasets and train models to 
 automatically map regions of interest. The goal of this project is to assist automated mapping efforts for use in providing humanitarian relief after natural disasters, for example.
@@ -16,9 +16,9 @@ The overall strcuture of the project can be divided into the following component
 ## Dependencies and Setup
 1. Install `IBM Pairs Geoscope` by following these [instructions](https://pairs.res.ibm.com/tutorial/tutorials/api/technical_requirements.html). Complete all optional steps. Used for retrieving satellite imagery.
 2. Create IBM PAIRS account at [https://ibmpairs.mybluemix.net](https://ibmpairs.mybluemix.net/)
-2. `conda install -c conda-forge overpy`. Used for retrieving building/road labels sudofrom OpenStreeMaps
 3. `git clone https://github.com/Dieblitzen/SAMAR-Project.git`
-4. Create `SAMAR-Project/ibmpairspass.txt` and add `pairs.res.ibm.com:<email@email.com>:<password>` to file
+4. Once in the repository's directory, run `conda env create -f environment.yml`
+5. Create `SAMAR-Project/ibmpairspass.txt` and add `pairs.res.ibm.com:<email@email.com>:<password>` to file
 
 ## DataPipeline
 
